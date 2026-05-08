@@ -23,7 +23,7 @@ type UseReviewSubmitResult = {
 };
 
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'No se pudo enviar la resena';
+  return error instanceof Error ? error.message : 'No se pudo enviar la reseña.';
 }
 
 function wait(ms: number): Promise<void> {
@@ -51,14 +51,14 @@ export function useReviewSubmit(): UseReviewSubmitResult {
   const submitReview = async (params: SubmitReviewParams): Promise<void> => {
     if (!isTextValid) {
       useAppStore.setState({
-        reviewError: `La resena debe tener al menos ${MIN_REVIEW_LENGTH} caracteres`,
+        reviewError: `La reseña debe tener al menos ${MIN_REVIEW_LENGTH} caracteres.`,
       });
       return;
     }
 
     if (!walletPubKey) {
       useAppStore.setState({
-        reviewError: 'Conecta tu wallet para actualizar tus Aurios',
+        reviewError: 'Conecta tu wallet para actualizar tus Aurios.',
       });
       return;
     }
