@@ -13,10 +13,8 @@ if (!url || !anonKey) {
   process.exit(1);
 }
 
-// Cliente con anon key (simula el cliente móvil)
 export const supabase = createClient(url, anonKey);
 
-// Cliente con service_role (simula las Edge Functions)
 export const supabaseAdmin = serviceKey
   ? createClient(url, serviceKey)
   : null;
@@ -29,3 +27,9 @@ export const env = {
   testPassword: process.env.QA_TEST_PASSWORD ?? 'Chakana2024!',
   businessId: process.env.QA_BUSINESS_ID ?? '',
 };
+
+// Fuerza cierre del proceso para evitar el crash UV_HANDLE_CLOSING en Windows
+// causado por conexiones keep-alive del cliente Supabase
+export function done(code: number = 0): void {
+  setTimeout(() => process.exit(code), 100);
+}

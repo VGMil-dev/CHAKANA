@@ -26,7 +26,7 @@ for (const test of tests) {
 
   const result = spawnSync(
     'npx',
-    ['ts-node', '--exit', path.join(__dirname, test.file)],
+    ['ts-node', path.join(__dirname, test.file)],
     {
       stdio: 'inherit',
       env: { ...process.env },
