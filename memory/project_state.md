@@ -1,13 +1,13 @@
 # Project State -- Chakana
 
-**Fase actual:** Pre-desarrollo (solo docs y setup de flujo IA)
+**Fase actual:** Fase 1 - Setup inicial en progreso
 
 ---
 
 ## Foco Actual
 
-- **Objetivo:** Configurar entorno de desarrollo y comenzar Fase 1 (Setup Inicial, Horas 0-4).
-- **Next Step:** Cada dev inicializa su parte segun `chakana-48h-team-plan.md` Fase 1.
+- **Objetivo:** Conectar la app Expo con Supabase, Zustand y los modulos Web3/Backend ya preparados.
+- **Next Step:** Dev 2 implementa hooks de negocio sobre `src/store` y `src/services/supabase`.
 - **Contexto critico:** Es un hackathon de 48h. Priorizar que funcione sobre que sea elegante.
 
 ---
@@ -16,12 +16,18 @@
 
 - Documentacion tecnica (SRS, plan 48h, guias por dev)
 - Setup de flujo IA (AGENTS.md, memory, agents)
+- Supabase core: schema, RLS, Auth, reviews, businesses, oracle y QA 01-06 funcionando
+- Dev 2 Modulo 1: Zustand store base con slices de user, business, review y UI
+- Dev 2 Modulo 2: calculadora de descuento Aurios, helpers de slider y hook `useDiscount`
+- Dev 2 Modulo 3: hooks de negocio `useAuth`, `useBusinesses`, `useReviewSubmit` y `useCheckout`
+- Dev 2 Modulo 4: tipos compartidos, props para Dev 1, selectores y contrato `DEV2_CONTRACT.md`
 
 ---
 
 ## En Progreso
 
-- (ninguno)
+- App Expo / React Native pendiente de inicializacion en raiz
+- Integracion UI Dev 1 con hooks Dev 2 pendiente
 
 ---
 
