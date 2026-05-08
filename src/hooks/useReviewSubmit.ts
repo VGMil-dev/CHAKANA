@@ -58,7 +58,14 @@ export function useReviewSubmit(): UseReviewSubmitResult {
 
     if (!walletPubKey) {
       useAppStore.setState({
-        reviewError: 'Conecta tu wallet para actualizar tus Aurios.',
+        reviewError: 'Conecta tu wallet para recibir Aurios.',
+      });
+      return;
+    }
+
+    if (!params.businessId.trim()) {
+      useAppStore.setState({
+        reviewError: 'No se encontró la cafetería para guardar la reseña.',
       });
       return;
     }
