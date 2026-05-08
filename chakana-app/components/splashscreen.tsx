@@ -1,6 +1,39 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View, Text, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
+import Animated, { 
+  FadeInDown, FadeInUp, FadeIn, 
+  Keyframe, useSharedValue, useAnimatedStyle, withTiming, runOnJS 
+} from 'react-native-reanimated';
+
+const SPEED = 0.8;
+const s = (sec: number) => sec * 1000 * SPEED;
+
+const logoKeyframe = new Keyframe({
+  0: { transform: [{ scale: 0.35 }, { rotate: '-22deg' }], opacity: 0 },
+  55: { transform: [{ scale: 1.07 }, { rotate: '2deg' }], opacity: 1 },
+  80: { transform: [{ scale: 0.97 }, { rotate: '-1deg' }], opacity: 1 },
+  100: { transform: [{ scale: 1 }, { rotate: '0deg' }], opacity: 1 },
+}).delay(s(0.7)).duration(s(1.1));
+
+const dividerKeyframe = new Keyframe({
+  0: { transform: [{ scaleY: 0 }] },
+  100: { transform: [{ scaleY: 1 }] }
+}).delay(s(2.05)).duration(s(0.6));
+
+const barKeyframe = new Keyframe({
+  0: { transform: [{ scaleX: 0 }] },
+  100: { transform: [{ scaleX: 1 }] }
+}).delay(s(3.5)).duration(s(2.0));
+
+const titleLetters = ['C','H','A','K','A','N','A'];
+const mottoWords = [
+  { w: 'Aquí ', d: 2.30 },
+  { w: 'tu ', d: 2.42 },
+  { w: 'apoyo ', d: 2.54, highlight: true },
+  { w: 'vuelve.', d: 2.66 },
+];
+const cascadeText = 'REACTIVANDO LA ATENAS'.split('');
 
 export default function AnimatedSplashScreen({
   onAnimationFinish,
@@ -9,70 +42,122 @@ export default function AnimatedSplashScreen({
   onAnimationFinish: () => void;
   isAppReady: boolean;
 }) {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const hideAnim = useRef(new Animated.Value(1)).current;
+  const containerOpacity = useSharedValue(1);
+  const [animationComplete, setAnimationComplete] = useState(false);
 
   useEffect(() => {
-    // Fade in when mounted
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 800,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
+    const timer = setTimeout(() => {
+      setAnimationComplete(true);
+    }, s(4.0));
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (isAppReady) {
-      // Hide the native splash screen as we show our custom one
       SplashScreen.hideAsync().catch(() => {});
-
-      // Add a small delay to ensure the user sees the loader and the brand, then fade out
-      setTimeout(() => {
-        Animated.timing(hideAnim, {
-          toValue: 0,
-          duration: 400,
-          useNativeDriver: true,
-        }).start(() => {
-          onAnimationFinish();
-        });
-      }, 1500); // 1.5 seconds minimum display time
     }
-  }, [isAppReady, hideAnim, onAnimationFinish]);
+    
+    if (isAppReady && animationComplete) {
+      containerOpacity.value = withTiming(0, { duration: 400 }, (finished) => {
+        if (finished) {
+          runOnJS(onAnimationFinish)();
+        }
+      });
+    }
+  }, [isAppReady, animationComplete, containerOpacity, onAnimationFinish]);
+
+  const containerStyle = useAnimatedStyle(() => ({
+    opacity: containerOpacity.value,
+  }));
 
   return (
-    <Animated.View style={[styles.container, { opacity: hideAnim }]} pointerEvents="none">
-      <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
+    <Animated.View style={[styles.container, containerStyle]} pointerEvents="none">
+      <View style={styles.contentContainer}>
         
         <View style={styles.centerBlock}>
           <Animated.Image
+            entering={logoKeyframe}
             source={require('../assets/images/splash-icon.png')}
             style={styles.logo}
           />
-          <Text style={styles.title}>C H A K A N A</Text>
-          <Text style={styles.subtitle}>ECOSISTEMA DE ECONOMÍA CIRCULAR</Text>
-
-          <View style={styles.separator} />
-
-          <Text style={styles.motto}>
-            Aquí tu <Text style={styles.mottoHighlight}>apoyo</Text> vuelve.
-          </Text>
-          <Text style={styles.location}>· CUENCA, ECUADOR ·</Text>
           
-          <ActivityIndicator size="small" color="#9E392D" style={styles.loader} />
+          <View style={styles.titleContainer}>
+            {titleLetters.map((l, i) => (
+              <Animated.Text
+                key={i}
+                entering={FadeInDown.delay(s(1.25 + i * 0.06)).duration(s(0.55))}
+                style={styles.titleLetter}
+              >
+                {l}
+              </Animated.Text>
+            ))}
+          </View>
+          
+          <Animated.Text
+            entering={FadeInDown.delay(s(1.85)).duration(s(0.55))}
+            style={styles.subtitle}
+          >
+            ECOSISTEMA DE ECONOMÍA CIRCULAR
+          </Animated.Text>
+
+          <Animated.View
+            entering={dividerKeyframe}
+            style={styles.separator}
+          />
+
+          <View style={styles.mottoContainer}>
+            {mottoWords.map((t, i) => (
+              <Animated.Text
+                key={i}
+                entering={FadeInDown.delay(s(t.d)).duration(s(0.55))}
+                style={[styles.motto, t.highlight && styles.mottoHighlight]}
+              >
+                {t.w}
+              </Animated.Text>
+            ))}
+          </View>
+          
+          <Animated.Text
+            entering={FadeInDown.delay(s(3.0)).duration(s(0.6))}
+            style={styles.location}
+          >
+            · CUENCA, ECUADOR ·
+          </Animated.Text>
+          
+          <Animated.View entering={FadeIn.delay(s(4.0)).duration(s(0.5))} style={styles.loaderContainer}>
+            <ActivityIndicator size="small" color="#9E392D" />
+          </Animated.View>
         </View>
 
         <View style={styles.bottomBlock}>
-          <View style={styles.colorBarContainer}>
-            <View style={[styles.colorBarSegment, { backgroundColor: '#9E392D' }]} />
-            <View style={[styles.colorBarSegment, { backgroundColor: '#37AFB4' }]} />
-            <View style={[styles.colorBarSegment, { backgroundColor: '#E2C2B3' }]} />
+          <Animated.View
+            entering={FadeInUp.delay(s(3.4)).duration(s(0.5))}
+            style={styles.colorBarContainerWrapper}
+          >
+            <Animated.View entering={barKeyframe} style={styles.colorBarContainer}>
+              <View style={[styles.colorBarSegment, { backgroundColor: '#9E392D' }]} />
+              <View style={[styles.colorBarSegment, { backgroundColor: '#37AFB4' }]} />
+              <View style={[styles.colorBarSegment, { backgroundColor: '#E2C2B3' }]} />
+            </Animated.View>
+          </Animated.View>
+
+          <View style={styles.bottomTextContainer}>
+            {cascadeText.map((ch, i) => {
+              const isAtenas = i >= 15; // "REACTIVANDO LA " is 15 chars
+              return (
+                <Animated.Text
+                  key={i}
+                  entering={FadeInDown.delay(s(3.7 + i * 0.025)).duration(s(0.4))}
+                  style={[styles.bottomText, isAtenas && styles.bottomTextHighlight]}
+                >
+                  {ch === ' ' ? '\u00A0' : ch}
+                </Animated.Text>
+              );
+            })}
           </View>
-          <Text style={styles.bottomText}>
-            REACTIVANDO LA <Text style={styles.bottomTextHighlight}>ATENAS</Text>
-          </Text>
         </View>
         
-      </Animated.View>
+      </View>
     </Animated.View>
   );
 }
@@ -92,37 +177,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+    width: '100%',
   },
   logo: {
     width: 90,
     height: 90,
     resizeMode: 'contain',
-    marginBottom: 20,
+    marginBottom: 26,
   },
-  title: {
+  titleContainer: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  titleLetter: {
     fontSize: 24,
     fontWeight: '800',
     color: '#111111',
-    letterSpacing: 4,
-    marginBottom: 8,
+    letterSpacing: 2,
+    marginHorizontal: 2,
   },
   subtitle: {
     fontSize: 10,
     color: '#A09C96',
     letterSpacing: 2,
-    marginBottom: 30,
+    marginBottom: 22,
+    fontWeight: '600',
   },
   separator: {
     width: 1,
     height: 30,
     backgroundColor: '#E2C2B3',
-    marginBottom: 30,
+    marginBottom: 18,
+    transformOrigin: 'top',
+  },
+  mottoContainer: {
+    flexDirection: 'row',
+    marginBottom: 10,
   },
   motto: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#3D3D3D', // Gris Carbón
-    marginBottom: 8,
+    color: '#3D3D3D',
   },
   mottoHighlight: {
     color: '#9E392D',
@@ -131,9 +226,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#A09C96',
     letterSpacing: 1.5,
+    fontWeight: '500',
   },
-  loader: {
-    marginTop: 40,
+  loaderContainer: {
+    marginTop: 30,
+    height: 20,
   },
   bottomBlock: {
     position: 'absolute',
@@ -141,17 +238,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
   },
-  colorBarContainer: {
-    flexDirection: 'row',
-    width: '80%',
+  colorBarContainerWrapper: {
+    width: '60%',
     height: 2,
     marginBottom: 15,
+    backgroundColor: '#E6E2DD',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  colorBarContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    height: '100%',
+    transformOrigin: 'left',
   },
   colorBarSegment: {
     flex: 1,
   },
+  bottomTextContainer: {
+    flexDirection: 'row',
+  },
   bottomText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: '#A09C96',
     letterSpacing: 2,

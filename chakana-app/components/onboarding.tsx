@@ -3,7 +3,10 @@ import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView, ScrollVi
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import BottomSheet from './bottomsheet';
 
+import { useRouter } from 'expo-router';
+
 export default function Onboarding() {
+  const router = useRouter();
   const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
   return (
     <View style={styles.container}>
@@ -63,7 +66,11 @@ export default function Onboarding() {
 
         {/* Footer Actions */}
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
+          <TouchableOpacity 
+            style={styles.primaryButton} 
+            activeOpacity={0.8}
+            onPress={() => router.push('/home')}
+          >
             <Text style={styles.primaryButtonText}>Explorar Tambus</Text>
             <Ionicons name="arrow-forward" size={18} color="#FFFFFF" style={{ marginLeft: 8 }} />
           </TouchableOpacity>

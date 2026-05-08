@@ -1,8 +1,10 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import AnimatedSplashScreen from '../components/splashscreen';
+import { StatusBar } from 'expo-status-bar';
+import * as NavigationBar from 'expo-navigation-bar';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -14,8 +16,10 @@ export default function RootLayout() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Pre-load fonts, make any API calls you need to do here
-        // Artificially delay slightly to ensure smooth transition
+        if (Platform.OS === 'android') {
+          NavigationBar.setBackgroundColorAsync('#F5F0EB').catch(() => { });
+          NavigationBar.setButtonStyleAsync('dark').catch(() => { });
+        }
         await new Promise(resolve => setTimeout(resolve, 500));
       } catch (e) {
         console.warn(e);
@@ -30,7 +34,7 @@ export default function RootLayout() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar />
       <Stack
         screenOptions={{
           headerShown: false, // Hide header for the onboarding screen

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Display type</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin:0; padding:24px; background: var(--background); }
+  .row { display:flex; flex-direction: column; gap: 14px; }
+  .item { display:grid; grid-template-columns: 1fr auto; gap: 16px; align-items: baseline; }
+  .meta { font-family: var(--font-mono); font-size: 11px; color: var(--on-surface-muted); white-space: nowrap; text-align: right; }
+  .meta b { color: var(--primary); font-weight: 600; }
+  .sample { color: var(--on-surface); }
+</style></head>
+<body>
+  <div class="row">
+    <div class="item">
+      <div class="sample" style="font-family:var(--font-display); font-weight:700; font-size:3.5rem; line-height:1.05; letter-spacing:-0.02em;">Aquí tu apoyo vuelve.</div>
+      <div class="meta"><b>display-lg</b><br>Raleway 700 · 56/59 · −0.02em</div>
+    </div>
+    <div class="item">
+      <div class="sample" style="font-family:var(--font-display); font-weight:700; font-size:2.5rem; line-height:1.10; letter-spacing:-0.02em;">Reactivando la Atenas</div>
+      <div class="meta"><b>display-md</b><br>Raleway 700 · 40/44 · −0.02em</div>
+    </div>
+    <div class="item">
+      <div class="sample" style="font-family:var(--font-display); font-weight:600; font-size:2rem; line-height:1.15; letter-spacing:-0.015em;">Ecosistema circular</div>
+      <div class="meta"><b>display-sm</b><br>Raleway 600 · 32/37 · −0.015em</div>
+    </div>
+  </div>
+</body></html>
