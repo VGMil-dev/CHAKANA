@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import type { User } from '@supabase/supabase-js';
 
 export type AuthError = { message: string };
 
@@ -35,7 +36,7 @@ export async function getUser() {
   return data.user;
 }
 
-export function onAuthStateChange(callback: (user: any) => void) {
+export function onAuthStateChange(callback: (user: User | null) => void) {
   const { data } = supabase.auth.onAuthStateChange((_event, session) => {
     callback(session?.user ?? null);
   });

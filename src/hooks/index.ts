@@ -3,3 +3,4 @@ export { useBusinesses } from './useBusinesses';
 export { useReviewSubmit } from './useReviewSubmit';
 export { useCheckout } from './useCheckout';
 export { useDiscount } from './useDiscount';
+export { useWallet } from './useWallet';

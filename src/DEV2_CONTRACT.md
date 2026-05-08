@@ -21,6 +21,7 @@ Dev 1 NUNCA importa desde:
 | Hook | Valores principales | Callbacks principales |
 | --- | --- | --- |
 | `useAuth` | `isConnected`, `isAuthLoading`, `authError` | `login`, `register`, `logout`, `initAuth` |
+| `useWallet` | `walletPubKey`, `aurioBalance`, `isConnected`, `isConnectingWallet`, `walletError` | `connectWallet`, `disconnectWallet`, `refreshAurioBalance` |
 | `useBusinesses` | `listaTambus`, `tambuActivo`, `isLoadingBusinesses`, `businessError` | `fetchBusinesses`, `selectTambu`, `clearSelection` |
 | `useReviewSubmit` | `currentReviewText`, `isTextValid`, `charsRemaining`, `isSubmittingReview`, `reviewError`, `reviewSuccess` | `onTextChange`, `submitReview`, `resetForm` |
 | `useCheckout` | `checkoutTotal`, `discountResult`, `sliderMax`, `isProcessing`, `checkoutError` | `setTotal`, `onSliderChange`, `confirmCheckout` |
@@ -36,6 +37,8 @@ Dev 1 NUNCA importa desde:
 - Dev 3 solo entrega `tambuMint` y `signTransaction`.
 - Dev 1 solo llama `useCheckout.confirmCheckout(...)`, consume hooks y estados. Dev 1 no importa `aurio-sdk`.
 - `confirmCheckout` retorna `{ signature }` si el pago sale bien y `null` si falla.
+- `useWallet` conecta Phantom/Solflare en web con `window.solana` y Mobile Wallet Adapter en Android.
+- `useWallet` refresca el balance real con `getAurioBalance(walletPubKey)`.
 
 ## Selectores disponibles
 
