@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
-import Animated, { 
-  FadeInDown, FadeInUp, FadeIn, 
-  Keyframe, useSharedValue, useAnimatedStyle, withTiming, runOnJS 
+import Animated, {
+  FadeInDown, FadeInUp, FadeIn,
+  Keyframe, useSharedValue, useAnimatedStyle, withTiming, runOnJS
 } from 'react-native-reanimated';
 
-const SPEED = 0.8;
+const SPEED = 1;
 const s = (sec: number) => sec * 1000 * SPEED;
 
 const logoKeyframe = new Keyframe({
@@ -26,7 +26,7 @@ const barKeyframe = new Keyframe({
   100: { transform: [{ scaleX: 1 }] }
 }).delay(s(3.5)).duration(s(2.0));
 
-const titleLetters = ['C','H','A','K','A','N','A'];
+const titleLetters = ['C', 'H', 'A', 'K', 'A', 'N', 'A'];
 const mottoWords = [
   { w: 'Aquí ', d: 2.30 },
   { w: 'tu ', d: 2.42 },
@@ -54,9 +54,9 @@ export default function AnimatedSplashScreen({
 
   useEffect(() => {
     if (isAppReady) {
-      SplashScreen.hideAsync().catch(() => {});
+      SplashScreen.hideAsync().catch(() => { });
     }
-    
+
     if (isAppReady && animationComplete) {
       containerOpacity.value = withTiming(0, { duration: 400 }, (finished) => {
         if (finished) {
@@ -73,14 +73,14 @@ export default function AnimatedSplashScreen({
   return (
     <Animated.View style={[styles.container, containerStyle]} pointerEvents="none">
       <View style={styles.contentContainer}>
-        
+
         <View style={styles.centerBlock}>
           <Animated.Image
             entering={logoKeyframe}
             source={require('../assets/images/splash-icon.png')}
             style={styles.logo}
           />
-          
+
           <View style={styles.titleContainer}>
             {titleLetters.map((l, i) => (
               <Animated.Text
@@ -92,7 +92,7 @@ export default function AnimatedSplashScreen({
               </Animated.Text>
             ))}
           </View>
-          
+
           <Animated.Text
             entering={FadeInDown.delay(s(1.85)).duration(s(0.55))}
             style={styles.subtitle}
@@ -116,14 +116,14 @@ export default function AnimatedSplashScreen({
               </Animated.Text>
             ))}
           </View>
-          
+
           <Animated.Text
             entering={FadeInDown.delay(s(3.0)).duration(s(0.6))}
             style={styles.location}
           >
             · CUENCA, ECUADOR ·
           </Animated.Text>
-          
+
           <Animated.View entering={FadeIn.delay(s(4.0)).duration(s(0.5))} style={styles.loaderContainer}>
             <ActivityIndicator size="small" color="#9E392D" />
           </Animated.View>
@@ -156,7 +156,7 @@ export default function AnimatedSplashScreen({
             })}
           </View>
         </View>
-        
+
       </View>
     </Animated.View>
   );

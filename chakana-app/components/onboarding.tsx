@@ -31,9 +31,9 @@ export default function Onboarding() {
               <Ionicons name="storefront-outline" size={20} color="#9E392D" />
             </View>
             <View style={styles.cardTextContent}>
-              <Text style={styles.cardTitle}>Comprá en Tambus</Text>
+              <Text style={styles.cardTitle}>Compra en Tambus</Text>
               <Text style={styles.cardDescription}>
-                Negocios locales con identidad propia en Cuenca.
+                Apoya los negocios locales con identidad propia de Cuenca.
               </Text>
             </View>
           </View>
@@ -66,17 +66,17 @@ export default function Onboarding() {
 
         {/* Footer Actions */}
         <View style={styles.footer}>
-          <TouchableOpacity 
-            style={styles.primaryButton} 
+          <TouchableOpacity
+            style={styles.primaryButton}
             activeOpacity={0.8}
             onPress={() => router.push('/home')}
           >
-            <Text style={styles.primaryButtonText}>Explorar Tambus</Text>
-            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" style={{ marginLeft: 8 }} />
+            <Text style={styles.primaryButtonText}>Conecta tu Wallet</Text>
+            <Ionicons name="wallet-outline" size={18} color="#FFFFFF" style={{ marginLeft: 8 }} />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.secondaryLink} 
+          <TouchableOpacity
+            style={styles.secondaryLink}
             activeOpacity={0.6}
             onPress={() => setBottomSheetVisible(true)}
           >
@@ -86,9 +86,9 @@ export default function Onboarding() {
 
       </ScrollView>
 
-      <BottomSheet 
-        visible={isBottomSheetVisible} 
-        onClose={() => setBottomSheetVisible(false)} 
+      <BottomSheet
+        visible={isBottomSheetVisible}
+        onClose={() => setBottomSheetVisible(false)}
       />
     </View>
   );
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: 12,
   },
   primaryButtonText: {
     color: '#FFFFFF',
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   secondaryLink: {
-    padding: 8,
+    padding: 4,
   },
   secondaryLinkText: {
     fontSize: 13,
