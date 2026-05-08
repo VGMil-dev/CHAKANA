@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { Platform } from 'react-native';
-import { PublicKey } from '@solana/web3.js';
-import { transact } from '@solana-mobile/mobile-wallet-adapter-protocol-web3js';
 import { getAurioBalance } from 'aurio-sdk';
 import { useAppStore } from '../store';
 
@@ -64,6 +62,10 @@ async function disconnectWebWallet(): Promise<void> {
 }
 
 async function connectMobileWallet(): Promise<string> {
+  const [{ PublicKey }, { transact }] = await Promise.all([
+    import('@solana/web3.js'),
+    import('@solana-mobile/mobile-wallet-adapter-protocol-web3js'),
+  ]);
   const authorization = await transact(async (wallet) =>
     wallet.authorize({
       chain: 'solana:devnet',
