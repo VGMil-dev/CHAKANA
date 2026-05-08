@@ -40,6 +40,16 @@ Dev 1 NUNCA importa desde:
 - `useWallet` conecta Phantom/Solflare en web con `window.solana` y Mobile Wallet Adapter en Android.
 - `useWallet` refresca el balance real con `getAurioBalance(walletPubKey)`.
 
+## Flujo de reseñas y recompensa Aurio
+
+- El usuario escribe una reseña válida de mínimo 50 caracteres.
+- Dev 2 llama `insertReview`.
+- Dev 4/oráculo valida la reseña y mintea 1 Aurio a la wallet conectada.
+- Dev 2 espera aproximadamente 3 segundos.
+- Dev 2 refresca el balance real usando `getAurioBalance(walletPubKey)`.
+- Dev 2 nunca suma Aurios manualmente.
+- Dev 2 nunca mintea tokens.
+
 ## Selectores disponibles
 
 - `useWalletPubKey`
