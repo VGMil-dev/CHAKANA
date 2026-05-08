@@ -29,11 +29,12 @@ Dev 1 NUNCA importa desde:
 ## Integracion con Aurio SDK
 
 - `useReviewSubmit` refresca el balance con `getAurioBalance(walletPubKey)` despues de enviar una reseña y esperar al oraculo.
-- `useCheckout` construye la transaccion con `payToTambu({ sender, tambuMint, amount })`.
-- `useCheckout` envia y confirma usando `getAurioConnection()`.
-- `useCheckout` NO firma transacciones; recibe `signTransaction` desde Dev 3.
-- Dev 3 debe pasar `tambuMint` y `signTransaction`.
-- Dev 1 solo consume hooks y estados. Dev 1 no importa `aurio-sdk`.
+- `useCheckout` construye la transaccion real de Aurios con `payToTambu({ sender, tambuMint, amount })`.
+- `useCheckout` usa `getAurioConnection()` para enviar y confirmar la transaccion firmada.
+- `useCheckout` refresca el balance real con `getAurioBalance(walletPubKey)` despues de confirmar.
+- `useCheckout` NO firma transacciones; recibe `signTransaction(tx)` desde Dev 3.
+- Dev 3 solo entrega `tambuMint` y `signTransaction`.
+- Dev 1 solo llama `useCheckout.confirmCheckout(...)`, consume hooks y estados. Dev 1 no importa `aurio-sdk`.
 - `confirmCheckout` retorna `{ signature }` si el pago sale bien y `null` si falla.
 
 ## Selectores disponibles
