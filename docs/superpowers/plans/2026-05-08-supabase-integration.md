@@ -646,7 +646,7 @@ Esta función recibe un webhook de Supabase Database cuando se inserta una revie
   ```typescript
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-  const AURIOS_PER_REVIEW = 100; // 100 Aurios = $1.00 de descuento futuro
+  const AURIOS_PER_REVIEW = 1; // 1 Aurio = $0.01 de descuento futuro
 
   Deno.serve(async (req: Request) => {
     // Supabase Database Webhooks envían POST con el payload de la fila
@@ -731,7 +731,7 @@ Esta función recibe un webhook de Supabase Database cuando se inserta una revie
   );
   ```
 
-  Esperar ~3 segundos y verificar que `aurios_rewarded` se actualizó a `100` en la fila.
+  Esperar ~3 segundos y verificar que `aurios_rewarded` se actualiz� a `1` en la fila.
 
   Verificar logs: Dashboard → Functions → review-reward-oracle → Logs.
 
@@ -1023,6 +1023,8 @@ Este archivo centraliza las exportaciones para que Dev 2 importe desde un solo l
 ## Notas para el Demo (Golden Path de Valentina)
 
 1. **Auth:** Valentina hace signIn → `getUser()` devuelve su perfil con `wallet_pubkey`
-2. **Review:** Valentina escribe reseña → `insertReview()` → webhook → oráculo actualiza `aurios_rewarded = 100`
+2. **Review:** Valentina escribe reseña → `insertReview()` → webhook → oráculo actualiza `aurios_rewarded = 1`
 3. **Dev 3 lee** `aurios_rewarded` de la review recién insertada y ejecuta `mintTo` en Solana
 4. **Reporte:** Dueño de Raíz Café presiona "Generar" → Dev 2 llama `generate-report` edge function → recibe `audio_url` → reproduce con `expo-av`
+
+

@@ -1,6 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const AURIOS_PER_REVIEW = 100;
+const AURIOS_PER_REVIEW = 1;
 
 Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') {
