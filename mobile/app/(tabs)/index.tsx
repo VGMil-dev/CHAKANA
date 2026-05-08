@@ -1,6 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useReviewSubmit } from '../../../src/hooks/useReviewSubmit';
 import { useWallet } from '../../../src/hooks/useWallet';
+
+const TEST_BUSINESS_ID = process.env.EXPO_PUBLIC_QA_BUSINESS_ID ?? '';
 
 function shortenWallet(walletPubKey: string): string {
   return `${walletPubKey.slice(0, 4)}...${walletPubKey.slice(-4)}`;
@@ -16,6 +19,19 @@ export default function HomeScreen() {
     disconnectWallet,
     refreshAurioBalance,
   } = useWallet();
+  const {
+    currentReviewText,
+    charsRemaining,
+    isSubmittingReview,
+    reviewError,
+    reviewSuccess,
+    onTextChange,
+    submitReview,
+  } = useReviewSubmit();
+
+  const handleSubmitReview = () => {
+    void submitReview({ businessId: TEST_BUSINESS_ID });
+  };
 
   return (
     <View style={styles.container}>
@@ -54,6 +70,34 @@ export default function HomeScreen() {
       )}
 
       {walletError ? <Text style={styles.error}>{walletError}</Text> : null}
+
+      <View style={styles.reviewBox}>
+        <Text style={styles.sectionTitle}>Reseña de cafetería</Text>
+        <TextInput
+          style={styles.input}
+          value={currentReviewText}
+          onChangeText={onTextChange}
+          multiline
+          placeholder="Escribe una reseña real de mínimo 50 caracteres"
+          placeholderTextColor="#8B949E"
+          editable={!isSubmittingReview}
+        />
+        <Text style={styles.helper}>
+          Mínimo 50 caracteres · faltan {Math.max(charsRemaining, 0)}
+        </Text>
+        <Pressable
+          style={styles.button}
+          onPress={handleSubmitReview}
+          disabled={isSubmittingReview}>
+          <Text style={styles.buttonText}>
+            {isSubmittingReview ? 'Enviando...' : 'Enviar reseña'}
+          </Text>
+        </Pressable>
+        {reviewError ? <Text style={styles.error}>{reviewError}</Text> : null}
+        {reviewSuccess ? (
+          <Text style={styles.success}>Reseña enviada. Ganaste 1 Aurio.</Text>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -103,6 +147,38 @@ const styles = StyleSheet.create({
   error: {
     color: '#FF6B6B',
     fontSize: 14,
+    textAlign: 'center',
+  },
+  reviewBox: {
+    width: '100%',
+    maxWidth: 520,
+    gap: 10,
+    marginTop: 12,
+  },
+  sectionTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  input: {
+    minHeight: 110,
+    borderColor: '#30363D',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#FFFFFF',
+    padding: 12,
+    textAlignVertical: 'top',
+  },
+  helper: {
+    color: '#C9D1D9',
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  success: {
+    color: '#7EE787',
+    fontSize: 14,
+    fontWeight: '700',
     textAlign: 'center',
   },
 });
