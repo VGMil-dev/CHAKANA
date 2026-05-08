@@ -1,17 +1,15 @@
-import { getAurioBalance, payToTambu } from 'aurio-sdk';
-import { Connection, type Transaction } from '@solana/web3.js';
+import { getAurioBalance, getAurioConnection, payToTambu } from 'aurio-sdk';
+import type { Transaction } from '@solana/web3.js';
 import { useAppStore } from '../store';
 import { calculateDiscount, type DiscountResult } from '../utils/discountCalculator';
 import { getSliderMax } from '../utils/sliderConfig';
-
-const SOLANA_DEVNET_RPC_URL = 'https://api.devnet.solana.com';
 
 type ConfirmCheckoutParams = {
   tambuMint: string;
   signTransaction: (tx: Transaction) => Promise<Transaction>;
 };
 
-type ConfirmCheckoutResult = {
+type CheckoutSignatureResult = {
   signature: string;
 };
 
@@ -23,11 +21,11 @@ type UseCheckoutResult = {
   checkoutError: string | null;
   setTotal: (amount: number) => void;
   onSliderChange: (value: number) => void;
-  confirmCheckout: (params: ConfirmCheckoutParams) => Promise<ConfirmCheckoutResult>;
+  confirmCheckout: (params: ConfirmCheckoutParams) => Promise<CheckoutSignatureResult | null>;
 };
 
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'No se pudo completar el pago';
+  return error instanceof Error ? error.message : 'No se pudo completar el pago.';
 }
 
 export function useCheckout(): UseCheckoutResult {
@@ -62,22 +60,32 @@ export function useCheckout(): UseCheckoutResult {
 
   const confirmCheckout = async (
     params: ConfirmCheckoutParams
-  ): Promise<ConfirmCheckoutResult> => {
+  ): Promise<CheckoutSignatureResult | null> => {
+    if (!walletPubKey) {
+      setErrorMessage('Conecta tu wallet para pagar con Aurios.');
+      return null;
+    }
+
+    if (discountResult.auriosToSpend <= 0) {
+      setErrorMessage('Selecciona al menos 1 Aurio para pagar.');
+      return null;
+    }
+
+    if (!params.tambuMint.trim()) {
+      setErrorMessage('Falta el mint del Tambu para completar el pago.');
+      return null;
+    }
+
     setIsLoading(true);
     setErrorMessage(null);
-
     try {
-      if (!walletPubKey) {
-        throw new Error('Conecta tu wallet para pagar con Aurios');
-      }
-
       const transaction = await payToTambu({
         sender: walletPubKey,
         tambuMint: params.tambuMint,
         amount: discountResult.auriosToSpend,
       });
       const signedTransaction = await params.signTransaction(transaction);
-      const connection = new Connection(SOLANA_DEVNET_RPC_URL, 'confirmed');
+      const connection = getAurioConnection();
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
 
       await connection.confirmTransaction(signature, 'confirmed');
@@ -88,7 +96,7 @@ export function useCheckout(): UseCheckoutResult {
       return { signature };
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
-      return { signature: '' };
+      return null;
     } finally {
       setIsLoading(false);
     }
