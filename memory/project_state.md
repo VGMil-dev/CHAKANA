@@ -21,12 +21,13 @@
 - Dev 2 Modulo 2: calculadora de descuento Aurios, helpers de slider y hook `useDiscount`
 - Dev 2 Modulo 3: hooks de negocio `useAuth`, `useBusinesses`, `useReviewSubmit` y `useCheckout`
 - Dev 2 Modulo 4: tipos compartidos, props para Dev 1, selectores y contrato `DEV2_CONTRACT.md`
+- Integracion Supabase Auth en app Expo: `initAuth` al arrancar, login/registro/logout en pantalla minima y estado `authUserId`/`authEmail` en Zustand
 
 ---
 
 ## En Progreso
 
-- App Expo / React Native pendiente de inicializacion en raiz
+- App Expo / React Native inicializada en `mobile/` con pantalla minima de integracion
 - Integracion UI Dev 1 con hooks Dev 2 pendiente
 
 ---

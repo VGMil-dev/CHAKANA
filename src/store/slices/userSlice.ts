@@ -2,6 +2,8 @@ import type { StateCreator } from 'zustand';
 import type { AppStore } from '../index';
 
 export type UserSlice = {
+  authUserId: string | null;
+  authEmail: string | null;
   walletPubKey: string | null;
   aurioBalance: number;
   isConnected: boolean;
@@ -17,10 +19,18 @@ export type UserSlice = {
 
 type UserState = Pick<
   UserSlice,
-  'walletPubKey' | 'aurioBalance' | 'isConnected' | 'isAuthLoading' | 'authError'
+  | 'authUserId'
+  | 'authEmail'
+  | 'walletPubKey'
+  | 'aurioBalance'
+  | 'isConnected'
+  | 'isAuthLoading'
+  | 'authError'
 >;
 
 const initialUserState: UserState = {
+  authUserId: null,
+  authEmail: null,
   walletPubKey: null,
   aurioBalance: 0,
   isConnected: false,

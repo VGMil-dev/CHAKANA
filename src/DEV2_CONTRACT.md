@@ -20,7 +20,7 @@ Dev 1 NUNCA importa desde:
 
 | Hook | Valores principales | Callbacks principales |
 | --- | --- | --- |
-| `useAuth` | `isConnected`, `isAuthLoading`, `authError` | `login`, `register`, `logout`, `initAuth` |
+| `useAuth` | `authUserId`, `authEmail`, `isConnected`, `isAuthLoading`, `authError` | `login`, `register`, `logout`, `initAuth` |
 | `useWallet` | `walletPubKey`, `aurioBalance`, `isConnected`, `isConnectingWallet`, `walletError` | `connectWallet`, `disconnectWallet`, `refreshAurioBalance` |
 | `useBusinesses` | `listaTambus`, `tambuActivo`, `isLoadingBusinesses`, `businessError` | `fetchBusinesses`, `selectTambu`, `clearSelection` |
 | `useReviewSubmit` | `currentReviewText`, `isTextValid`, `charsRemaining`, `isSubmittingReview`, `reviewError`, `reviewSuccess` | `onTextChange`, `submitReview`, `resetForm` |
@@ -40,6 +40,15 @@ Dev 1 NUNCA importa desde:
 - `useWallet` conecta Phantom/Solflare en web con `window.solana` y Mobile Wallet Adapter en Android.
 - `useWallet` refresca el balance real con `getAurioBalance(walletPubKey)`.
 
+## Integracion con Supabase Auth
+
+- `useAuth.login(email, password)` llama `signIn` de Supabase y guarda `authUserId` y `authEmail` en Zustand.
+- `useAuth.register(email, password, displayName)` llama `signUp` de Supabase y deja la sesion lista si Supabase devuelve usuario.
+- `useAuth.initAuth()` se llama una sola vez al arrancar la app para hidratar la sesion activa.
+- `useAuth.logout()` cierra la sesion en Supabase y limpia solo el estado de autenticacion.
+- `isConnected` de `useAuth` significa sesion Supabase activa; la conexion de wallet sigue viviendo en `useWallet`.
+- Dev 1 consume `useAuth`; no importa `../services/supabase` directamente.
+
 ## Flujo de reseñas y recompensa Aurio
 
 - El usuario escribe una reseña válida de mínimo 50 caracteres.
@@ -53,6 +62,8 @@ Dev 1 NUNCA importa desde:
 ## Selectores disponibles
 
 - `useWalletPubKey`
+- `useAuthUserId`
+- `useAuthEmail`
 - `useAurioBalance`
 - `useIsConnected`
 - `useIsAuthLoading`

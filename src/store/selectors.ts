@@ -1,5 +1,7 @@
 import { useAppStore } from './index';
 
+export const useAuthUserId = () => useAppStore((state) => state.authUserId);
+export const useAuthEmail = () => useAppStore((state) => state.authEmail);
 export const useWalletPubKey = () => useAppStore((state) => state.walletPubKey);
 export const useAurioBalance = () => useAppStore((state) => state.aurioBalance);
 export const useIsConnected = () => useAppStore((state) => state.isConnected);

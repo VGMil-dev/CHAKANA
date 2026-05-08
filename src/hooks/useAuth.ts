@@ -1,7 +1,10 @@
-import { getUser, signIn, signOut, signUp } from '../services/supabase';
+import { useCallback } from 'react';
+import { getSession, signIn, signOut, signUp } from '../services/supabase';
 import { useAppStore } from '../store';
 
 type UseAuthResult = {
+  authUserId: string | null;
+  authEmail: string | null;
   isConnected: boolean;
   isAuthLoading: boolean;
   authError: string | null;
@@ -12,29 +15,32 @@ type UseAuthResult = {
 };
 
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'No se pudo completar la autenticacion';
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return 'No se pudo completar la autenticacion';
 }
 
 export function useAuth(): UseAuthResult {
-  const isConnected = useAppStore((state) => state.isConnected);
+  const authUserId = useAppStore((state) => state.authUserId);
+  const authEmail = useAppStore((state) => state.authEmail);
   const isAuthLoading = useAppStore((state) => state.isAuthLoading);
   const authError = useAppStore((state) => state.authError);
   const setUser = useAppStore((state) => state.setUser);
-  const setIsConnected = useAppStore((state) => state.setIsConnected);
-  const logoutStore = useAppStore((state) => state.logout);
 
   const login = async (email: string, password: string): Promise<void> => {
     setUser({ isAuthLoading: true, authError: null });
     try {
       const user = await signIn(email, password);
       setUser({
-        isConnected: !!user,
+        authUserId: user?.id ?? null,
+        authEmail: user?.email ?? email,
         isAuthLoading: false,
         authError: null,
       });
     } catch (error) {
       setUser({
-        isConnected: false,
         isAuthLoading: false,
         authError: getErrorMessage(error),
       });
@@ -50,13 +56,13 @@ export function useAuth(): UseAuthResult {
     try {
       const user = await signUp(email, password, displayName);
       setUser({
-        isConnected: !!user,
+        authUserId: user?.id ?? null,
+        authEmail: user?.email ?? email,
         isAuthLoading: false,
         authError: null,
       });
     } catch (error) {
       setUser({
-        isConnected: false,
         isAuthLoading: false,
         authError: getErrorMessage(error),
       });
@@ -67,26 +73,13 @@ export function useAuth(): UseAuthResult {
     setUser({ isAuthLoading: true, authError: null });
     try {
       await signOut();
-      logoutStore();
-    } catch (error) {
       setUser({
-        isAuthLoading: false,
-        authError: getErrorMessage(error),
-      });
-    }
-  };
-
-  const initAuth = async (): Promise<void> => {
-    setUser({ isAuthLoading: true, authError: null });
-    try {
-      const user = await getUser();
-      setUser({
-        isConnected: !!user,
+        authUserId: null,
+        authEmail: null,
         isAuthLoading: false,
         authError: null,
       });
     } catch (error) {
-      setIsConnected(false);
       setUser({
         isAuthLoading: false,
         authError: getErrorMessage(error),
@@ -94,8 +87,31 @@ export function useAuth(): UseAuthResult {
     }
   };
 
+  const initAuth = useCallback(async (): Promise<void> => {
+    setUser({ isAuthLoading: true, authError: null });
+    try {
+      const session = await getSession();
+      const user = session?.user ?? null;
+      setUser({
+        authUserId: user?.id ?? null,
+        authEmail: user?.email ?? null,
+        isAuthLoading: false,
+        authError: null,
+      });
+    } catch (error) {
+      setUser({
+        authUserId: null,
+        authEmail: null,
+        isAuthLoading: false,
+        authError: getErrorMessage(error),
+      });
+    }
+  }, [setUser]);
+
   return {
-    isConnected,
+    authUserId,
+    authEmail,
+    isConnected: !!authUserId,
     isAuthLoading,
     authError,
     login,
