@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export interface TambuCardProps {
@@ -14,19 +14,16 @@ export interface TambuCardProps {
 }
 
 function TambuImg({ tone, label, height }: { tone: string, label: string, height: number }) {
-  // Map tone to a background color
-  const bgColors: { [key: string]: string } = {
-    clay: '#D4A373',
-    weave: '#7B9071',
-    ember: '#9E392D',
-  };
-  const bgColor = bgColors[tone] || '#D4A373';
   return (
-    <View style={[{ height, backgroundColor: bgColor }, styles.tambuImgContainer]}>
+    <ImageBackground 
+      source={require('../assets/images/tambu_placeholder.webp')} 
+      style={[{ height }, styles.tambuImgContainer]}
+      imageStyle={{ resizeMode: 'cover' }}
+    >
       <View style={styles.tambuImgLabelContainer}>
         <Text style={styles.tambuImgLabel}>{label}</Text>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 

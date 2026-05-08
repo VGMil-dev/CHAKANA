@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import BalancePill from '../components/BalancePill';
 import Chip from '../components/Chip';
@@ -10,11 +11,19 @@ import ChakanaDial from '../components/ChakanaDial';
 export default function Home() {
   const insets = useSafeAreaInsets();
   const [active, setActive] = useState('Café');
-  const cats = ['Todos', 'Café', 'Arte', 'Mercado', 'Talleres', 'Ferias', 'Pan'];
+  const cats = [
+    { label: 'Todos', iconName: 'apps-outline' as const },
+    { label: 'Café', iconName: 'cafe-outline' as const },
+    { label: 'Arte', iconName: 'color-palette-outline' as const },
+    { label: 'Mercado', iconName: 'basket-outline' as const },
+    { label: 'Talleres', iconName: 'construct-outline' as const },
+    { label: 'Ferias', iconName: 'storefront-outline' as const },
+    { label: 'Pan', iconName: 'restaurant-outline' as const },
+  ];
   const tambus = [
-    { name:'Tambu San Sebastián',   barrio:'San Sebastián · 0.4 km', cat:'CAFÉ',   tone:'clay',   rating: 4.9, n: 312, aurios: 12 },
-    { name:'Hilos de Susudel',      barrio:'El Vado · 1.1 km',       cat:'TEXTIL', tone:'weave',  rating: 4.8, n: 187, aurios: 18 },
-    { name:'Panadería Vieja Plaza', barrio:'Centro · 0.6 km',        cat:'PAN',    tone:'ember',  rating: 4.7, n: 421, aurios: 8  },
+    { name: 'Tambu San Sebastián', barrio: 'San Sebastián · 0.4 km', cat: 'CAFÉ', tone: 'clay', rating: 4.9, n: 312, aurios: 12 },
+    { name: 'Hilos de Susudel', barrio: 'El Vado · 1.1 km', cat: 'TEXTIL', tone: 'weave', rating: 4.8, n: 187, aurios: 18 },
+    { name: 'Panadería Vieja Plaza', barrio: 'Centro · 0.6 km', cat: 'PAN', tone: 'ember', rating: 4.7, n: 421, aurios: 8 },
   ];
 
   return (
@@ -28,15 +37,15 @@ export default function Home() {
           <Text style={styles.headerEyebrow}>BUEN DÍA · CUENCA</Text>
           <Text style={styles.headerTitle}>Hola, Mateo.</Text>
         </View>
-        <BalancePill amount={2840}/>
+        <BalancePill amount={2840} />
       </View>
 
       {/* Eyebrow + display title */}
       <View style={styles.displaySection}>
-        <Text style={styles.displayEyebrow}>01 · MERCADO</Text>
+        <Text style={styles.displayEyebrow}>MERCADO</Text>
         <Text style={styles.displayTitle}>
-          Tambus que{'\n'}
-          <Text style={{ color:'#A63A2F' }}>laten hoy.</Text>
+          Tambús que{'\n'}
+          <Text style={{ color: '#A63A2F' }}>laten hoy.</Text>
         </Text>
       </View>
 
@@ -44,18 +53,23 @@ export default function Home() {
       <View style={styles.chipsWrapper}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsContainer}>
           {cats.map(c => (
-            <Chip key={c} label={c} active={c === active} onClick={() => setActive(c)}/>
+            <Chip
+              key={c.label}
+              label={c.label}
+              active={c.label === active}
+              onClick={() => setActive(c.label)}
+              icon={<Ionicons name={c.iconName} size={14} color={c.label === active ? '#FDFAF7' : '#3D3D3D'} />}
+            />
           ))}
         </ScrollView>
       </View>
 
       {/* Feed */}
       <ScrollView contentContainerStyle={styles.feedContainer} showsVerticalScrollIndicator={false}>
-        {tambus.map((t, i) => <TambuCard key={t.name} {...t} featured={i === 0}/>)}
+        {tambus.map((t, i) => <TambuCard key={t.name} {...t} featured={i === 0} />)}
 
         <View style={styles.cycleNote}>
-          <Text style={styles.cycleNoteTitle}>· EL CICLO ·</Text>
-          <Text style={styles.cycleNoteText}>Cada compra siembra. Cada reseña riega.</Text>
+          <Text style={styles.cycleNoteText}>Cada compra siembra.{'\n'} Cada reseña hace crecer.</Text>
         </View>
       </ScrollView>
 
@@ -141,25 +155,19 @@ const styles = StyleSheet.create({
     gap: 28,
   },
   cycleNote: {
-    marginTop: 16,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    backgroundColor: '#F8F3EE',
+    marginTop: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 28,
     alignItems: 'center',
   },
-  cycleNoteTitle: {
-    color: '#A63A2F',
-    fontWeight: '600',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    fontSize: 10,
-    marginBottom: 8,
-  },
+
   cycleNoteText: {
-    fontSize: 13,
-    color: '#6B645C',
+    fontSize: 16,
+    color: '#3D3D3D',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
+    fontWeight: '300',
+    fontFamily: 'Graphik-Light',
+    fontStyle: 'italic',
   },
 });
