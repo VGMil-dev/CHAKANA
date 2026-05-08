@@ -40,36 +40,41 @@ export default function Home() {
         <BalancePill amount={2840} />
       </View>
 
-      {/* Eyebrow + display title */}
-      <View style={styles.displaySection}>
-        <Text style={styles.displayEyebrow}>MERCADO</Text>
-        <Text style={styles.displayTitle}>
-          Tambús que{'\n'}
-          <Text style={{ color: '#A63A2F' }}>laten hoy.</Text>
-        </Text>
-      </View>
+      <ScrollView 
+        stickyHeaderIndices={[1]} 
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Eyebrow + display title */}
+        <View style={styles.displaySection}>
+          <Text style={styles.displayEyebrow}>MERCADO</Text>
+          <Text style={styles.displayTitle}>
+            Tambús que{'\n'}
+            <Text style={{ color: '#A63A2F' }}>laten hoy.</Text>
+          </Text>
+        </View>
 
-      {/* Filter chips */}
-      <View style={styles.chipsWrapper}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsContainer}>
-          {cats.map(c => (
-            <Chip
-              key={c.label}
-              label={c.label}
-              active={c.label === active}
-              onClick={() => setActive(c.label)}
-              icon={<Ionicons name={c.iconName} size={14} color={c.label === active ? '#FDFAF7' : '#3D3D3D'} />}
-            />
-          ))}
-        </ScrollView>
-      </View>
+        {/* Filter chips (Sticky) */}
+        <View style={styles.stickyChipsContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsContainer}>
+            {cats.map(c => (
+              <Chip
+                key={c.label}
+                label={c.label}
+                active={c.label === active}
+                onClick={() => setActive(c.label)}
+                icon={<Ionicons name={c.iconName} size={14} color={c.label === active ? '#FDFAF7' : '#3D3D3D'} />}
+              />
+            ))}
+          </ScrollView>
+        </View>
 
-      {/* Feed */}
-      <ScrollView contentContainerStyle={styles.feedContainer} showsVerticalScrollIndicator={false}>
-        {tambus.map((t, i) => <TambuCard key={t.name} {...t} featured={i === 0} />)}
+        {/* Feed */}
+        <View style={styles.feedContainer}>
+          {tambus.map((t, i) => <TambuCard key={t.name} {...t} featured={i === 0} />)}
 
-        <View style={styles.cycleNote}>
-          <Text style={styles.cycleNoteText}>Cada compra siembra.{'\n'} Cada reseña hace crecer.</Text>
+          <View style={styles.cycleNote}>
+            <Text style={styles.cycleNoteText}>Cada compra siembra.{'\n'} Cada reseña hace crecer.</Text>
+          </View>
         </View>
       </ScrollView>
 
@@ -125,7 +130,7 @@ const styles = StyleSheet.create({
   displaySection: {
     paddingHorizontal: 28,
     paddingTop: 8,
-    paddingBottom: 36,
+    paddingBottom: 24,
   },
   displayEyebrow: {
     fontWeight: '600',
@@ -142,8 +147,11 @@ const styles = StyleSheet.create({
     letterSpacing: -0.8,
     marginTop: 12,
   },
-  chipsWrapper: {
-    marginBottom: 28,
+  stickyChipsContainer: {
+    backgroundColor: '#F5F0EB',
+    paddingTop: 12,
+    paddingBottom: 28,
+    zIndex: 10,
   },
   chipsContainer: {
     paddingHorizontal: 28,
