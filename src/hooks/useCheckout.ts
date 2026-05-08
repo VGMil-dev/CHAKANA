@@ -62,17 +62,22 @@ export function useCheckout(): UseCheckoutResult {
     params: ConfirmCheckoutParams
   ): Promise<CheckoutSignatureResult | null> => {
     if (!walletPubKey) {
-      setErrorMessage('Conecta tu wallet para pagar con Aurios.');
+      setErrorMessage('Conecta tu wallet antes de pagar con Aurios.');
       return null;
     }
 
-    if (discountResult.auriosToSpend <= 0) {
-      setErrorMessage('Selecciona al menos 1 Aurio para pagar.');
+    if (auriosToSpend <= 0) {
+      setErrorMessage('Selecciona una cantidad de Aurios para usar.');
       return null;
     }
 
     if (!params.tambuMint.trim()) {
-      setErrorMessage('Falta el mint del Tambu para completar el pago.');
+      setErrorMessage('No se encontró el Tambu destino para la transacción.');
+      return null;
+    }
+
+    if (typeof params.signTransaction !== 'function') {
+      setErrorMessage('No se pudo acceder al firmador de la wallet.');
       return null;
     }
 
@@ -82,7 +87,7 @@ export function useCheckout(): UseCheckoutResult {
       const transaction = await payToTambu({
         sender: walletPubKey,
         tambuMint: params.tambuMint,
-        amount: discountResult.auriosToSpend,
+        amount: auriosToSpend,
       });
       const signedTransaction = await params.signTransaction(transaction);
       const connection = getAurioConnection();
