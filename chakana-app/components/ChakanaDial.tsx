@@ -1,0 +1,112 @@
+import React from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+
+function DialIcon({ icon, label }: { icon: any, label: string }) {
+  return (
+    <TouchableOpacity style={styles.dialIconContainer} activeOpacity={0.6}>
+      {icon}
+      <Text style={styles.dialIconLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+export default function ChakanaDial() {
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={[styles.dialContainer, { bottom: insets.bottom + 18 }]}>
+      {/* Solid white bar */}
+      <View style={styles.dialGlass}>
+        <DialIcon icon={<Ionicons name="home-outline" size={24} color="#6B645C" />} label="HOY" />
+        <DialIcon icon={<Ionicons name="sync-outline" size={24} color="#6B645C" />} label="CICLO" />
+        <View style={{ width: 72 }} />
+        <DialIcon icon={<Ionicons name="person-outline" size={24} color="#6B645C" />} label="YO" />
+        <DialIcon icon={<Ionicons name="notifications-outline" size={24} color="#6B645C" />} label="ECO" />
+      </View>
+
+      {/* Center Chakana button */}
+      <View style={styles.dialCenterWrapper}>
+        <LinearGradient
+          colors={['#C5836F', '#A63A2F', '#6E1C13']}
+          start={{ x: 0.35, y: 0.3 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.dialCenterButton}
+        >
+          <Image source={require('../assets/images/splash-icon.png')} style={styles.dialCenterIcon} />
+        </LinearGradient>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  dialContainer: {
+    position: 'absolute',
+    alignSelf: 'center',
+    width: '92%',
+    height: 72,
+    zIndex: 20,
+    shadowColor: '#86231A',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.25,
+    shadowRadius: 32,
+    elevation: 16,
+  },
+  dialGlass: {
+    position: 'absolute',
+    top: 6,
+    bottom: 6,
+    left: 0,
+    right: 0,
+    borderRadius: 999,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(140,133,123,0.15)',
+    backgroundColor: '#FFFFFF',
+  },
+  dialCenterWrapper: {
+    position: 'absolute',
+    left: '50%',
+    top: -4,
+    width: 72,
+    height: 72,
+    transform: [{ translateX: -36 }],
+    borderRadius: 36,
+    backgroundColor: '#FFFFFF',
+    padding: 6,
+    shadowColor: '#86231A',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.35,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  dialCenterButton: {
+    flex: 1,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dialCenterIcon: {
+    width: 28,
+    height: 28,
+    tintColor: '#FDFAF7',
+    resizeMode: 'contain',
+  },
+  dialIconContainer: {
+    alignItems: 'center',
+    gap: 4,
+    width: 48,
+  },
+  dialIconLabel: {
+    fontSize: 9.5,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    fontWeight: '700',
+    color: '#6B645C',
+  },
+});
