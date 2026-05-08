@@ -1,0 +1,24 @@
+{
+  "name": "chakana-qa",
+  "version": "1.0.0",
+  "description": "QA smoke tests for Chakana Supabase integration",
+  "scripts": {
+    "test": "ts-node run-all.ts",
+    "test:connection": "ts-node 01-project-connection.ts",
+    "test:schema": "ts-node 02-schema-and-rls.ts",
+    "test:auth": "ts-node 03-auth-service.ts",
+    "test:reviews": "ts-node 04-reviews-service.ts",
+    "test:businesses": "ts-node 05-businesses-service.ts",
+    "test:oracle": "ts-node 06-oracle-edge-function.ts",
+    "test:report": "ts-node 07-generate-report-edge-function.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
