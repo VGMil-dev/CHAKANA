@@ -7,6 +7,10 @@
  */
 import { supabaseAdmin, env } from './lib/client';
 import { check, assert, printSummary, QAResult } from './lib/runner';
+import { done } from './lib/client';
+
+let seededReviewId: string | null = null;
+let seededUserId: string | null = null;
 
 async function run() {
   console.log('\n🎙️  QA 07: Edge Function — generate-report\n');
@@ -17,6 +21,25 @@ async function run() {
       'Configurar QA_BUSINESS_ID en qa/.env con el UUID del negocio que tiene reseñas');
   }));
 
+  // Seed: crear usuario y reseña de prueba para que generate-report tenga datos
+  results.push(await check('Setup: seed de reseña para generate-report', async () => {
+    assert(!!supabaseAdmin, 'SUPABASE_SERVICE_ROLE_KEY requerida');
+    const email = `qa-report-${Date.now()}@chakana.dev`;
+    const { data: userData, error: userErr } = await supabaseAdmin!.auth.admin.createUser({
+      email, password: 'Chakana2024!', email_confirm: true,
+    });
+    assert(!userErr && !!userData.user, `No se pudo crear usuario seed: ${userErr?.message}`);
+    seededUserId = userData.user!.id;
+
+    const { data: review, error: reviewErr } = await supabaseAdmin!.from('reviews').insert({
+      user_id: seededUserId,
+      business_id: env.businessId,
+      text: 'El café de Raíz es extraordinario, la calidad del café artesanal y la atención personalizada hacen de cada visita una experiencia única y memorable en Cuenca.',
+    }).select().single();
+    assert(!reviewErr && !!review, `No se pudo insertar reseña seed: ${reviewErr?.message}`);
+    seededReviewId = review!.id;
+  }));
+
   results.push(await check('generate-report: endpoint responde 200 con audio_url', async () => {
     const url = `${env.url}/functions/v1/generate-report?business_id=${env.businessId}`;
     const response = await fetch(url, {
@@ -24,7 +47,7 @@ async function run() {
       headers: { 'Authorization': `Bearer ${env.anonKey}` },
     });
     assert(response.ok, `Edge Function retornó ${response.status}: ${await response.text()}`);
-    const body = await response.json();
+    const body = await response.json() as { audio_url?: string; report_path?: string };
     assert(!!body.audio_url, `Respuesta no tiene audio_url: ${JSON.stringify(body)}`);
     assert(typeof body.audio_url === 'string' && body.audio_url.startsWith('https'),
       `audio_url no es una URL válida: ${body.audio_url}`);
@@ -39,7 +62,7 @@ async function run() {
     if (!reportResponse.ok) {
       throw new Error(`Edge Function falló con ${reportResponse.status}`);
     }
-    const { audio_url } = await reportResponse.json();
+    const { audio_url } = await reportResponse.json() as { audio_url: string };
 
     const audioResponse = await fetch(audio_url);
     assert(audioResponse.ok, `audio_url no es descargable (${audioResponse.status})`);
@@ -59,10 +82,10 @@ async function run() {
       .order('generated_at', { ascending: false })
       .limit(1)
       .single();
-    assert(!error, `No hay registros en audio_reports: ${error?.message}`);
-    assert(!!data.storage_path, 'storage_path vacío en el registro de audio_report');
+    assert(!error && !!data, `No hay registros en audio_reports: ${error?.message}`);
+    assert(!!data!.storage_path, 'storage_path vacío en el registro de audio_report');
     // El reporte debería ser reciente (últimos 5 minutos)
-    const ageMs = Date.now() - new Date(data.generated_at).getTime();
+    const ageMs = Date.now() - new Date(data!.generated_at).getTime();
     assert(ageMs < 5 * 60 * 1000,
       `El último reporte tiene ${Math.round(ageMs / 1000)}s de antigüedad — ¿se generó correctamente?`);
   }));
@@ -73,7 +96,7 @@ async function run() {
       headers: { 'Authorization': `Bearer ${env.anonKey}` },
     });
     assert(response.status === 400, `Se esperaba 400, got ${response.status}`);
-    const body = await response.json();
+    const body = await response.json() as { error?: string };
     assert(!!body.error, 'Respuesta de error no tiene campo error');
   }));
 
@@ -87,8 +110,14 @@ async function run() {
     assert(response.status === 404, `Se esperaba 404, got ${response.status}`);
   }));
 
+  // Cleanup
+  if (supabaseAdmin) {
+    if (seededReviewId) await supabaseAdmin.from('reviews').delete().eq('id', seededReviewId);
+    if (seededUserId) await supabaseAdmin.auth.admin.deleteUser(seededUserId);
+  }
+
   printSummary('QA 07 - generate-report Edge Function', results);
   return results.every(r => r.pass);
 }
 
-run().then(ok => process.exit(ok ? 0 : 1));
+run().then(ok => done(ok ? 0 : 1));

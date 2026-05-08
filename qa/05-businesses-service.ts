@@ -6,6 +6,7 @@
  */
 import { supabase, supabaseAdmin, env } from './lib/client';
 import { check, assert, printSummary, QAResult } from './lib/runner';
+import { done } from './lib/client';
 
 async function run() {
   console.log('\n🏪 QA 05: Businesses Service\n');
@@ -58,4 +59,4 @@ async function run() {
   return results.every(r => r.pass);
 }
 
-run().then(ok => process.exit(ok ? 0 : 1));
+run().then(ok => done(ok ? 0 : 1));

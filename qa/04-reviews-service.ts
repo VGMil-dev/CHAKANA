@@ -7,6 +7,7 @@
  */
 import { supabase, supabaseAdmin, env } from './lib/client';
 import { check, assert, printSummary, QAResult } from './lib/runner';
+import { done } from './lib/client';
 
 const USER_A_EMAIL = `qa-user-a-${Date.now()}@chakana.dev`;
 const USER_B_EMAIL = `qa-user-b-${Date.now()}@chakana.dev`;
@@ -24,9 +25,14 @@ async function run() {
   // Setup: crear dos usuarios de prueba y un negocio si no hay uno configurado
   results.push(await check('Setup: crear usuarios de prueba A y B', async () => {
     assert(!!supabaseAdmin, 'SUPABASE_SERVICE_ROLE_KEY requerida');
-    const { data: dataA } = await supabase.auth.signUp({ email: USER_A_EMAIL, password: PASSWORD });
-    const { data: dataB } = await supabase.auth.signUp({ email: USER_B_EMAIL, password: PASSWORD });
-    assert(!!dataA.user && !!dataB.user, 'No se pudieron crear los usuarios de prueba');
+    const { data: dataA, error: errA } = await supabaseAdmin!.auth.admin.createUser({
+      email: USER_A_EMAIL, password: PASSWORD, email_confirm: true,
+    });
+    const { data: dataB, error: errB } = await supabaseAdmin!.auth.admin.createUser({
+      email: USER_B_EMAIL, password: PASSWORD, email_confirm: true,
+    });
+    assert(!!dataA.user && !errA, `No se pudo crear usuario A: ${errA?.message}`);
+    assert(!!dataB.user && !errB, `No se pudo crear usuario B: ${errB?.message}`);
     userAId = dataA.user!.id;
     userBId = dataB.user!.id;
   }));
@@ -116,4 +122,4 @@ async function run() {
   return results.every(r => r.pass);
 }
 
-run().then(ok => process.exit(ok ? 0 : 1));
+run().then(ok => done(ok ? 0 : 1));

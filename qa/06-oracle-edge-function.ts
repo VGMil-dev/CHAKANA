@@ -7,6 +7,7 @@
  */
 import { supabase, supabaseAdmin, env } from './lib/client';
 import { check, assert, printSummary, QAResult } from './lib/runner';
+import { done } from './lib/client';
 
 const TEST_EMAIL = `qa-oracle-${Date.now()}@chakana.dev`;
 const PASSWORD = 'Chakana2024!';
@@ -26,8 +27,10 @@ async function run() {
   // Setup
   results.push(await check('Setup: crear usuario de prueba y obtener negocio', async () => {
     assert(!!supabaseAdmin, 'SUPABASE_SERVICE_ROLE_KEY requerida');
-    const { data } = await supabase.auth.signUp({ email: TEST_EMAIL, password: PASSWORD });
-    assert(!!data.user, 'No se pudo crear usuario de prueba');
+    const { data, error } = await supabaseAdmin!.auth.admin.createUser({
+      email: TEST_EMAIL, password: PASSWORD, email_confirm: true,
+    });
+    assert(!!data.user && !error, `No se pudo crear usuario de prueba: ${error?.message}`);
     userId = data.user!.id;
     if (!testBusinessId) {
       const { data: biz } = await supabaseAdmin!
@@ -39,8 +42,8 @@ async function run() {
     await supabase.auth.signInWithPassword({ email: TEST_EMAIL, password: PASSWORD });
   }));
 
-  // Test principal: insertar review válida y esperar al oráculo
-  results.push(await check('Oracle: review válida dispara webhook y actualiza aurios_rewarded=100', async () => {
+  // Test principal: insertar review válida y llamar al oráculo directamente
+  results.push(await check('Oracle: review válida es procesada y aurios_rewarded=100', async () => {
     assert(!!testBusinessId, 'business_id no disponible');
     const { data: review, error } = await supabase
       .from('reviews')
@@ -54,11 +57,21 @@ async function run() {
     assert(!error, `Insert review falló: ${error?.message}`);
     reviewId = review.id;
 
-    // Esperar 4 segundos al webhook + Edge Function
-    console.log('     ⏳ Esperando 4s al webhook del oráculo...');
-    await waitFor(4000);
+    // Llamar al oráculo directamente (pg_net es async y puede tardar >4s en Supabase Free)
+    const oracleUrl = `${env.url}/functions/v1/review-reward-oracle`;
+    const oracleRes = await fetch(oracleUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${env.anonKey}`,
+      },
+      body: JSON.stringify({ record: { id: reviewId, text: review.text, user_id: userId, aurios_rewarded: 0 } }),
+    });
+    const oracleBody = await oracleRes.json() as { rewarded: boolean; aurios?: number };
+    assert(oracleBody.rewarded === true && oracleBody.aurios === 100,
+      `Oráculo no recompensó: ${JSON.stringify(oracleBody)}`);
 
-    // Verificar que aurios_rewarded se actualizó
+    // Verificar que aurios_rewarded se actualizó en DB
     const { data: updated } = await supabaseAdmin!
       .from('reviews')
       .select('aurios_rewarded')
@@ -66,7 +79,7 @@ async function run() {
       .single();
     assert(
       updated?.aurios_rewarded === 100,
-      `aurios_rewarded es ${updated?.aurios_rewarded}, se esperaba 100. ¿Está el webhook configurado?`
+      `aurios_rewarded es ${updated?.aurios_rewarded}, se esperaba 100`
     );
   }));
 
@@ -81,9 +94,9 @@ async function run() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${env.anonKey}`,
       },
-      body: JSON.stringify({ record: { id: reviewId, text: 'texto largo de más de 50 chars para el oráculo qa', user_id: userId, aurios_rewarded: 100 } }),
+      body: JSON.stringify({ record: { id: reviewId, text: 'El café de Raíz es extraordinario, la calidad del café artesanal y la atención personalizada hacen de cada visita una experiencia única en Cuenca.', user_id: userId, aurios_rewarded: 100 } }),
     });
-    const body = await response.json();
+    const body = await response.json() as { rewarded: boolean; reason: string };
     assert(body.rewarded === false && body.reason === 'already_rewarded',
       `Oráculo debería rechazar recompensa duplicada. Response: ${JSON.stringify(body)}`);
   }));
@@ -102,4 +115,4 @@ async function run() {
   return results.every(r => r.pass);
 }
 
-run().then(ok => process.exit(ok ? 0 : 1));
+run().then(ok => done(ok ? 0 : 1));

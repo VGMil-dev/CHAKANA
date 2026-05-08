@@ -5,6 +5,7 @@
  */
 import { supabase, supabaseAdmin, env } from './lib/client';
 import { check, assert, printSummary, QAResult } from './lib/runner';
+import { done } from './lib/client';
 
 const TEST_EMAIL = `qa-${Date.now()}@chakana.dev`;
 const TEST_PASSWORD = 'Chakana2024!';
@@ -15,10 +16,12 @@ async function run() {
   const results: QAResult[] = [];
 
   results.push(await check('signUp: crea usuario con email y password', async () => {
-    const { data, error } = await supabase.auth.signUp({
+    assert(!!supabaseAdmin, 'SUPABASE_SERVICE_ROLE_KEY requerida para crear usuario confirmado');
+    const { data, error } = await supabaseAdmin!.auth.admin.createUser({
       email: TEST_EMAIL,
       password: TEST_PASSWORD,
-      options: { data: { display_name: 'QA Tester' } },
+      email_confirm: true,
+      user_metadata: { display_name: 'QA Tester' },
     });
     assert(!error, `signUp falló: ${error?.message}`);
     assert(!!data.user, 'signUp no retornó user');
@@ -35,8 +38,8 @@ async function run() {
       .select('id, display_name')
       .eq('id', createdUserId!)
       .single();
-    assert(!error, `Profile no encontrado: ${error?.message}`);
-    assert(data.id === createdUserId, 'Profile ID no coincide con user ID');
+    assert(!error && !!data, `Profile no encontrado: ${error?.message}`);
+    assert(data!.id === createdUserId, 'Profile ID no coincide con user ID');
   }));
 
   results.push(await check('signIn: retorna sesión válida con access_token', async () => {
@@ -81,4 +84,4 @@ async function run() {
   return results.every(r => r.pass);
 }
 
-run().then(ok => process.exit(ok ? 0 : 1));
+run().then(ok => done(ok ? 0 : 1));
