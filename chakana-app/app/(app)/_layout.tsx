@@ -2,39 +2,42 @@ import { Redirect, Stack, usePathname, useRouter } from 'expo-router';
 import { View } from 'react-native';
 
 import { useAuthStore } from '../../store/auth';
-import { useCartCount } from '../../store/cart';
+import { useCartCount, useCartTotal } from '../../store/cart';
 import ChakanaDial, { type DialTab } from '../../components/core/ChakanaDial';
 
-// Screens with their own bottom CTAs — dial stays hidden
-const HIDDEN_ROUTES = ['/checkout', '/pagare', '/resena'];
-// Payment flow — only center button visible (compact)
+const HIDDEN_ROUTES  = ['/checkout', '/pagare', '/resena'];
 const COMPACT_ROUTES = ['/carrito'];
 
 export default function AppLayout() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const role = useAuthStore((s) => s.user?.role ?? 'embajador');
-  const cartCount = useCartCount();
-  const pathname = usePathname();
-  const router = useRouter();
+  const role       = useAuthStore((s) => s.user?.role ?? 'embajador');
+  const cartCount  = useCartCount();
+  const cartTotal  = useCartTotal();
+  const pathname   = usePathname();
+  const router     = useRouter();
 
   if (!isAuthenticated) return <Redirect href="/login" />;
 
-  const compact = COMPACT_ROUTES.includes(pathname);
+  const isInventario = pathname.startsWith('/inventario');
+  const compact = COMPACT_ROUTES.includes(pathname) || (isInventario && cartCount > 0);
   const hidden  = HIDDEN_ROUTES.includes(pathname) || (pathname === '/carrito' && cartCount === 0);
 
   const activeTab: DialTab | undefined =
     pathname === '/perfil'  ? 'yo'      :
     pathname === '/pedidos' ? 'pedidos' :
-    pathname === '/carrito' ? undefined :
     undefined;
 
   const centerLabel = pathname === '/carrito' ? 'CHECKOUT' : undefined;
+  const cartPill    = isInventario && cartCount > 0
+    ? { count: cartCount, total: cartTotal }
+    : undefined;
 
   const homeRoute = role === 'tambu' ? '/dashboard' : '/home';
 
   const onCenterPress = () => {
-    if (pathname === '/carrito') router.push('/checkout' as any);
-    else router.replace(homeRoute as any);
+    if (pathname === '/carrito')           router.push('/checkout' as any);
+    else if (isInventario && cartCount > 0) router.push('/carrito'  as any);
+    else                                    router.replace(homeRoute as any);
   };
 
   const onTabPress = (tab: DialTab) => {
@@ -60,6 +63,7 @@ export default function AppLayout() {
           compact={compact}
           activeTab={activeTab}
           centerLabel={centerLabel}
+          cartPill={cartPill}
           onCenterPress={onCenterPress}
           onTabPress={onTabPress}
         />

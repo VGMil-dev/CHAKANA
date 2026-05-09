@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import InventoryCard from '../../../components/inventory/InventoryCard';
 import SkeletonBox from '../../../components/core/SkeletonBox';
-import { useCartStore, useCartCount, useCartTotal } from '../../../store/cart';
+import { useCartStore } from '../../../store/cart';
 import { getTambu } from '../../../data/tambuses';
 import { getProducts } from '../../../data/inventory';
 
@@ -36,8 +36,6 @@ export default function InventoryScreen() {
   const insets = useSafeAreaInsets();
 
   const { add, remove, items: cartItems } = useCartStore();
-  const cartCount = useCartCount();
-  const cartTotal = useCartTotal();
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const headerOpacity = scrollY.interpolate({
@@ -45,17 +43,6 @@ export default function InventoryScreen() {
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
-
-  const cartBtnAnim = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.spring(cartBtnAnim, {
-      toValue: cartCount > 0 ? 1 : 0,
-      useNativeDriver: true,
-      damping: 14,
-      stiffness: 200,
-      mass: 0.8,
-    }).start();
-  }, [cartCount > 0]);
 
   const id = typeof tambuid === 'string' ? tambuid : tambuid[0];
   const tambu = getTambu(id);
@@ -156,40 +143,6 @@ export default function InventoryScreen() {
         </View>
       </Animated.ScrollView>
 
-      <Animated.View
-        style={[
-          styles.cartBarWrapper,
-          { bottom: insets.bottom + 20 },
-          {
-            opacity: cartBtnAnim,
-            transform: [
-              { scale: cartBtnAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) },
-              { translateY: cartBtnAnim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) },
-            ],
-          },
-        ]}
-        pointerEvents={cartCount > 0 ? 'auto' : 'none'}
-      >
-        <Pressable
-          onPress={() => router.push('/carrito' as any)}
-          style={({ pressed }) => [pressed && { opacity: 0.9 }]}
-        >
-          <LinearGradient
-            colors={['#1E1A17', '#2E2A26']}
-            style={styles.cartBtn}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Ionicons name="bag-outline" size={18} color="#FDFAF7" />
-            <Text style={styles.cartBtnText}>Ver carrito</Text>
-            <View style={styles.cartDivider} />
-            <Text style={styles.cartBtnTotal}>$ {cartTotal.toFixed(2)}</Text>
-            <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>{cartCount}</Text>
-            </View>
-          </LinearGradient>
-        </Pressable>
-      </Animated.View>
     </View>
   );
 }
@@ -229,15 +182,4 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingVertical: 64, gap: 18 },
   emptyTitle: { fontWeight: '700', fontSize: 26, color: '#C4BDB6', letterSpacing: -0.5 },
   emptyLink: { fontSize: 14, color: '#A63A2F', textDecorationLine: 'underline', fontWeight: '500' },
-  cartBarWrapper: {
-    position: 'absolute', alignSelf: 'center', zIndex: 50,
-    shadowColor: '#86231A', shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.22, shadowRadius: 28, elevation: 16,
-  },
-  cartBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 15, paddingHorizontal: 22, borderRadius: 999 },
-  cartBtnText: { color: '#FDFAF7', fontWeight: '600', fontSize: 14 },
-  cartDivider: { width: 1, height: 16, backgroundColor: 'rgba(253,250,247,0.2)' },
-  cartBtnTotal: { color: '#3AAFA9', fontWeight: '700', fontSize: 14, letterSpacing: -0.2 },
-  cartBadge: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#A63A2F', alignItems: 'center', justifyContent: 'center' },
-  cartBadgeText: { color: '#FDFAF7', fontWeight: '700', fontSize: 12 },
 });
