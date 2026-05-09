@@ -15,17 +15,20 @@ type CheckoutSignatureResult = {
 
 type UseCheckoutResult = {
   checkoutTotal: number;
+  auriosToSpend: number;
   discountResult: DiscountResult;
   sliderMax: number;
   isProcessing: boolean;
   checkoutError: string | null;
+  checkoutSignature: string | null;
   setTotal: (amount: number) => void;
   onSliderChange: (value: number) => void;
   confirmCheckout: (params: ConfirmCheckoutParams) => Promise<CheckoutSignatureResult | null>;
+  resetCheckout: () => void;
 };
 
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'No se pudo completar el pago.';
+  return error instanceof Error ? error.message : 'No se pudo completar el pago con Aurios.';
 }
 
 export function useCheckout(): UseCheckoutResult {
@@ -33,14 +36,17 @@ export function useCheckout(): UseCheckoutResult {
   const auriosToSpend = useAppStore((state) => state.auriosToSpend);
   const aurioBalance = useAppStore((state) => state.aurioBalance);
   const walletPubKey = useAppStore((state) => state.walletPubKey);
-  const isProcessing = useAppStore((state) => state.isLoading);
-  const checkoutError = useAppStore((state) => state.errorMessage);
+  const isProcessing = useAppStore((state) => state.isProcessingCheckout);
+  const checkoutError = useAppStore((state) => state.checkoutError);
+  const checkoutSignature = useAppStore((state) => state.checkoutSignature);
   const setCheckoutTotal = useAppStore((state) => state.setCheckoutTotal);
   const setAuriosToSpend = useAppStore((state) => state.setAuriosToSpend);
   const setAurioBalance = useAppStore((state) => state.setAurioBalance);
-  const setIsLoading = useAppStore((state) => state.setIsLoading);
-  const setErrorMessage = useAppStore((state) => state.setErrorMessage);
+  const setIsProcessingCheckout = useAppStore((state) => state.setIsProcessingCheckout);
+  const setCheckoutError = useAppStore((state) => state.setCheckoutError);
+  const setCheckoutSignature = useAppStore((state) => state.setCheckoutSignature);
   const setActiveModal = useAppStore((state) => state.setActiveModal);
+  const resetCheckout = useAppStore((state) => state.resetCheckout);
 
   const discountResult = calculateDiscount({
     subtotal: checkoutTotal,
@@ -59,30 +65,32 @@ export function useCheckout(): UseCheckoutResult {
   };
 
   const confirmCheckout = async (
-    params: ConfirmCheckoutParams
+    params: ConfirmCheckoutParams,
   ): Promise<CheckoutSignatureResult | null> => {
     if (!walletPubKey) {
-      setErrorMessage('Conecta tu wallet antes de pagar con Aurios.');
+      setCheckoutError('Conecta tu wallet antes de pagar con Aurios.');
       return null;
     }
 
     if (auriosToSpend <= 0) {
-      setErrorMessage('Selecciona una cantidad de Aurios para usar.');
+      setCheckoutError('Selecciona una cantidad de Aurios para usar.');
       return null;
     }
 
     if (!params.tambuMint.trim()) {
-      setErrorMessage('No se encontró el Tambu destino para la transacción.');
+      setCheckoutError('No se encontró el Tambu destino para la transacción.');
       return null;
     }
 
     if (typeof params.signTransaction !== 'function') {
-      setErrorMessage('No se pudo acceder al firmador de la wallet.');
+      setCheckoutError('No se pudo acceder al firmador de la wallet.');
       return null;
     }
 
-    setIsLoading(true);
-    setErrorMessage(null);
+    setIsProcessingCheckout(true);
+    setCheckoutError(null);
+    setCheckoutSignature(null);
+
     try {
       const transaction = await payToTambu({
         sender: walletPubKey,
@@ -96,25 +104,29 @@ export function useCheckout(): UseCheckoutResult {
       await connection.confirmTransaction(signature, 'confirmed');
       const nextBalance = await getAurioBalance(walletPubKey);
       setAurioBalance(nextBalance);
+      setCheckoutSignature(signature);
       setActiveModal('propina');
 
       return { signature };
     } catch (error) {
-      setErrorMessage(getErrorMessage(error));
+      setCheckoutError(getErrorMessage(error));
       return null;
     } finally {
-      setIsLoading(false);
+      setIsProcessingCheckout(false);
     }
   };
 
   return {
     checkoutTotal,
+    auriosToSpend: discountResult.auriosToSpend,
     discountResult,
     sliderMax,
     isProcessing,
     checkoutError,
+    checkoutSignature,
     setTotal: setCheckoutTotal,
     onSliderChange,
     confirmCheckout,
+    resetCheckout,
   };
 }
