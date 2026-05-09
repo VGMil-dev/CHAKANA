@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, SafeAreaView, KeyboardAvoidingView,
-  Platform, ScrollView, Image,
+  Platform, ScrollView, Image, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -14,16 +14,23 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Placeholder — teammate wires Phantom here
   const handleWalletConnect = () => {
+    setError(null);
     login({ name: 'Embajador', walletAddress: 'phantom_placeholder' });
     router.replace('/home');
   };
 
   // Placeholder — teammate wires Supabase auth here
+  // Signature to implement: async () => { setLoading(true); const { error } = await supabase.auth.signInWithPassword(...)
+  // if (error) { setError(error.message); setLoading(false); return; } login(...); router.replace('/home'); }
   const handleEmailLogin = () => {
+    setError(null);
     if (!email || !password) return;
+    setLoading(true);
     login({ name: email.split('@')[0], email });
     router.replace('/home');
   };
@@ -104,8 +111,23 @@ export default function Login() {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.submitButton} onPress={handleEmailLogin} activeOpacity={0.8}>
-            <Text style={styles.submitButtonText}>Iniciar sesión</Text>
+          {error && (
+            <View style={styles.errorBox}>
+              <Ionicons name="alert-circle-outline" size={16} color="#9E392D" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            onPress={handleEmailLogin}
+            activeOpacity={0.8}
+            disabled={loading}
+          >
+            {loading
+              ? <ActivityIndicator size="small" color="#9E392D" />
+              : <Text style={styles.submitButtonText}>Iniciar sesión</Text>
+            }
           </TouchableOpacity>
 
           <View style={styles.footerRow}>
@@ -225,6 +247,22 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
   },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F7E7E3',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#9E392D',
+    fontWeight: '500',
+  },
   submitButton: {
     backgroundColor: '#FCF9F6',
     height: 56,
@@ -232,6 +270,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
   },
   submitButtonText: {
     fontSize: 16,
