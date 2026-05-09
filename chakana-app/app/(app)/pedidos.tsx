@@ -178,22 +178,22 @@ const styles = StyleSheet.create({
 
   nav: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12,
-    backgroundColor: '#F5F0EB',
+    paddingHorizontal: 20, paddingTop: 8, paddingBottom: 14,
+    backgroundColor: '#F8F3EE',
   },
   navBack: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#EDE7DF', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#F0EAE3', alignItems: 'center', justifyContent: 'center',
   },
   navLabel: {
-    fontSize: 11, fontWeight: '700', letterSpacing: 2, color: '#6B645C', textTransform: 'uppercase',
+    fontSize: 11, fontWeight: '600', letterSpacing: 1.98, color: '#6B645C', textTransform: 'uppercase',
   },
 
-  scrollContent: { paddingHorizontal: 22, paddingTop: 4, gap: 20 },
+  scrollContent: { paddingHorizontal: 22, paddingTop: 24, gap: 20 },
 
-  header: { gap: 6 },
-  eyebrow: { fontWeight: '700', fontSize: 10, color: '#A63A2F', letterSpacing: 2.4, textTransform: 'uppercase' },
-  displayTitle: { fontWeight: '800', fontSize: 36, lineHeight: 40, color: '#2E2A26', letterSpacing: -1 },
+  header: { gap: 8 },
+  eyebrow: { fontWeight: '600', fontSize: 11, color: '#A63A2F', letterSpacing: 1.98, textTransform: 'uppercase' },
+  displayTitle: { fontWeight: '700', fontSize: 32, lineHeight: 35, color: '#2E2A26', letterSpacing: -0.64 },
   displayAccent: { color: '#A63A2F' },
 
   statsRow: {
