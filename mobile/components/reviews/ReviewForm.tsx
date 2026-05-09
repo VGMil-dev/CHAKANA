@@ -16,14 +16,15 @@ export default function ReviewForm({ businessId }: ReviewFormProps) {
     reviewError,
     reviewSuccess,
     isTextValid,
-    charsRemaining,
+    wordsCount,
+    wordsRemaining,
     onTextChange,
     submitReview,
     resetForm,
   } = useReviewSubmit();
   const { walletPubKey } = useWallet();
 
-  const missingChars = Math.max(charsRemaining, 0);
+  const missingWords = Math.max(wordsRemaining, 0);
   const canSubmit = isTextValid && !isSubmittingReview;
 
   const handleSubmit = (): void => {
@@ -40,7 +41,9 @@ export default function ReviewForm({ businessId }: ReviewFormProps) {
         <View style={{ flex: 1 }}>
           <Text style={styles.eyebrow}>RECOMPENSA · AURIO</Text>
           <Text style={styles.title}>Deja tu reseña</Text>
-          <Text style={styles.subtitle}>Gana AURIO por compartir una opinión útil.</Text>
+          <Text style={styles.subtitle}>
+            Publica un comentario de al menos 50 palabras y gana 1 Aurio.
+          </Text>
         </View>
       </View>
 
@@ -64,9 +67,11 @@ export default function ReviewForm({ businessId }: ReviewFormProps) {
       />
 
       <View style={styles.metaRow}>
-        <Text style={styles.helper}>Mínimo 50 caracteres</Text>
-        <Text style={[styles.counter, isTextValid && styles.counterReady]}>
-          {isTextValid ? `${currentReviewText.trim().length} caracteres` : `Faltan ${missingChars}`}
+        <Text style={styles.helper}>Mínimo 50 palabras</Text>
+        <Text
+          style={[styles.counter, isTextValid && styles.counterReady]}
+          testID="review-word-count">
+          {isTextValid ? `${wordsCount} palabras` : `Faltan ${missingWords} palabras`}
         </Text>
       </View>
 
@@ -79,7 +84,7 @@ export default function ReviewForm({ businessId }: ReviewFormProps) {
       {reviewSuccess ? (
         <View style={styles.successBox} testID="review-success">
           <Ionicons name="checkmark-circle-outline" size={16} color="#2E7D5B" />
-          <Text style={styles.successText}>Reseña enviada. Recompensa AURIO procesada.</Text>
+          <Text style={styles.successText}>Comentario publicado. Ganaste 1 Aurio.</Text>
         </View>
       ) : null}
 

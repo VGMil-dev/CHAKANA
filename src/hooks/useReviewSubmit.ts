@@ -1,8 +1,8 @@
 import { getAurioBalance } from 'aurio-sdk';
 import { submitReviewReward } from '../services/supabase';
 import { useAppStore } from '../store';
+import { countWords, getReviewWordsRemaining, isReviewTextValid } from '../utils/reviewValidation';
 
-const MIN_REVIEW_LENGTH = 50;
 const ORACLE_WAIT_MS = 3000;
 
 type SubmitReviewParams = {
@@ -16,6 +16,8 @@ type UseReviewSubmitResult = {
   reviewError: string | null;
   reviewSuccess: boolean;
   isTextValid: boolean;
+  wordsCount: number;
+  wordsRemaining: number;
   charsRemaining: number;
   onTextChange: (text: string) => void;
   submitReview: (params: SubmitReviewParams) => Promise<void>;
@@ -47,15 +49,17 @@ export function useReviewSubmit(): UseReviewSubmitResult {
   const setActiveModal = useAppStore((state) => state.setActiveModal);
 
   const reviewText = currentReviewText.trim();
-  const isTextValid = reviewText.length >= MIN_REVIEW_LENGTH;
-  const charsRemaining = MIN_REVIEW_LENGTH - currentReviewText.length;
+  const wordsCount = countWords(currentReviewText);
+  const wordsRemaining = getReviewWordsRemaining(currentReviewText);
+  const isTextValid = isReviewTextValid(currentReviewText);
+  const charsRemaining = wordsRemaining;
 
   const submitReview = async (params: SubmitReviewParams): Promise<void> => {
     const businessId = params.businessId.trim();
     setReviewSuccess(false);
 
-    if (reviewText.length < MIN_REVIEW_LENGTH) {
-      setReviewError('La rese\u00f1a debe tener al menos 50 caracteres.');
+    if (!isReviewTextValid(reviewText)) {
+      setReviewError('Tu comentario debe tener al menos 50 palabras.');
       return;
     }
 
@@ -98,6 +102,8 @@ export function useReviewSubmit(): UseReviewSubmitResult {
     reviewError,
     reviewSuccess,
     isTextValid,
+    wordsCount,
+    wordsRemaining,
     charsRemaining,
     onTextChange: updateCurrentReviewText,
     submitReview,

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Linking,
   Platform,
@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import AuriosSlider from '../../components/checkout/AuriosSlider';
 import OrderCard from '../../components/checkout/OrderCard';
+import ReviewForm from '../../components/reviews/ReviewForm';
 import { useCartItems, useCartTotal } from '../../store/cart';
 import { type CheckoutDestination, useCheckout } from '../../../src/hooks/useCheckout';
 import { useHybridCheckout } from '../../../src/hooks/useHybridCheckout';
@@ -55,6 +56,7 @@ function openCheckoutUrl(url: string): void {
 export default function Checkout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [stripeSessionId, setStripeSessionId] = useState<string | null>(null);
   const cartItems = useCartItems();
   const visualSubtotal = useCartTotal();
   const { aurioBalance, walletPubKey } = useWallet();
@@ -119,6 +121,9 @@ export default function Checkout() {
       businessId: qaBusinessId,
       cartItems: cartPayload,
     }).then((result) => {
+      if (result?.stripeSessionId) {
+        setStripeSessionId(result.stripeSessionId);
+      }
       if (result?.stripeCheckoutUrl) {
         openCheckoutUrl(result.stripeCheckoutUrl);
       }
@@ -240,6 +245,17 @@ export default function Checkout() {
             <Text style={styles.warning}>Agrega productos al carrito para crear el pago.</Text>
           ) : null}
         </View>
+
+        {stripeSessionId ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Cuéntanos tu experiencia</Text>
+            <Text style={styles.sectionCopy}>
+              Publica un comentario de al menos 50 palabras y gana 1 Aurio.
+            </Text>
+            {/* TODO: mostrar esta sección solo después de confirmación real de Stripe webhook / success page. */}
+            <ReviewForm businessId={qaBusinessId} />
+          </View>
+        ) : null}
       </ScrollView>
 
       <View style={[styles.totalBar, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>

@@ -32,7 +32,8 @@ export default function Index() {
   } = useWallet();
   const {
     currentReviewText,
-    charsRemaining,
+    wordsCount,
+    wordsRemaining,
     isSubmittingReview,
     reviewError,
     reviewSuccess,
@@ -146,13 +147,13 @@ export default function Index() {
           value={currentReviewText}
           onChangeText={onTextChange}
           multiline
-          placeholder="Escribe una reseña real de mínimo 50 caracteres"
+          placeholder="Escribe una reseña real de mínimo 50 palabras"
           placeholderTextColor="#8A8F98"
           editable={!isSubmittingReview}
         />
         <Text style={styles.helper}>
-          {currentReviewText.length} caracteres. Mínimo 50 caracteres.
-          {charsRemaining > 0 ? ` Faltan ${charsRemaining}.` : ''}
+          {wordsCount} palabras. Mínimo 50 palabras.
+          {wordsRemaining > 0 ? ` Faltan ${wordsRemaining}.` : ''}
         </Text>
         <Pressable
           style={[styles.button, isSubmittingReview ? styles.disabledButton : null]}
@@ -164,12 +165,12 @@ export default function Index() {
         </Pressable>
         {reviewError ? <Text style={styles.error}>{reviewError}</Text> : null}
         {reviewSuccess ? (
-          <Text style={styles.success}>Reseña enviada. Recompensa AURIO procesada.</Text>
+          <Text style={styles.success}>Comentario publicado. Ganaste 1 Aurio.</Text>
         ) : null}
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Checkout con Aurios</Text>
+        <Text style={styles.sectionTitle}>Descuento Aurio</Text>
         <Text style={styles.text}>Total: {formatUSD(checkoutTotal)}</Text>
         <Text style={styles.text}>Aurios disponibles: {formatAurios(aurioBalance)}</Text>
         <Text style={styles.text}>Máximo permitido: {formatAurios(sliderMax)}</Text>
@@ -213,7 +214,7 @@ export default function Index() {
           onPress={handleConfirmCheckout}
           disabled={!canConfirmCheckout}>
           <Text style={styles.buttonText}>
-            {isProcessing ? 'Procesando...' : 'Confirmar pago con Aurios'}
+            {isProcessing ? 'Procesando...' : 'Confirmar redención Aurio'}
           </Text>
         </Pressable>
         {!hasCheckoutDestination ? (
@@ -222,13 +223,13 @@ export default function Index() {
               Falta destino de checkout para probar la transferencia.
             </Text>
             <Text style={styles.helper}>
-              Usa tambuMint NFT real o payout wallet QA. El AURIO_MINT no es destino del pago.
+              Usa tambuMint NFT real o payout wallet QA. El AURIO_MINT no es destino de redención.
             </Text>
           </View>
         ) : null}
         {hasCheckoutDestination && signerError ? <Text style={styles.helper}>{signerError}</Text> : null}
         {checkoutError ? <Text style={styles.error}>{checkoutError}</Text> : null}
-        {checkoutSignature ? <Text style={styles.success}>Signature: {checkoutSignature}</Text> : null}
+        {checkoutSignature ? <Text style={styles.success}>Firma de redención Aurio: {checkoutSignature}</Text> : null}
         {activeModal === 'propina' ? (
           <Text style={styles.success}>Pago confirmado. Aquí se abrirá la propina LI.FI.</Text>
         ) : null}

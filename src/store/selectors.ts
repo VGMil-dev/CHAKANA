@@ -1,4 +1,5 @@
 import { useAppStore } from './index';
+import { countWords, getReviewWordsRemaining } from '../utils/reviewValidation';
 
 export const useAuthUserId = () => useAppStore((state) => state.authUserId);
 export const useAuthEmail = () => useAppStore((state) => state.authEmail);
@@ -13,6 +14,9 @@ export const useListaTambus = () => useAppStore((state) => state.listaTambus);
 export const useIsLoadingBusinesses = () => useAppStore((state) => state.isLoadingBusinesses);
 
 export const useCurrentReviewText = () => useAppStore((state) => state.currentReviewText);
+export const useReviewWordsCount = () => useAppStore((state) => countWords(state.currentReviewText));
+export const useReviewWordsRemaining = () =>
+  useAppStore((state) => getReviewWordsRemaining(state.currentReviewText));
 export const useIsSubmittingReview = () => useAppStore((state) => state.isSubmittingReview);
 export const useReviewSuccess = () => useAppStore((state) => state.reviewSuccess);
 export const useReviewError = () => useAppStore((state) => state.reviewError);
