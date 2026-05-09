@@ -1,26 +1,19 @@
 import { useEffect } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { useCheckout } from '../../src/hooks/useCheckout';
 import { useReviewSubmit } from '../../src/hooks/useReviewSubmit';
 import { useWallet } from '../../src/hooks/useWallet';
+import { useWalletSigner } from '../../src/hooks/useWalletSigner';
+import { useAppStore } from '../../src/store';
+import { formatAurios, formatUSD } from '../../src/utils/sliderConfig';
 
 const DEMO_BUSINESS_ID = 'raiz-cafe';
 const DEMO_TOTAL = 10;
+const DEMO_TAMBU_MINT = '';
 
 function shortenWallet(walletPubKey: string): string {
   return `${walletPubKey.slice(0, 4)}...${walletPubKey.slice(-4)}`;
-}
-
-function formatUsd(amount: number): string {
-  return `$${amount.toFixed(2)}`;
 }
 
 export default function Index() {
@@ -45,17 +38,27 @@ export default function Index() {
   } = useReviewSubmit();
   const {
     checkoutTotal,
+    auriosToSpend,
     discountResult,
     sliderMax,
     isProcessing,
     checkoutError,
+    checkoutSignature,
     setTotal,
     onSliderChange,
+    confirmCheckout,
+    resetCheckout,
   } = useCheckout();
+  const { signTransaction, canSignTransactions, signerError } = useWalletSigner();
+  const activeModal = useAppStore((state) => state.activeModal);
 
   useEffect(() => {
     setTotal(DEMO_TOTAL);
   }, [setTotal]);
+
+  const hasTambuMint = DEMO_TAMBU_MINT.trim().length > 0;
+  const canConfirmCheckout =
+    hasTambuMint && canSignTransactions && Boolean(signTransaction) && !isProcessing;
 
   const handleSubmitReview = (): void => {
     void submitReview({ businessId: DEMO_BUSINESS_ID });
@@ -64,6 +67,14 @@ export default function Index() {
   const handleAuriosInput = (text: string): void => {
     const parsedValue = Number.parseInt(text.replace(/\D/g, ''), 10);
     onSliderChange(Number.isNaN(parsedValue) ? 0 : parsedValue);
+  };
+
+  const handleConfirmCheckout = (): void => {
+    if (!signTransaction || !canConfirmCheckout) return;
+    void confirmCheckout({
+      tambuMint: DEMO_TAMBU_MINT,
+      signTransaction,
+    });
   };
 
   return (
@@ -78,7 +89,7 @@ export default function Index() {
         {isConnected && walletPubKey ? (
           <>
             <Text style={styles.text}>Wallet: {shortenWallet(walletPubKey)}</Text>
-            <Text style={styles.balance}>Aurios: {aurioBalance}</Text>
+            <Text style={styles.balance}>Aurios: {formatAurios(aurioBalance)}</Text>
             <View style={styles.actions}>
               <Pressable
                 style={styles.button}
@@ -135,27 +146,52 @@ export default function Index() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Checkout de prueba</Text>
-        <Text style={styles.text}>Total demo: {formatUsd(checkoutTotal)}</Text>
-        <Text style={styles.text}>Aurios disponibles: {aurioBalance}</Text>
+        <Text style={styles.sectionTitle}>Checkout con Aurios</Text>
+        <Text style={styles.text}>Total demo: {formatUSD(checkoutTotal)}</Text>
+        <Text style={styles.text}>Aurios disponibles: {formatAurios(aurioBalance)}</Text>
+        <Text style={styles.text}>Máximo permitido: {formatAurios(sliderMax)}</Text>
         <TextInput
           style={styles.numberInput}
-          value={String(discountResult.auriosToSpend)}
+          value={String(auriosToSpend)}
           onChangeText={handleAuriosInput}
           keyboardType="number-pad"
           placeholder="Aurios a gastar"
           placeholderTextColor="#8A8F98"
         />
-        <Text style={styles.helper}>Máximo permitido para esta prueba: {sliderMax} Aurios</Text>
-        <Text style={styles.text}>Descuento: {formatUsd(discountResult.discountUSD)}</Text>
-        <Text style={styles.total}>Total final: {formatUsd(discountResult.finalTotal)}</Text>
-        <Pressable style={[styles.button, styles.disabledButton]} disabled>
+        <View style={styles.actions}>
+          <Pressable style={styles.smallButton} onPress={() => onSliderChange(50)}>
+            <Text style={styles.buttonText}>50 Aurios</Text>
+          </Pressable>
+          <Pressable style={styles.smallButton} onPress={() => onSliderChange(100)}>
+            <Text style={styles.buttonText}>100 Aurios</Text>
+          </Pressable>
+          <Pressable style={styles.smallButton} onPress={() => onSliderChange(sliderMax)}>
+            <Text style={styles.buttonText}>Máximo</Text>
+          </Pressable>
+          <Pressable style={[styles.smallButton, styles.secondaryButton]} onPress={resetCheckout}>
+            <Text style={styles.buttonText}>Limpiar</Text>
+          </Pressable>
+        </View>
+        <Text style={styles.helper}>Máximo 25% del total</Text>
+        <Text style={styles.text}>Descuento: {formatUSD(discountResult.discountUSD)}</Text>
+        <Text style={styles.total}>Total final: {formatUSD(discountResult.finalTotal)}</Text>
+        <Pressable
+          style={[styles.button, canConfirmCheckout ? null : styles.disabledButton]}
+          onPress={handleConfirmCheckout}
+          disabled={!canConfirmCheckout}>
           <Text style={styles.buttonText}>
             {isProcessing ? 'Procesando...' : 'Confirmar pago con Aurios'}
           </Text>
         </Pressable>
-        <Text style={styles.helper}>Checkout real requiere firma de wallet de Dev 3</Text>
+        {!hasTambuMint ? (
+          <Text style={styles.helper}>Falta tambuMint real del negocio para probar transferencia.</Text>
+        ) : null}
+        {hasTambuMint && signerError ? <Text style={styles.helper}>{signerError}</Text> : null}
         {checkoutError ? <Text style={styles.error}>{checkoutError}</Text> : null}
+        {checkoutSignature ? <Text style={styles.success}>Signature: {checkoutSignature}</Text> : null}
+        {activeModal === 'propina' ? (
+          <Text style={styles.success}>Pago confirmado. Aquí se abrirá la propina LI.FI.</Text>
+        ) : null}
       </View>
     </ScrollView>
   );
@@ -223,6 +259,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
+  },
+  smallButton: {
+    alignItems: 'center',
+    backgroundColor: '#2F80ED',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   secondaryButton: {
     backgroundColor: '#4B5563',
