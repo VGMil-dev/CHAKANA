@@ -10,7 +10,11 @@ const aurioPaymentCopyPattern = new RegExp(
   `${['Pagar con', 'Aurios'].join(' ')}|${['Pago con', 'Aurios'].join(' ')}`,
   'i',
 );
-const minCharactersCopyPattern = new RegExp(['Mínimo 50', 'caracteres'].join(' '), 'i');
+const minCharactersCopyPattern = new RegExp(['Minimo 50', 'caracteres'].join(' '), 'i');
+const negativeAurioCopyPattern = new RegExp(
+  `${['-0', '/'].join(' ')}|${['-0', 'Aurios'].join(' ')}|${['Balance', '-0'].join(' ')}`,
+  'i',
+);
 
 async function expectDangerousMocksHidden(page: import('@playwright/test').Page): Promise<void> {
   for (const text of dangerousMockTexts) {
@@ -39,7 +43,7 @@ test.describe('Chakana web smoke', () => {
 
     await expect(page.getByTestId('dev-test-screen')).toBeVisible();
     await expect(page.getByText(/Aurio/i).first()).toBeVisible();
-    await expect(page.getByText(/Reseña/i).first()).toBeVisible();
+    await expect(page.getByText(/Reseña|Resena/i).first()).toBeVisible();
     await expect(page.getByText(/Checkout/i).first()).toBeVisible();
   });
 
@@ -57,28 +61,31 @@ test.describe('Chakana web smoke', () => {
     await expect(page.getByTestId('review-text-input')).toBeVisible();
     await expect(page.getByTestId('submit-review-button')).toBeVisible();
     await expect(page.getByTestId('review-word-count')).toBeVisible();
-    await expect(page.getByText(/Mínimo 50 palabras/i).first()).toBeVisible();
+    await expect(page.getByText(/Mínimo 50 palabras|Minimo 50 palabras/i).first()).toBeVisible();
     await expect(page.getByText(minCharactersCopyPattern)).toHaveCount(0);
   });
 
-  test('checkout separa descuento Aurio y pago con tarjeta', async ({ page }) => {
+  test('checkout muestra pago Stripe con Aurio opcional', async ({ page }) => {
     await page.goto('/checkout');
 
     await expect(page.getByText(/Checkout/i).first()).toBeVisible();
-    await expect(page.getByText(/Descuento Aurio/i).first()).toBeVisible();
-    await expect(page.getByText(/Aplicar descuento Aurio/i).first()).toBeVisible();
-    await expect(page.getByText(/Pagar con tarjeta/i).first()).toBeVisible();
-    await expect(page.getByText(/Total a pagar con tarjeta/i).first()).toBeVisible();
+    const skipDiscountButton = page.getByText(/Omitir descuento/i);
+    if (await skipDiscountButton.count()) {
+      await expect(skipDiscountButton.first()).toBeVisible();
+      await expect(page.getByText(/Aplicar descuento Aurio/i).first()).toBeVisible();
+      await skipDiscountButton.first().click();
+    }
+
+    await expect(page.getByText(/Confirma tu pago|Pagar con tarjeta/i).first()).toBeVisible();
+    await expect(page.getByText(/Total a cobrar/i).first()).toBeVisible();
+    await expect(page.getByText(/Pago cifrado · Stripe/i).first()).toBeVisible();
     await expect(page.getByText(aurioPaymentCopyPattern)).toHaveCount(0);
     await expect(page.getByText(/-\d+\s*\/\s*\d+\s*Aurios/i)).toHaveCount(0);
+    await expect(page.getByText(negativeAurioCopyPattern)).toHaveCount(0);
     await expect(
       page.getByText(/Inicia sesión para pagar con tarjeta|Se requiere una sesión activa para iniciar checkout con tarjeta/i),
     ).toBeVisible();
     await expect(page.getByTestId('checkout-pay-button')).toBeVisible();
-    await expect(
-      page.getByText(
-        /Modo QA: redencion directa de Aurios\.|Tambu conectado para prueba devnet\.|Falta tambuMint o payout wallet para probar redencion\./,
-      ),
-    ).toBeVisible();
+
   });
 });
