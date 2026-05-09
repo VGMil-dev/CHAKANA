@@ -13,7 +13,14 @@ import { useWallet } from '../../../src/hooks/useWallet';
 import { useWalletSigner } from '../../../src/hooks/useWalletSigner';
 import { formatUSD } from '../../../src/utils/sliderConfig';
 
-const tambuMint: string | null = null; // TODO: recibir de backend Dev 4 para raiz-cafe.
+const qaTambuMint = process.env.EXPO_PUBLIC_QA_TAMBU_MINT;
+// TODO: reemplazar EXPO_PUBLIC_QA_TAMBU_MINT por tambuMint real del negocio seleccionado cuando Businesses este conectado.
+const tambuMint =
+  typeof qaTambuMint === 'string' && qaTambuMint.length > 0 ? qaTambuMint : null;
+
+function shortenMint(mint: string): string {
+  return `${mint.slice(0, 4)}...${mint.slice(-4)}`;
+}
 
 export default function Checkout() {
   const router = useRouter();
@@ -121,7 +128,14 @@ export default function Checkout() {
               El AURIO_MINT identifica el token, pero no es el destino del pago.
             </Text>
           </View>
-        ) : null}
+        ) : (
+          <View style={styles.notice}>
+            <Text style={styles.noticeConnectedText}>
+              Tambu conectado para prueba devnet.
+            </Text>
+            <Text style={styles.noticeMuted}>{shortenMint(tambuMint)}</Text>
+          </View>
+        )}
       </ScrollView>
 
       <View style={[styles.totalBar, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
@@ -232,6 +246,17 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     fontWeight: '600',
     lineHeight: 18,
+  },
+  noticeConnectedText: {
+    color: '#1F7A73',
+    fontSize: 12.5,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  noticeMuted: {
+    color: '#6B645C',
+    fontSize: 12,
+    fontWeight: '600',
   },
   error: {
     color: '#86231A',

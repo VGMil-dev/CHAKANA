@@ -27,6 +27,7 @@
 - Dev 2 checkout Aurio: `useCheckout` integra `payToTambu`, recibe `signTransaction`, envia/confirma la transaccion y refresca balance real con `getAurioBalance(walletPubKey)`.
 - Fase 4 prep checkout: UI visual de `mobile/app/(app)/checkout.tsx` conectada a `useCheckout`, balance real, presets Aurios y pago bloqueado hasta recibir `tambuMint` real de Dev 4.
 - Limpieza lint Expo: `npm run lint` queda en 0 errores y 0 warnings; smoke e2e sigue pasando.
+- Checkout devnet: `tambuMint` de raiz-cafe se lee desde `EXPO_PUBLIC_QA_TAMBU_MINT`; no se usa `AURIO_MINT` como destino de pago.
 
 ---
 
@@ -34,7 +35,7 @@
 
 - App Expo / React Native inicializada en `mobile/` con pantalla minima de integracion
 - Integracion UI Dev 1 con hooks Dev 2 pendiente
-- Falta `tambuMint` real del negocio para desbloquear transferencia end-to-end en checkout visual.
+- Falta conectar Businesses para reemplazar `EXPO_PUBLIC_QA_TAMBU_MINT` por el `tambuMint` del negocio seleccionado.
 
 ---
 
