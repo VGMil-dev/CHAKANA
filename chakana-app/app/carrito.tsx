@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { cartStore, useCart } from '../store/cart';
+import { useCartStore, useCartItems, useCartCount, useCartTotal } from '../store/cart';
 import CartItemCard from '../components/cart/CartItemCard';
 import CartSummaryCard from '../components/cart/CartSummaryCard';
 import { AURIOS_BALANCE } from '../data/checkout';
@@ -13,10 +13,10 @@ export default function Carrito() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  useCart();
-  const items = cartStore.getItems();
-  const count = cartStore.getCount();
-  const total = cartStore.getTotal();
+  const { add, remove } = useCartStore();
+  const items = useCartItems();
+  const count = useCartCount();
+  const total = useCartTotal();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -48,8 +48,8 @@ export default function Carrito() {
           <CartItemCard
             key={item.id}
             item={item}
-            onAdd={() => cartStore.add({ id: item.id, title: item.title, type: item.type, price: item.price, image: item.image })}
-            onRemove={() => cartStore.remove(item.id)}
+            onAdd={() => add({ id: item.id, title: item.title, type: item.type, price: item.price, image: item.image })}
+            onRemove={() => remove(item.id)}
           />
         ))}
 

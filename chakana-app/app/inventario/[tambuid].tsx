@@ -8,7 +8,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import InventoryCard from '../../components/inventory/InventoryCard';
-import { cartStore, useCart } from '../../store/cart';
+import { useCartStore, useCartCount, useCartTotal } from '../../store/cart';
 import { getTambu } from '../../data/tambuses';
 import { getProducts } from '../../data/inventory';
 
@@ -17,9 +17,9 @@ export default function InventoryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  useCart(); // re-render when cart changes
-  const cartCount = cartStore.getCount();
-  const cartTotal = cartStore.getTotal();
+  const { add, remove, items: cartItems } = useCartStore();
+  const cartCount = useCartCount();
+  const cartTotal = useCartTotal();
 
   // Scroll-driven header opacity
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -118,9 +118,9 @@ export default function InventoryScreen() {
                 type={item.type}
                 price={item.price}
                 image={item.image}
-                qty={cartStore.getQty(item.id)}
-                onAdd={() => cartStore.add({ id: item.id, title: item.title, type: item.type, price: item.price, image: item.image })}
-                onRemove={() => cartStore.remove(item.id)}
+                qty={cartItems.find(i => i.id === item.id)?.qty ?? 0}
+                onAdd={() => add({ id: item.id, title: item.title, type: item.type, price: item.price, image: item.image })}
+                onRemove={() => remove(item.id)}
               />
             ))}
           </View>

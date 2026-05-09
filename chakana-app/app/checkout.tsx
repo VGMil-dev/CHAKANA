@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { CHECKOUT_CONFIG, AURIOS_BALANCE } from '../data/checkout';
-import { cartStore, useCart } from '../store/cart';
+import { useCartStore, useCartItems, useCartTotal } from '../store/cart';
 
 const { maxDiscountPct: MAX_PCT, railRange: RAIL_RANGE, initialDiscountPct: INITIAL_PCT } = CHECKOUT_CONFIG;
 const DISC_SIZE = 28;
@@ -73,7 +73,7 @@ function OrderCard({
   aurios: number;
   discount: number;
 }) {
-  const items = cartStore.getItems();
+  const items = useCartItems();
   return (
     <View style={styles.card}>
       {items.map(item => (
@@ -275,8 +275,7 @@ export default function Checkout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  useCart();
-  const subtotal = cartStore.getTotal();
+  const subtotal = useCartTotal();
 
   const [pct, setPct] = useState(INITIAL_PCT);
 
