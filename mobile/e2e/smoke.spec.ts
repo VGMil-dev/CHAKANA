@@ -42,4 +42,13 @@ test.describe('Chakana web smoke', () => {
     await expect(page.getByTestId('connect-wallet-button')).toBeVisible();
     await expect(page.getByText(/Conectar wallet|wallet/i).first()).toBeVisible();
   });
+
+  test('formulario de reseñas renderiza sin enviar datos reales', async ({ page }) => {
+    await page.goto('/inventario/raiz-cafe');
+
+    await expect(page.getByTestId('review-form')).toBeVisible();
+    await expect(page.getByTestId('review-text-input')).toBeVisible();
+    await expect(page.getByTestId('submit-review-button')).toBeVisible();
+    await expect(page.getByText(/Deja tu reseña|Mínimo 50 caracteres/i).first()).toBeVisible();
+  });
 });
