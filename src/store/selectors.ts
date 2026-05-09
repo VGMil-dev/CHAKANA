@@ -20,6 +20,8 @@ export const useReviewError = () => useAppStore((state) => state.reviewError);
 export const useActiveModal = () => useAppStore((state) => state.activeModal);
 export const useCheckoutTotal = () => useAppStore((state) => state.checkoutTotal);
 export const useAuriosToSpend = () => useAppStore((state) => state.auriosToSpend);
+export const useCheckoutError = () => useAppStore((state) => state.checkoutError);
+export const useCheckoutSignature = () => useAppStore((state) => state.checkoutSignature);
 export const useAudioReportUrl = () => useAppStore((state) => state.audioReportUrl);
 export const useIsLoadingReport = () => useAppStore((state) => state.isLoadingReport);
 export const useErrorMessage = () => useAppStore((state) => state.errorMessage);
