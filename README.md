@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/157ef459-2a03-4e8b-99de-8338b82d3bca" alt="CHAKANA header" width="900" />
+  <img src="https://github.com/user-attachments/assets/157ef459-2a03-4e8b-99de-8338b82d3bca" alt="CHAKANA header" width="900" style="border-radius: 16px;" />
 
   <p><strong>🌎 Trust infrastructure for circular local commerce</strong></p>
 
