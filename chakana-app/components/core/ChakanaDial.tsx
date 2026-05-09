@@ -147,9 +147,9 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, cent
           >
             <Image source={require('../../assets/images/splash-icon.png')} style={styles.dialCenterIcon} />
             {cartPill != null && (
-              <Animated.Text style={[styles.dialCenterPrice, priceAnimStyle]}>
-                ${cartPill.total.toFixed(2)}
-              </Animated.Text>
+              <Animated.View style={[styles.dialCenterPricePill, priceAnimStyle]}>
+                <Text style={styles.dialCenterPriceText}>${cartPill.total.toFixed(2)}</Text>
+              </Animated.View>
             )}
           </LinearGradient>
         </Pressable>
@@ -216,10 +216,16 @@ const styles = StyleSheet.create({
     tintColor: '#FDFAF7',
     resizeMode: 'contain',
   },
-  dialCenterPrice: {
-    color: '#FDFAF7',
+  dialCenterPricePill: {
+    backgroundColor: '#FDFAF7',
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+  },
+  dialCenterPriceText: {
+    color: '#3D3D3D',
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: 13,
     letterSpacing: -0.3,
   },
   dialIconContainer: {
