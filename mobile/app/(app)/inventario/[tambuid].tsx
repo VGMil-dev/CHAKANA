@@ -9,9 +9,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import InventoryCard from '../../../components/inventory/InventoryCard';
+import ReviewForm from '../../../components/reviews/ReviewForm';
 import { useCartStore, useCartCount, useCartTotal } from '../../../store/cart';
 import { getTambu } from '../../../data/tambuses';
 import { getProducts } from '../../../data/inventory';
+
+const DEMO_BUSINESS_ID = process.env.EXPO_PUBLIC_QA_BUSINESS_ID ?? 'raiz-cafe';
 
 export default function InventoryScreen() {
   const { tambuid } = useLocalSearchParams();
@@ -41,6 +44,8 @@ export default function InventoryScreen() {
   }, [cartCount > 0]);
 
   const id = typeof tambuid === 'string' ? tambuid : tambuid[0];
+  // TODO: reemplazar fallback por businessId real del Tambu cuando Supabase Businesses esté conectado.
+  const businessId = id && id.length > 0 ? id : DEMO_BUSINESS_ID;
   const tambu = getTambu(id);
   const tambuName = tambu?.name ?? 'Tambu Desconocido';
   const products = getProducts(id);
@@ -119,6 +124,8 @@ export default function InventoryScreen() {
               />
             ))}
           </View>
+
+          <ReviewForm businessId={businessId} />
         </View>
       </Animated.ScrollView>
 
