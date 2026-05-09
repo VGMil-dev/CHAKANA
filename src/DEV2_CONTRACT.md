@@ -49,15 +49,41 @@ Dev 1 NUNCA importa desde:
 - `isConnected` de `useAuth` significa sesion Supabase activa; la conexion de wallet sigue viviendo en `useWallet`.
 - Dev 1 consume `useAuth`; no importa `../services/supabase` directamente.
 
-## Flujo de reseñas y recompensa Aurio
+## Edge Function de recompensa AURIO
 
-- El usuario escribe una reseña válida de mínimo 50 caracteres.
-- Dev 2 llama `insertReview`.
-- Dev 4/oráculo valida la reseña y mintea 1 Aurio a la wallet conectada.
-- Dev 2 espera aproximadamente 3 segundos.
-- Dev 2 refresca el balance real usando `getAurioBalance(walletPubKey)`.
+Endpoint:
+POST /functions/v1/mint-aurio-on-review
+
+Body:
+{
+  userWallet: string
+  reviewText: string
+  businessId: string
+}
+
+Response:
+{
+  success: boolean
+  signature: string
+  mintedTo: string
+  amount: number
+}
+
+Failure modes:
+- 400: missing fields
+- 401: invalid Supabase key
+- 500: Solana mint / ATA / env misconfig
+- success but no mint: wrong mint authority or decimals
+
+Responsabilidades:
+- Dev 4 mintea AURIO server-side.
+- Dev 2 llama la Edge Function.
+- Dev 2 refresca balance con `getAurioBalance(walletPubKey)`.
 - Dev 2 nunca suma Aurios manualmente.
-- Dev 2 nunca mintea tokens.
+- Dev 2 nunca usa mint authority.
+
+Nota importante:
+AURIO tiene 6 decimals. Si amount=1000 son unidades base, eso equivale a 0.001 AURIO. Confirmar con Dev 4 si el reward esperado es 1000 raw units o 1 AURIO completo.
 
 ## Selectores disponibles
 

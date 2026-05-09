@@ -22,6 +22,7 @@
 - Dev 2 Modulo 3: hooks de negocio `useAuth`, `useBusinesses`, `useReviewSubmit` y `useCheckout`
 - Dev 2 Modulo 4: tipos compartidos, props para Dev 1, selectores y contrato `DEV2_CONTRACT.md`
 - Integracion Supabase Auth en app Expo: `initAuth` al arrancar, login/registro/logout en pantalla minima y estado `authUserId`/`authEmail` en Zustand
+- Dev 2 reviews reward: `useReviewSubmit` llama la Edge Function `mint-aurio-on-review` y refresca balance real con `getAurioBalance(walletPubKey)`
 
 ---
 

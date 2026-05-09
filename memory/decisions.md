@@ -11,6 +11,11 @@
 - **Decision:** Implementar protocolos de "Think Before Coding", "Simplicity First" y "Surgical Changes" inspirados en el repo `andrej-karpathy-skills`.
 - **Impacto:** Los agentes ahora deben validar su plan antes de ejecutar y priorizar la simplicidad sobre la elegancia.
 
+### [2026-05-08] - Contrato reward AURIO por reseña
+- **Contexto:** Dev 4 entrega la Edge Function oficial `mint-aurio-on-review`.
+- **Decision:** Dev 2 solo llama `POST /functions/v1/mint-aurio-on-review` con `userWallet`, `reviewText` y `businessId`, y refresca el balance real con `getAurioBalance(walletPubKey)`.
+- **Impacto:** El frontend no mintea, no usa mint authority y no suma Aurios manualmente. `amount` se trata como unidades base hasta confirmar decimals/reward esperado con Dev 4.
+
 ---
 
 ## Contratos y Protocolos
