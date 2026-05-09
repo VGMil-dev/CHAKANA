@@ -13,17 +13,30 @@
 - La regla economica es `1 Aurio = $0.01 USD`.
 - El descuento maximo es 25% del total.
 - El maximo a gastar es `min(25% del total en Aurios, aurioBalance)`.
-- `useCheckout` construye la transaccion con `payToTambu({ sender, tambuMint, amount })`.
+- Flujo ideal: `useCheckout` construye la transaccion con `payToTambu({ sender, tambuMint, amount })`.
 - Dev 2 recibe `signTransaction` desde wallet/Dev 3.
 - Dev 2 envia la transaccion con `getAurioConnection().sendRawTransaction(...)`.
 - Dev 2 confirma con `confirmTransaction(signature, 'confirmed')`.
 - Dev 2 refresca balance real con `getAurioBalance(walletPubKey)`.
 - Dev 2 abre el estado/modal `propina` despues de confirmar.
 
+## Checkout MVP
+
+- El flujo ideal usa `payToTambu({ sender, tambuMint, amount })`.
+- Para MVP, mientras no exista NFT Tambu con metadata, se usa `buildAurioTransferTx({ sender, recipient: payoutWallet, amount })`.
+- Motivo: el valor recibido por Dev 4 era wallet destino, no NFT mint.
+- `payToTambu` requiere NFT mint con metadata Metaplex.
+- Si se le pasa una wallet directa, falla con `Tambu NFT metadata account not found.`
+- `EXPO_PUBLIC_QA_TAMBU_MINT` queda reservado para NFT mint real.
+- `EXPO_PUBLIC_QA_PAYOUT_WALLET` se usa para wallet directa QA.
+- No usar `AURIO_MINT` como destino.
+- No restar balance manualmente.
+- Despues del pago, balance se refresca con `getAurioBalance`.
+
 ## Pendiente
 
-- Falta definir un `tambuMint` real del negocio para probar transferencia end-to-end en la pantalla temporal.
+- Falta definir un `tambuMint` real del negocio para probar `payToTambu` end-to-end en la pantalla temporal.
 - No usar el mint address de AURIO como destino del negocio.
 - `tambuMint` identifica el NFT/negocio para resolver la wallet destino.
-- Mientras `DEMO_TAMBU_MINT` este vacio, el boton de checkout real queda deshabilitado.
+- Mientras no exista `EXPO_PUBLIC_QA_TAMBU_MINT` ni `EXPO_PUBLIC_QA_PAYOUT_WALLET`, el boton de checkout real queda deshabilitado.
 - Para `raiz-cafe`, Dev 2 necesita que Dev 3/negocio entregue el `tambuMint` real antes de probar transferencia.

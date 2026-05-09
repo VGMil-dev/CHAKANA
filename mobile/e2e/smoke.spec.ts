@@ -62,7 +62,7 @@ test.describe('Chakana web smoke', () => {
     await expect(page.getByTestId('checkout-pay-button')).toBeVisible();
     await expect(
       page.getByText(
-        /Falta el tambuMint real de raiz-cafe para probar transferencia\.|Tambu conectado para prueba devnet\./,
+        /Modo QA: pago directo a wallet del negocio\.|Tambu conectado para prueba devnet\.|Falta tambuMint o payout wallet para probar transferencia\./,
       ),
     ).toBeVisible();
   });

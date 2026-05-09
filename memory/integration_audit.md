@@ -17,7 +17,7 @@ La integración recomendada es usar `mobile/` como runtime base porque ya contie
   - Guarda `walletPubKey`, `isConnected` y balance en Zustand.
 - Balance Aurio:
   - `useWallet` refresca con `getAurioBalance(walletPubKey)`.
-  - No hay sumas manuales detectadas tipo `setAurioBalance(balance + x)`.
+  - No hay escrituras manuales de balance detectadas; el balance se lee on-chain.
 - Reseña reward:
   - `src/hooks/useReviewSubmit.ts` valida mínimo 50 caracteres.
   - Llama `submitReviewReward` y luego refresca balance real con `getAurioBalance`.
@@ -34,7 +34,7 @@ La integración recomendada es usar `mobile/` como runtime base porque ya contie
   - Clampea por balance y por máximo permitido.
 - Pantalla temporal Dev 2:
   - `mobile/app/index.tsx` prueba wallet, balance, reseña reward y checkout lógico.
-  - Checkout real queda bloqueado porque `DEMO_TAMBU_MINT = ''`.
+  - Checkout real usa payout wallet QA mientras no exista NFT Tambu con metadata.
 
 ## Lo que falta unir
 
@@ -56,9 +56,9 @@ La integración recomendada es usar `mobile/` como runtime base porque ya contie
 | `chakana-app/app/(app)/home.tsx` + `TambuFeed` | `tambus`, categoría activa, header balance | `useBusinesses`, `useWallet`/`useAurioBalance` | Usa `TAMBUSES` mock y amount hardcodeado `2840` | Cargar `listaTambus`, mapear campos DB a props visuales, mostrar balance real |
 | `chakana-app/components/home/TambuCard.tsx` | `id`, `name`, `barrio`, `cat`, `tone`, `rating`, `n`, `aurios` | `useBusinesses.selectTambu` desde contenedor | Link directo a `/inventario/${id}` con tipo mock | Adaptar card visual a `Business` real o crear mapper UI; seleccionar tambu antes de navegar |
 | `chakana-app/app/(app)/inventario/[tambuid].tsx` | `tambuid`, products, cart actions | `useBusinesses`, store/cart temporal | Usa `getTambu` y `getProducts` mocks | Resolver `businessId`, `wallet_pubkey`/`tambuMint` y datos reales/mínimos para Golden Path |
-| `chakana-app/app/(app)/carrito.tsx` | cart items, count, total, aurios balance | `useCheckout`, `useWallet`, `useDiscount` | Usa `store/cart` local y `AURIOS_BALANCE` mock | Mantener cart UI pero alimentar balance real y preparar total para checkout |
-| `chakana-app/app/(app)/checkout.tsx` | subtotal, slider pct, aurios, discount, total, pay action | `useCheckout`, `useDiscount`, `useWalletSigner`/Dev 3 | Calcula descuento local por porcentaje; `router.replace('/pagare' as any)` a ruta inexistente | Usar `setTotal`, `onSliderChange`, `discountResult`, `sliderMax`, `confirmCheckout({ tambuMint, signTransaction })`; eliminar ruta fake |
-| `chakana-app/components/checkout/AuriosSlider.tsx` | `initialPct`, `subtotal`, `onPctChange` | `useCheckout.onSliderChange` o wrapper | Usa porcentaje, `AURIOS_BALANCE` mock importado | Adaptar a cantidad de Aurios o convertir pct→aurios con `sliderMax`; quitar mock |
+| `chakana-app/app/(app)/carrito.tsx` | cart items, count, total, aurios balance | `useCheckout`, `useWallet`, `useDiscount` | Usa `store/cart` local y balance mock | Mantener cart UI pero alimentar balance real y preparar total para checkout |
+| `chakana-app/app/(app)/checkout.tsx` | subtotal, slider pct, aurios, discount, total, pay action | `useCheckout`, `useDiscount`, `useWalletSigner`/Dev 3 | Calcula descuento local por porcentaje; navegaba a ruta inexistente | Usar `setTotal`, `onSliderChange`, `discountResult`, `sliderMax`, `confirmCheckout({ destination, signTransaction })`; eliminar ruta fake |
+| `chakana-app/components/checkout/AuriosSlider.tsx` | `initialPct`, `subtotal`, `onPctChange` | `useCheckout.onSliderChange` o wrapper | Usa porcentaje y balance mock importado | Adaptar a cantidad de Aurios o convertir pct→aurios con `sliderMax`; quitar mock |
 | `chakana-app/components/checkout/OrderCard.tsx` | `subtotal`, `aurios`, `discount` | `useCheckout.discountResult` | Lee items de `store/cart` local | Puede quedarse visual; props deben venir de hook real |
 | Review Form Dev 1 | texto, validación, loading, error, success | `useReviewSubmit` | No se encontró pantalla/form final dedicado en UI Dev 1 | Crear/conectar sección visual existente al hook; enviar `businessId` real |
 | Propina Modal | visible, wallet, close | `useActiveModal`, `closeModal` | No hay modal LI.FI conectado; solo estado Dev 2 | Mostrar placeholder cuando `activeModal === 'propina'`; LI.FI puede quedar TODO controlado |
@@ -130,15 +130,15 @@ La integración recomendada es usar `mobile/` como runtime base porque ya contie
   - `src/store/slices/businessSlice.ts` usa `Tables<'businesses'>` con columnas reales: `id`, `name`, `description`, `owner_id`, `wallet_pubkey`.
   - `chakana-app/data/tambuses.ts` define `Tambu` visual con `barrio`, `cat`, `tone`, `n`, `aurios`.
 - UI usa mocks donde ya existe lógica real:
-  - `TAMBUSES`, `DASHBOARD_MOCK`, `AURIOS_BALANCE`, `TEST_ACCOUNTS`, `getProducts`.
+  - Datos locales de tambus, dashboard, balance, cuentas de prueba y productos.
 - Checkout UI calcula descuento local por porcentaje y no usa `useCheckout`.
 - Ruta fake/rota:
-  - `router.replace('/pagare' as any)` en checkout; no se encontró ruta `pagare`.
+  - El checkout navegaba a una ruta inexistente.
 - Pantalla temporal Dev 2 convive con UI final:
   - `mobile/app/index.tsx` es prueba de lógica Aurio, no UI final.
 - Falta `tambuMint` real:
-  - Checkout real está correctamente bloqueado en pantalla temporal con `DEMO_TAMBU_MINT = ''`.
-  - No usar `EXPO_PUBLIC_AURIO_MINT` como destino/tambuMint.
+  - Checkout real usa payout wallet QA mientras no exista NFT Tambu con metadata.
+  - No usar el mint address del token como destino ni como NFT Tambu.
 - Dev 3 mobile signing pendiente:
   - Sin `signTransaction` mobile no hay checkout E2E real en dispositivo.
 - Review form no está integrado en UI final:

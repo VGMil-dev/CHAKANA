@@ -24,12 +24,13 @@
 - Integracion Supabase Auth en app Expo: `initAuth` al arrancar, login/registro/logout en pantalla minima y estado `authUserId`/`authEmail` en Zustand
 - Dev 2 reviews reward: `useReviewSubmit` llama la Edge Function `mint-aurio-on-review` y refresca balance real con `getAurioBalance(walletPubKey)`
 - App Expo tras `reset-project`: pantalla temporal en `mobile/app/index.tsx` para probar wallet, balance AURIO, resenas y checkout.
-- Dev 2 checkout Aurio: `useCheckout` integra `payToTambu`, recibe `signTransaction`, envia/confirma la transaccion y refresca balance real con `getAurioBalance(walletPubKey)`.
+- Dev 2 checkout Aurio: `useCheckout` integra `payToTambu` y `buildAurioTransferTx`, recibe `signTransaction`, envia/confirma la transaccion y refresca balance real con `getAurioBalance(walletPubKey)`.
 - Fase 4 prep checkout: UI visual de `mobile/app/(app)/checkout.tsx` conectada a `useCheckout`, balance real, presets Aurios y pago bloqueado hasta recibir `tambuMint` real de Dev 4.
 - Limpieza lint Expo: `npm run lint` queda en 0 errores y 0 warnings; smoke e2e sigue pasando.
-- Checkout devnet: `tambuMint` de raiz-cafe se lee desde `EXPO_PUBLIC_QA_TAMBU_MINT`; no se usa `AURIO_MINT` como destino de pago.
+- Checkout devnet: wallet destino QA de raiz-cafe se lee desde `EXPO_PUBLIC_QA_PAYOUT_WALLET`; no se usa `AURIO_MINT` como destino de pago.
 - Fix web: SplashScreen desactiva layout animations de Reanimated en web para evitar crash `Cannot read properties of undefined (reading 'top')`.
 - Fix web Solana: `mobile/polyfills.ts` define `globalThis.Buffer` y `crypto.getRandomValues` antes de cargar Expo Router.
+- Checkout MVP: mientras no exista NFT Tambu real, QA usa `EXPO_PUBLIC_QA_PAYOUT_WALLET` y `buildAurioTransferTx`; `EXPO_PUBLIC_QA_TAMBU_MINT` queda reservado para `payToTambu`.
 
 ---
 
@@ -37,7 +38,7 @@
 
 - App Expo / React Native inicializada en `mobile/` con pantalla minima de integracion
 - Integracion UI Dev 1 con hooks Dev 2 pendiente
-- Falta conectar Businesses para reemplazar `EXPO_PUBLIC_QA_TAMBU_MINT` por el `tambuMint` del negocio seleccionado.
+- Falta conectar Businesses para reemplazar env QA por `tambuMint` o `payoutWallet` del negocio seleccionado.
 
 ---
 
