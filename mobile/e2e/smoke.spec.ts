@@ -10,6 +10,7 @@ const aurioPaymentCopyPattern = new RegExp(
   `${['Pagar con', 'Aurios'].join(' ')}|${['Pago con', 'Aurios'].join(' ')}`,
   'i',
 );
+const minCharactersCopyPattern = new RegExp(['Mínimo 50', 'caracteres'].join(' '), 'i');
 
 async function expectDangerousMocksHidden(page: import('@playwright/test').Page): Promise<void> {
   for (const text of dangerousMockTexts) {
@@ -55,7 +56,9 @@ test.describe('Chakana web smoke', () => {
     await expect(page.getByTestId('review-form')).toBeVisible();
     await expect(page.getByTestId('review-text-input')).toBeVisible();
     await expect(page.getByTestId('submit-review-button')).toBeVisible();
-    await expect(page.getByText(/Deja tu reseña|Mínimo 50 caracteres/i).first()).toBeVisible();
+    await expect(page.getByTestId('review-word-count')).toBeVisible();
+    await expect(page.getByText(/Mínimo 50 palabras/i).first()).toBeVisible();
+    await expect(page.getByText(minCharactersCopyPattern)).toHaveCount(0);
   });
 
   test('checkout separa descuento Aurio y pago con tarjeta', async ({ page }) => {
