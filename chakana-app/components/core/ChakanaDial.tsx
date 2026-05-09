@@ -1,11 +1,13 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 import { useCartCount } from '../../store/cart';
 import { useAuthStore } from '../../store/auth';
+import { haptic } from '../../utils/haptics';
 
 export type DialTab = 'carrito' | 'pedidos' | 'yo';
 
@@ -31,7 +33,7 @@ function DialIcon({
   onPress: (tab: DialTab) => void;
 }) {
   return (
-    <TouchableOpacity style={styles.dialIconContainer} activeOpacity={0.6} onPress={() => onPress(tab)}>
+    <TouchableOpacity style={styles.dialIconContainer} activeOpacity={0.6} onPress={() => { haptic.selection(); onPress(tab); }}>
       <View style={styles.iconWrap}>
         <Ionicons name={icon} size={24} color={active ? '#A63A2F' : '#6B645C'} />
         {badge != null && badge > 0 && (
@@ -51,6 +53,10 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress }: Ch
   const role = useAuthStore((s) => s.user?.role ?? 'embajador');
   const handleTab = (tab: DialTab) => onTabPress?.(tab);
 
+  const centerScale = useSharedValue(1);
+  const centerAnimStyle = useAnimatedStyle(() => ({ transform: [{ scale: centerScale.value }] }));
+  const SPRING = { damping: 12, stiffness: 300, mass: 0.8 };
+
   const leftTab = role === 'tambu'
     ? { tab: 'pedidos' as DialTab, icon: 'receipt-outline' as const, label: 'PEDIDOS', badge: undefined }
     : { tab: 'carrito' as DialTab, icon: 'bag-outline' as const,     label: 'CARRITO', badge: cartCount };
@@ -63,8 +69,13 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress }: Ch
         <DialIcon tab="yo" icon="person-outline" label="PERFIL" active={activeTab === 'yo'} onPress={handleTab} />
       </View>
 
-      <View style={styles.dialCenterWrapper}>
-        <TouchableOpacity activeOpacity={0.8} onPress={onCenterPress} style={{ flex: 1 }}>
+      <Animated.View style={[styles.dialCenterWrapper, centerAnimStyle]}>
+        <Pressable
+          onPressIn={() => { centerScale.value = withSpring(0.92, SPRING); }}
+          onPressOut={() => { centerScale.value = withSpring(1, SPRING); }}
+          onPress={() => { haptic.medium(); onCenterPress?.(); }}
+          style={{ flex: 1 }}
+        >
           <LinearGradient
             colors={['#C5836F', '#A63A2F', '#6E1C13']}
             start={{ x: 0.35, y: 0.3 }}
@@ -73,8 +84,8 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress }: Ch
           >
             <Image source={require('../../assets/images/splash-icon.png')} style={styles.dialCenterIcon} />
           </LinearGradient>
-        </TouchableOpacity>
-      </View>
+        </Pressable>
+      </Animated.View>
     </View>
   );
 }

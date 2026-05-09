@@ -2,6 +2,9 @@ import React from 'react';
 import { StyleSheet, View, Text, Image, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withSequence } from 'react-native-reanimated';
+
+import { haptic } from '../../utils/haptics';
 
 export interface InventoryCardProps {
   id: string;
@@ -16,6 +19,22 @@ export interface InventoryCardProps {
 }
 
 export default function InventoryCard({ title, type, price, image, qty, onPress, onAdd, onRemove }: InventoryCardProps) {
+  const addScale = useSharedValue(1);
+  const addAnimStyle = useAnimatedStyle(() => ({ transform: [{ scale: addScale.value }] }));
+  const SPRING_POP = { damping: 8, stiffness: 400, mass: 0.6 };
+  const SPRING_SETTLE = { damping: 14, stiffness: 300, mass: 0.8 };
+
+  const handleAdd = () => {
+    haptic.medium();
+    addScale.value = withSequence(withSpring(1.3, SPRING_POP), withSpring(1, SPRING_SETTLE));
+    onAdd();
+  };
+
+  const handleRemove = () => {
+    haptic.light();
+    onRemove();
+  };
+
   return (
     <Pressable
       onPress={onPress}
@@ -37,33 +56,35 @@ export default function InventoryCard({ title, type, price, image, qty, onPress,
         </View>
 
         {qty === 0 && (
-          <Pressable
-            onPress={onAdd}
-            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.85 }]}
-          >
-            <LinearGradient
-              colors={['#C5836F', '#A63A2F']}
-              style={styles.addBtnGrad}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+          <Animated.View style={[styles.addBtn, addAnimStyle]}>
+            <Pressable
+              onPress={handleAdd}
+              hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+              style={({ pressed }) => [pressed && { opacity: 0.85 }]}
             >
-              <Ionicons name="add" size={18} color="#FDFAF7" />
-            </LinearGradient>
-          </Pressable>
+              <LinearGradient
+                colors={['#C5836F', '#A63A2F']}
+                style={styles.addBtnGrad}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="add" size={18} color="#FDFAF7" />
+              </LinearGradient>
+            </Pressable>
+          </Animated.View>
         )}
 
         {qty > 0 && (
           <View style={styles.stepperOverlay}>
             <Pressable
-              onPress={onRemove}
+              onPress={handleRemove}
               style={({ pressed }) => [styles.stepBtn, pressed && { opacity: 0.7 }]}
             >
               <Ionicons name={qty === 1 ? 'trash-outline' : 'remove'} size={14} color="#FDFAF7" />
             </Pressable>
             <Text style={styles.stepQty}>{qty}</Text>
             <Pressable
-              onPress={onAdd}
+              onPress={handleAdd}
               style={({ pressed }) => [styles.stepBtn, pressed && { opacity: 0.7 }]}
             >
               <Ionicons name="add" size={14} color="#FDFAF7" />

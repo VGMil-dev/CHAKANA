@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, PanResponder } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CHECKOUT_CONFIG, AURIOS_BALANCE } from '../../data/checkout';
+import { haptic } from '../../utils/haptics';
 
 const { maxDiscountPct: MAX_PCT, railRange: RAIL_RANGE } = CHECKOUT_CONFIG;
 const DISC_SIZE = 28;
@@ -19,6 +20,7 @@ export default function AuriosSlider({ initialPct = 18, subtotal, onPctChange }:
 
   const railWidth         = useRef(0);
   const dragStartX        = useRef(0);
+  const wasAtMax          = useRef(false);
   const overshootAnim     = useRef(new Animated.Value(0)).current;
   const scaleAnim         = useRef(new Animated.Value(1)).current;
 
@@ -30,10 +32,12 @@ export default function AuriosSlider({ initialPct = 18, subtotal, onPctChange }:
     const ratio     = Math.max(0, Math.min(1.22, x / w));
     const requested = ratio * RAIL_RANGE;
     if (requested > MAX_PCT) {
+      if (!wasAtMax.current) { haptic.warning(); wasAtMax.current = true; }
       setPct(MAX_PCT);
       onChangeRef.current(MAX_PCT);
       overshootAnim.setValue(Math.min(14, (requested - MAX_PCT) * 3.5));
     } else {
+      wasAtMax.current = false;
       const newPct = Math.max(0, requested);
       setPct(newPct);
       onChangeRef.current(newPct);
@@ -46,6 +50,7 @@ export default function AuriosSlider({ initialPct = 18, subtotal, onPctChange }:
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder:  () => true,
       onPanResponderGrant: (evt) => {
+        haptic.light();
         Animated.spring(scaleAnim, { toValue: 1.06, useNativeDriver: true, speed: 24, bounciness: 4 }).start();
         dragStartX.current = evt.nativeEvent.locationX;
         applyX.current(dragStartX.current);

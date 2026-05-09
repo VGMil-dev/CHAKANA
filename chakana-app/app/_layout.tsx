@@ -11,7 +11,8 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
-  const [splashAnimationFinished, setSplashAnimationFinished] = useState(false);
+  // Skip splash animation on web (native-only UX, breaks Playwright)
+  const [splashAnimationFinished, setSplashAnimationFinished] = useState(Platform.OS === 'web');
 
   useEffect(() => {
     async function prepare() {

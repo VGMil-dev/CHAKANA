@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { haptic } from '../../utils/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,6 +23,7 @@ export default function Pagare() {
   const handlePay = () => {
     setLoading(true);
     setTimeout(() => {
+      haptic.success();
       router.replace('/resena' as any);
     }, 1800);
   };

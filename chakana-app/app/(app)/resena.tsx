@@ -6,10 +6,42 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withSequence } from 'react-native-reanimated';
 import PageNav from '../../components/core/PageNav';
 import PageHeader from '../../components/core/PageHeader';
+import { haptic } from '../../utils/haptics';
 
 const STAR_COUNT = 5;
+
+function StarButton({ filled, onPress, onPressIn, onPressOut, isLast }: {
+  filled: boolean;
+  onPress: () => void;
+  onPressIn: () => void;
+  onPressOut: () => void;
+  isLast: boolean;
+}) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  const handlePress = () => {
+    scale.value = withSequence(
+      withSpring(0.75, { damping: 10, stiffness: 400 }),
+      withSpring(1.3, { damping: 6, stiffness: 400 }),
+      withSpring(1, { damping: 15, stiffness: 300 }),
+    );
+    if (isLast) haptic.success();
+    else haptic.light();
+    onPress();
+  };
+
+  return (
+    <Pressable onPress={handlePress} onPressIn={onPressIn} onPressOut={onPressOut} style={styles.starHit}>
+      <Animated.View style={animStyle}>
+        <Ionicons name={filled ? 'star' : 'star-outline'} size={38} color={filled ? '#A63A2F' : '#C9C1B8'} />
+      </Animated.View>
+    </Pressable>
+  );
+}
 
 const PROMPTS = [
   'Frescura del producto',
@@ -26,12 +58,15 @@ export default function Resena() {
   const [comment, setComment] = useState('');
   const [tags, setTags] = useState<string[]>([]);
 
-  const toggleTag = (t: string) =>
+  const toggleTag = (t: string) => {
+    haptic.selection();
     setTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
+  };
 
   const canSubmit = stars > 0;
 
   const handleSubmit = () => {
+    haptic.success();
     router.replace('/home');
   };
 
@@ -67,24 +102,16 @@ export default function Resena() {
         </View>
 
         <View style={styles.starsRow}>
-          {Array.from({ length: STAR_COUNT }).map((_, i) => {
-            const filled = i < display;
-            return (
-              <Pressable
-                key={i}
-                onPress={() => setStars(i + 1)}
-                onPressIn={() => setHovered(i + 1)}
-                onPressOut={() => setHovered(0)}
-                style={styles.starHit}
-              >
-                <Ionicons
-                  name={filled ? 'star' : 'star-outline'}
-                  size={38}
-                  color={filled ? '#A63A2F' : '#C9C1B8'}
-                />
-              </Pressable>
-            );
-          })}
+          {Array.from({ length: STAR_COUNT }).map((_, i) => (
+            <StarButton
+              key={i}
+              filled={i < display}
+              isLast={i === STAR_COUNT - 1}
+              onPress={() => setStars(i + 1)}
+              onPressIn={() => setHovered(i + 1)}
+              onPressOut={() => setHovered(0)}
+            />
+          ))}
         </View>
 
         {stars > 0 && (

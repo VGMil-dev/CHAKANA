@@ -8,7 +8,10 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "playwright test",
+    "test:ui": "playwright test --headed",
+    "test:report": "playwright show-report"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -42,6 +45,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/react": "~19.2.10",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~55.0.0",
