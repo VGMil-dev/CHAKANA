@@ -154,26 +154,28 @@ export default function HomeScreen() {
       {walletError ? <Text style={styles.error}>{walletError}</Text> : null}
 
       <View style={styles.reviewBox}>
-        <Text style={styles.sectionTitle}>Resena de cafeteria</Text>
+        <Text style={styles.sectionTitle}>Reseña de cafetería</Text>
         <TextInput
           style={styles.input}
           value={currentReviewText}
           onChangeText={onTextChange}
           multiline
-          placeholder="Escribe una resena real de minimo 50 caracteres"
+          placeholder="Escribe una reseña real de mínimo 50 caracteres"
           placeholderTextColor="#8B949E"
           editable={!isSubmittingReview}
         />
         <Text style={styles.helper}>
-          Minimo 50 caracteres - faltan {Math.max(charsRemaining, 0)}
+          Mínimo 50 caracteres - faltan {Math.max(charsRemaining, 0)}
         </Text>
         <Pressable style={styles.button} onPress={handleSubmitReview} disabled={isSubmittingReview}>
           <Text style={styles.buttonText}>
-            {isSubmittingReview ? 'Enviando...' : 'Enviar resena'}
+            {isSubmittingReview ? 'Enviando...' : 'Enviar reseña'}
           </Text>
         </Pressable>
         {reviewError ? <Text style={styles.error}>{reviewError}</Text> : null}
-        {reviewSuccess ? <Text style={styles.success}>Resena enviada. Ganaste 1 Aurio.</Text> : null}
+        {reviewSuccess ? (
+          <Text style={styles.success}>Reseña enviada. Recompensa AURIO procesada.</Text>
+        ) : null}
       </View>
     </View>
   );
