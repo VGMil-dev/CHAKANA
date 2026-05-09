@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { TurboModuleRegistry } from 'react-native';
 import type { Database } from '../../types/database';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
@@ -28,13 +29,17 @@ const webStorage: SupabaseStorage = {
   removeItem: (key) => window.localStorage.removeItem(key),
 };
 
+const asyncStorageNative = TurboModuleRegistry.get('RNAsyncStorage');
+
 let asyncStorage: SupabaseStorage | null = null;
-try {
-  const { default: AsyncStorageImpl } = require('@react-native-async-storage/async-storage');
-  if (AsyncStorageImpl?.getItem) {
-    asyncStorage = AsyncStorageImpl as unknown as SupabaseStorage;
-  }
-} catch {}
+if (asyncStorageNative) {
+  try {
+    const { default: AsyncStorageImpl } = require('@react-native-async-storage/async-storage');
+    if (AsyncStorageImpl?.getItem) {
+      asyncStorage = AsyncStorageImpl as unknown as SupabaseStorage;
+    }
+  } catch {}
+}
 
 function getSupabaseStorage(): SupabaseStorage {
   if (typeof window === 'undefined') return memoryStorage;
