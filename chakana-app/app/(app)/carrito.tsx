@@ -4,10 +4,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useCartStore, useCartItems, useCartCount, useCartTotal } from '../store/cart';
-import CartItemCard from '../components/cart/CartItemCard';
-import CartSummaryCard from '../components/cart/CartSummaryCard';
-import { AURIOS_BALANCE } from '../data/checkout';
+
+import { useCartStore, useCartItems, useCartCount, useCartTotal } from '../../store/cart';
+import CartItemCard from '../../components/cart/CartItemCard';
+import CartSummaryCard from '../../components/cart/CartSummaryCard';
+import { AURIOS_BALANCE } from '../../data/checkout';
 
 export default function Carrito() {
   const router = useRouter();
@@ -20,7 +21,6 @@ export default function Carrito() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-
       <View style={styles.nav}>
         <Pressable
           onPress={() => router.back()}
@@ -87,118 +87,36 @@ export default function Carrito() {
           </Pressable>
         </View>
       )}
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F0EB',
-  },
+  container: { flex: 1, backgroundColor: '#F5F0EB' },
   nav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingTop: 6,
-    paddingBottom: 4,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 18, paddingTop: 6, paddingBottom: 4,
   },
   navBack: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F8F3EE',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: '#F8F3EE', alignItems: 'center', justifyContent: 'center',
   },
-  navLabel: {
-    fontWeight: '600',
-    fontSize: 11,
-    color: '#6B645C',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-  },
-  pressed: {
-    opacity: 0.75,
-    transform: [{ translateY: 1 }],
-  },
-  header: {
-    paddingHorizontal: 22,
-    paddingTop: 20,
-    paddingBottom: 10,
-  },
-  eyebrow: {
-    fontWeight: '600',
-    fontSize: 10,
-    color: '#A63A2F',
-    letterSpacing: 2.2,
-    textTransform: 'uppercase',
-  },
-  displayTitle: {
-    fontWeight: '700',
-    fontSize: 34,
-    lineHeight: 38,
-    color: '#2E2A26',
-    letterSpacing: -0.8,
-    marginTop: 10,
-  },
-  displayAccent: {
-    color: '#A63A2F',
-  },
-  scrollContent: {
-    paddingHorizontal: 22,
-    paddingTop: 16,
-    paddingBottom: 24,
-    gap: 10,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 64,
-    gap: 18,
-  },
-  emptyTitle: {
-    fontWeight: '700',
-    fontSize: 26,
-    color: '#C4BDB6',
-    letterSpacing: -0.5,
-  },
-  emptyLink: {
-    fontSize: 14,
-    color: '#A63A2F',
-    textDecorationLine: 'underline',
-    fontWeight: '500',
-  },
-  bottomBar: {
-    paddingHorizontal: 22,
-    paddingTop: 12,
-  },
+  navLabel: { fontWeight: '600', fontSize: 11, color: '#6B645C', letterSpacing: 2, textTransform: 'uppercase' },
+  pressed: { opacity: 0.75, transform: [{ translateY: 1 }] },
+  header: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 10 },
+  eyebrow: { fontWeight: '600', fontSize: 10, color: '#A63A2F', letterSpacing: 2.2, textTransform: 'uppercase' },
+  displayTitle: { fontWeight: '700', fontSize: 34, lineHeight: 38, color: '#2E2A26', letterSpacing: -0.8, marginTop: 10 },
+  displayAccent: { color: '#A63A2F' },
+  scrollContent: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 24, gap: 10 },
+  emptyState: { alignItems: 'center', paddingVertical: 64, gap: 18 },
+  emptyTitle: { fontWeight: '700', fontSize: 26, color: '#C4BDB6', letterSpacing: -0.5 },
+  emptyLink: { fontSize: 14, color: '#A63A2F', textDecorationLine: 'underline', fontWeight: '500' },
+  bottomBar: { paddingHorizontal: 22, paddingTop: 12 },
   ctaBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 17,
-    paddingHorizontal: 24,
-    borderRadius: 10,
-    gap: 4,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 17, paddingHorizontal: 24, borderRadius: 10, gap: 4,
   },
-  ctaLabel: {
-    color: '#FDFAF7',
-    fontWeight: '600',
-    fontSize: 14.5,
-    letterSpacing: 0.1,
-  },
-  ctaDivider: {
-    width: 1,
-    height: 18,
-    backgroundColor: 'rgba(253,250,247,0.28)',
-    marginHorizontal: 10,
-  },
-  ctaTotal: {
-    color: '#FDFAF7',
-    fontWeight: '700',
-    fontSize: 17,
-    letterSpacing: -0.3,
-  },
+  ctaLabel: { color: '#FDFAF7', fontWeight: '600', fontSize: 14.5, letterSpacing: 0.1 },
+  ctaDivider: { width: 1, height: 18, backgroundColor: 'rgba(253,250,247,0.28)', marginHorizontal: 10 },
+  ctaTotal: { color: '#FDFAF7', fontWeight: '700', fontSize: 17, letterSpacing: -0.3 },
 });

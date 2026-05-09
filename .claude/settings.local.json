@@ -20,7 +20,8 @@
       "PowerShell(Move-Item *)",
       "PowerShell(Get-ChildItem \"D:\\\\Dev\\\\CHAKANA\\\\chakana-app\\\\data\" -File | ForEach-Object { $_.Name })",
       "PowerShell(git *)",
-      "Bash(Select-String \"zustand\")"
+      "Bash(Select-String \"zustand\")",
+      "Bash(git push *)"
     ]
   }
 }

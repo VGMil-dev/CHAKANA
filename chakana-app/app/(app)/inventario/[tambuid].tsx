@@ -7,10 +7,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import InventoryCard from '../../components/inventory/InventoryCard';
-import { useCartStore, useCartCount, useCartTotal } from '../../store/cart';
-import { getTambu } from '../../data/tambuses';
-import { getProducts } from '../../data/inventory';
+
+import InventoryCard from '../../../components/inventory/InventoryCard';
+import { useCartStore, useCartCount, useCartTotal } from '../../../store/cart';
+import { getTambu } from '../../../data/tambuses';
+import { getProducts } from '../../../data/inventory';
 
 export default function InventoryScreen() {
   const { tambuid } = useLocalSearchParams();
@@ -21,7 +22,6 @@ export default function InventoryScreen() {
   const cartCount = useCartCount();
   const cartTotal = useCartTotal();
 
-  // Scroll-driven header opacity
   const scrollY = useRef(new Animated.Value(0)).current;
   const headerOpacity = scrollY.interpolate({
     inputRange: [180, 250],
@@ -29,7 +29,6 @@ export default function InventoryScreen() {
     extrapolate: 'clamp',
   });
 
-  // Cart button entrance animation
   const cartBtnAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.spring(cartBtnAnim, {
@@ -48,8 +47,6 @@ export default function InventoryScreen() {
 
   return (
     <View style={styles.container}>
-
-      {/* Fixed Navbar */}
       <View style={[styles.fixedNavbar, { paddingTop: insets.top + 12 }]}>
         <Animated.View style={[StyleSheet.absoluteFill, styles.fixedNavbarBg, { opacity: headerOpacity }]} />
         <Pressable
@@ -74,9 +71,8 @@ export default function InventoryScreen() {
         )}
         contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
       >
-        {/* Hero Banner */}
         <ImageBackground
-          source={require('../../assets/images/tambu_placeholder.webp')}
+          source={require('../../../assets/images/tambu_placeholder.webp')}
           style={styles.heroBanner}
           imageStyle={{ resizeMode: 'cover' }}
         >
@@ -88,7 +84,6 @@ export default function InventoryScreen() {
           />
         </ImageBackground>
 
-        {/* Content */}
         <View style={styles.content}>
           <View style={styles.infoSection}>
             <Text style={styles.eyebrow}>· CUENCA, ECUADOR ·</Text>
@@ -127,7 +122,6 @@ export default function InventoryScreen() {
         </View>
       </Animated.ScrollView>
 
-      {/* Floating cart button — appears when cart has items */}
       <Animated.View
         style={[
           styles.cartBarWrapper,
@@ -162,168 +156,51 @@ export default function InventoryScreen() {
           </LinearGradient>
         </Pressable>
       </Animated.View>
-
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F0EB',
-  },
-  heroBanner: {
-    width: '100%',
-    height: 320,
-    justifyContent: 'flex-start',
-  },
+  container: { flex: 1, backgroundColor: '#F5F0EB' },
+  heroBanner: { width: '100%', height: 320, justifyContent: 'flex-start' },
   fixedNavbar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingBottom: 16,
+    position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 24, paddingBottom: 16,
   },
   fixedNavbarBg: {
     backgroundColor: 'rgba(253,250,247,0.95)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(140,133,123,0.15)',
-    shadowColor: '#86231A',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.05,
-    shadowRadius: 32,
-    elevation: 4,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(140,133,123,0.15)',
+    shadowColor: '#86231A', shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.05, shadowRadius: 32, elevation: 4,
   },
   navBackBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F8F3EE',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: '#F8F3EE', alignItems: 'center', justifyContent: 'center',
   },
-  navTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#3D3D3D',
-    letterSpacing: -0.2,
-  },
-  content: {
-    flex: 1,
-    backgroundColor: '#F5F0EB',
-    paddingHorizontal: 28,
-    paddingTop: 0,
-    paddingBottom: 24,
-  },
-  infoSection: {
-    marginBottom: 40,
-  },
-  eyebrow: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#A63A2F',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
-  tambuTitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#3D3D3D',
-    letterSpacing: -0.5,
-    lineHeight: 36,
-    marginBottom: 16,
-  },
-  tambuDesc: {
-    fontSize: 15,
-    lineHeight: 24,
-    color: '#6B645C',
-    marginBottom: 20,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
+  navTitle: { fontSize: 15, fontWeight: '700', color: '#3D3D3D', letterSpacing: -0.2 },
+  content: { flex: 1, backgroundColor: '#F5F0EB', paddingHorizontal: 28, paddingBottom: 24 },
+  infoSection: { marginBottom: 40 },
+  eyebrow: { fontSize: 10, fontWeight: '600', color: '#A63A2F', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 },
+  tambuTitle: { fontSize: 32, fontWeight: '700', color: '#3D3D3D', letterSpacing: -0.5, lineHeight: 36, marginBottom: 16 },
+  tambuDesc: { fontSize: 15, lineHeight: 24, color: '#6B645C', marginBottom: 20 },
+  statsRow: { flexDirection: 'row', gap: 12 },
   statChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8F3EE',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    gap: 6,
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#F8F3EE', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, gap: 6,
   },
-  statValue: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#3D3D3D',
-  },
-  sectionEyebrow: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#6B645C',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    marginBottom: 24,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-
-  // Floating cart button
+  statValue: { fontSize: 13, fontWeight: '600', color: '#3D3D3D' },
+  sectionEyebrow: { fontSize: 10, fontWeight: '600', color: '#6B645C', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 24 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 },
   cartBarWrapper: {
-    position: 'absolute',
-    alignSelf: 'center',
-    zIndex: 50,
-    shadowColor: '#86231A',
-    shadowOffset: { width: 0, height: 14 },
-    shadowOpacity: 0.22,
-    shadowRadius: 28,
-    elevation: 16,
+    position: 'absolute', alignSelf: 'center', zIndex: 50,
+    shadowColor: '#86231A', shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.22, shadowRadius: 28, elevation: 16,
   },
-  cartBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 15,
-    paddingHorizontal: 22,
-    borderRadius: 999,
-  },
-  cartBtnText: {
-    color: '#FDFAF7',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  cartDivider: {
-    width: 1,
-    height: 16,
-    backgroundColor: 'rgba(253,250,247,0.2)',
-  },
-  cartBtnTotal: {
-    color: '#3AAFA9',
-    fontWeight: '700',
-    fontSize: 14,
-    letterSpacing: -0.2,
-  },
-  cartBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#A63A2F',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cartBadgeText: {
-    color: '#FDFAF7',
-    fontWeight: '700',
-    fontSize: 12,
-  },
+  cartBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 15, paddingHorizontal: 22, borderRadius: 999 },
+  cartBtnText: { color: '#FDFAF7', fontWeight: '600', fontSize: 14 },
+  cartDivider: { width: 1, height: 16, backgroundColor: 'rgba(253,250,247,0.2)' },
+  cartBtnTotal: { color: '#3AAFA9', fontWeight: '700', fontSize: 14, letterSpacing: -0.2 },
+  cartBadge: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#A63A2F', alignItems: 'center', justifyContent: 'center' },
+  cartBadgeText: { color: '#FDFAF7', fontWeight: '700', fontSize: 12 },
 });
