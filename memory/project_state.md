@@ -29,6 +29,7 @@
 - Limpieza lint Expo: `npm run lint` queda en 0 errores y 0 warnings; smoke e2e sigue pasando.
 - Checkout devnet: `tambuMint` de raiz-cafe se lee desde `EXPO_PUBLIC_QA_TAMBU_MINT`; no se usa `AURIO_MINT` como destino de pago.
 - Fix web: SplashScreen desactiva layout animations de Reanimated en web para evitar crash `Cannot read properties of undefined (reading 'top')`.
+- Fix web Solana: `mobile/polyfills.ts` define `globalThis.Buffer` y `crypto.getRandomValues` antes de cargar Expo Router.
 
 ---
 
