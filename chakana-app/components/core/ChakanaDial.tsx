@@ -137,21 +137,22 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, cent
           onPressIn={() => { centerScale.value = withSpring(0.92, SPRING); }}
           onPressOut={() => { centerScale.value = withSpring(1, SPRING); }}
           onPress={() => { haptic.medium(); onCenterPress?.(); }}
-          style={{ flex: 1 }}
+          style={styles.dialCenterPressable}
         >
           <LinearGradient
             colors={compact ? ['#4DC8C2', '#3AAFA9', '#237A75'] : ['#C5836F', '#A63A2F', '#6E1C13']}
             start={{ x: 0.35, y: 0.3 }}
             end={{ x: 1, y: 1 }}
-            style={styles.dialCenterButton}
+            style={styles.dialCenterCircle}
           >
             <Image source={require('../../assets/images/splash-icon.png')} style={styles.dialCenterIcon} />
-            {cartPill != null && (
-              <Animated.View style={[styles.dialCenterPricePill, priceAnimStyle]}>
-                <Text style={styles.dialCenterPriceText}>${cartPill.total.toFixed(2)}</Text>
-              </Animated.View>
-            )}
           </LinearGradient>
+
+          {cartPill != null && (
+            <Animated.Text style={[styles.dialCenterPrice, priceAnimStyle]}>
+              ${cartPill.total.toFixed(2)}
+            </Animated.Text>
+          )}
         </Pressable>
       </Animated.View>
 
@@ -201,14 +202,19 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 12,
   },
-  dialCenterButton: {
+  dialCenterPressable: {
     flex: 1,
-    borderRadius: 30,
     flexDirection: 'row',
     alignItems: 'center',
+    paddingRight: 8,
+    gap: 10,
+  },
+  dialCenterCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingHorizontal: 4,
   },
   dialCenterIcon: {
     width: 28,
@@ -216,16 +222,10 @@ const styles = StyleSheet.create({
     tintColor: '#FDFAF7',
     resizeMode: 'contain',
   },
-  dialCenterPricePill: {
-    backgroundColor: '#FDFAF7',
-    borderRadius: 999,
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-  },
-  dialCenterPriceText: {
+  dialCenterPrice: {
     color: '#3D3D3D',
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 15,
     letterSpacing: -0.3,
   },
   dialIconContainer: {
