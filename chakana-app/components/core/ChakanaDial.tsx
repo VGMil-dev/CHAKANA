@@ -118,7 +118,7 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, cent
           style={{ flex: 1 }}
         >
           <LinearGradient
-            colors={['#C5836F', '#A63A2F', '#6E1C13']}
+            colors={compact ? ['#4DC8C2', '#3AAFA9', '#237A75'] : ['#C5836F', '#A63A2F', '#6E1C13']}
             start={{ x: 0.35, y: 0.3 }}
             end={{ x: 1, y: 1 }}
             style={styles.dialCenterButton}
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     zIndex: 21,
   },
   centerLabelPill: {
-    backgroundColor: '#A63A2F',
+    backgroundColor: '#3AAFA9',
     paddingHorizontal: 11,
     paddingVertical: 4,
     borderRadius: 999,

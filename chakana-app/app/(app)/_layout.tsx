@@ -2,6 +2,7 @@ import { Redirect, Stack, usePathname, useRouter } from 'expo-router';
 import { View } from 'react-native';
 
 import { useAuthStore } from '../../store/auth';
+import { useCartCount } from '../../store/cart';
 import ChakanaDial, { type DialTab } from '../../components/core/ChakanaDial';
 
 // Screens with their own bottom CTAs — dial stays hidden
@@ -12,13 +13,14 @@ const COMPACT_ROUTES = ['/carrito'];
 export default function AppLayout() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const role = useAuthStore((s) => s.user?.role ?? 'embajador');
+  const cartCount = useCartCount();
   const pathname = usePathname();
   const router = useRouter();
 
   if (!isAuthenticated) return <Redirect href="/login" />;
 
-  const hidden  = HIDDEN_ROUTES.includes(pathname);
   const compact = COMPACT_ROUTES.includes(pathname);
+  const hidden  = HIDDEN_ROUTES.includes(pathname) || (pathname === '/carrito' && cartCount === 0);
 
   const activeTab: DialTab | undefined =
     pathname === '/perfil'  ? 'yo'      :
