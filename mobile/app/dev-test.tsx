@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { useCheckout } from '../../src/hooks/useCheckout';
+import { type CheckoutDestination, useCheckout } from '../../src/hooks/useCheckout';
 import { useReviewSubmit } from '../../src/hooks/useReviewSubmit';
 import { useWallet } from '../../src/hooks/useWallet';
 import { useWalletSigner } from '../../src/hooks/useWalletSigner';
@@ -10,10 +10,13 @@ import { formatAurios, formatUSD, usdToAurios } from '../../src/utils/sliderConf
 
 const DEMO_BUSINESS_ID = 'raiz-cafe';
 const DEMO_TOTAL = 10;
-const DEMO_TAMBU_MINT = '';
 
 function shortenWallet(walletPubKey: string): string {
   return `${walletPubKey.slice(0, 4)}...${walletPubKey.slice(-4)}`;
+}
+
+function getDemoDestination(): CheckoutDestination | null {
+  return null;
 }
 
 export default function Index() {
@@ -51,14 +54,15 @@ export default function Index() {
   } = useCheckout();
   const { signTransaction, canSignTransactions, signerError } = useWalletSigner();
   const activeModal = useAppStore((state: AppStore) => state.activeModal);
+  const demoDestination = getDemoDestination();
 
   useEffect(() => {
     setTotal(DEMO_TOTAL);
   }, [setTotal]);
 
-  const hasTambuMint = DEMO_TAMBU_MINT.trim().length > 0;
+  const hasCheckoutDestination = Boolean(demoDestination);
   const canConfirmCheckout =
-    hasTambuMint && canSignTransactions && Boolean(signTransaction) && !isProcessing;
+    hasCheckoutDestination && canSignTransactions && Boolean(signTransaction) && !isProcessing;
   const auriosFor5Percent = usdToAurios(checkoutTotal * 0.05);
   const auriosFor10Percent = usdToAurios(checkoutTotal * 0.1);
   const chosenDiscountPercent =
@@ -89,9 +93,9 @@ export default function Index() {
   };
 
   const handleConfirmCheckout = (): void => {
-    if (!signTransaction || !canConfirmCheckout) return;
+    if (!signTransaction || !demoDestination || !canConfirmCheckout) return;
     void confirmCheckout({
-      tambuMint: DEMO_TAMBU_MINT,
+      destination: demoDestination,
       signTransaction,
     });
   };
@@ -212,17 +216,17 @@ export default function Index() {
             {isProcessing ? 'Procesando...' : 'Confirmar pago con Aurios'}
           </Text>
         </Pressable>
-        {!hasTambuMint ? (
+        {!hasCheckoutDestination ? (
           <View style={styles.notice}>
             <Text style={styles.helper}>
-              Falta el tambuMint real de raiz-cafe para probar la transferencia.
+              Falta destino de checkout para probar la transferencia.
             </Text>
             <Text style={styles.helper}>
-              El AURIO_MINT identifica el token, pero no es el destino del pago.
+              Usa tambuMint NFT real o payout wallet QA. El AURIO_MINT no es destino del pago.
             </Text>
           </View>
         ) : null}
-        {hasTambuMint && signerError ? <Text style={styles.helper}>{signerError}</Text> : null}
+        {hasCheckoutDestination && signerError ? <Text style={styles.helper}>{signerError}</Text> : null}
         {checkoutError ? <Text style={styles.error}>{checkoutError}</Text> : null}
         {checkoutSignature ? <Text style={styles.success}>Signature: {checkoutSignature}</Text> : null}
         {activeModal === 'propina' ? (

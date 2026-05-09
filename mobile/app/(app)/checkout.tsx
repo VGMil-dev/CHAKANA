@@ -8,18 +8,29 @@ import { Ionicons } from '@expo/vector-icons';
 import AuriosSlider from '../../components/checkout/AuriosSlider';
 import OrderCard from '../../components/checkout/OrderCard';
 import { useCartTotal } from '../../store/cart';
-import { useCheckout } from '../../../src/hooks/useCheckout';
+import { type CheckoutDestination, useCheckout } from '../../../src/hooks/useCheckout';
 import { useWallet } from '../../../src/hooks/useWallet';
 import { useWalletSigner } from '../../../src/hooks/useWalletSigner';
 import { formatUSD } from '../../../src/utils/sliderConfig';
 
 const qaTambuMint = process.env.EXPO_PUBLIC_QA_TAMBU_MINT;
-// TODO: reemplazar EXPO_PUBLIC_QA_TAMBU_MINT por tambuMint real del negocio seleccionado cuando Businesses este conectado.
-const tambuMint =
-  typeof qaTambuMint === 'string' && qaTambuMint.length > 0 ? qaTambuMint : null;
+const qaPayoutWallet = process.env.EXPO_PUBLIC_QA_PAYOUT_WALLET;
+// TODO: reemplazar env QA por destino real del negocio seleccionado cuando Businesses este conectado.
+const destination: CheckoutDestination | null =
+  typeof qaTambuMint === 'string' && qaTambuMint.length > 0
+    ? {
+        mode: 'tambu',
+        tambuMint: qaTambuMint,
+      }
+    : typeof qaPayoutWallet === 'string' && qaPayoutWallet.length > 0
+      ? {
+          mode: 'wallet',
+          payoutWallet: qaPayoutWallet,
+        }
+      : null;
 
-function shortenMint(mint: string): string {
-  return `${mint.slice(0, 4)}...${mint.slice(-4)}`;
+function shortenAddress(address: string): string {
+  return `${address.slice(0, 4)}...${address.slice(-4)}`;
 }
 
 export default function Checkout() {
@@ -42,9 +53,8 @@ export default function Checkout() {
   } = useCheckout();
 
   const subtotal = visualSubtotal > 0 ? visualSubtotal : checkoutTotal;
-  const isMissingTambuMint = !tambuMint;
   const isPayDisabled =
-    !walletPubKey || auriosToSpend <= 0 || !signTransaction || isMissingTambuMint || isProcessing;
+    !walletPubKey || auriosToSpend <= 0 || !signTransaction || !destination || isProcessing;
 
   useEffect(() => {
     if (subtotal !== checkoutTotal) {
@@ -61,10 +71,10 @@ export default function Checkout() {
   };
 
   const handlePay = (): void => {
-    if (!tambuMint || !signTransaction || isPayDisabled) return;
+    if (!destination || !signTransaction || isPayDisabled) return;
 
     void confirmCheckout({
-      tambuMint,
+      destination,
       signTransaction,
     });
   };
@@ -119,21 +129,25 @@ export default function Checkout() {
           ) : null}
         </View>
 
-        {isMissingTambuMint ? (
+        {!destination ? (
           <View style={styles.notice}>
             <Text style={styles.noticeText}>
-              Falta el tambuMint real de raiz-cafe para probar transferencia.
-            </Text>
-            <Text style={styles.noticeText}>
-              El AURIO_MINT identifica el token, pero no es el destino del pago.
+              Falta tambuMint o payout wallet para probar transferencia.
             </Text>
           </View>
-        ) : (
+        ) : destination.mode === 'tambu' ? (
           <View style={styles.notice}>
             <Text style={styles.noticeConnectedText}>
               Tambu conectado para prueba devnet.
             </Text>
-            <Text style={styles.noticeMuted}>{shortenMint(tambuMint)}</Text>
+            <Text style={styles.noticeMuted}>{shortenAddress(destination.tambuMint)}</Text>
+          </View>
+        ) : (
+          <View style={styles.notice}>
+            <Text style={styles.noticeConnectedText}>
+              Modo QA: pago directo a wallet del negocio.
+            </Text>
+            <Text style={styles.noticeMuted}>{shortenAddress(destination.payoutWallet)}</Text>
           </View>
         )}
       </ScrollView>

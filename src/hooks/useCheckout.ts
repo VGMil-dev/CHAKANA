@@ -1,11 +1,21 @@
-import { getAurioBalance, getAurioConnection, payToTambu } from 'aurio-sdk';
+import { buildAurioTransferTx, getAurioBalance, getAurioConnection, payToTambu } from 'aurio-sdk';
 import type { Transaction } from '@solana/web3.js';
 import { useAppStore } from '../store';
 import { calculateDiscount, type DiscountResult } from '../utils/discountCalculator';
 import { getSliderMax } from '../utils/sliderConfig';
 
+export type CheckoutDestination =
+  | {
+      mode: 'tambu';
+      tambuMint: string;
+    }
+  | {
+      mode: 'wallet';
+      payoutWallet: string;
+    };
+
 type ConfirmCheckoutParams = {
-  tambuMint: string;
+  destination: CheckoutDestination;
   signTransaction: (tx: Transaction) => Promise<Transaction>;
 };
 
@@ -29,6 +39,32 @@ type UseCheckoutResult = {
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'No se pudo completar el pago con Aurios.';
+}
+
+function isValidDestination(destination: CheckoutDestination): boolean {
+  return destination.mode === 'tambu'
+    ? destination.tambuMint.trim().length > 0
+    : destination.payoutWallet.trim().length > 0;
+}
+
+async function buildCheckoutTransaction(
+  destination: CheckoutDestination,
+  sender: string,
+  amount: number,
+): Promise<Transaction> {
+  if (destination.mode === 'tambu') {
+    return payToTambu({
+      sender,
+      tambuMint: destination.tambuMint,
+      amount,
+    });
+  }
+
+  return buildAurioTransferTx({
+    sender,
+    recipient: destination.payoutWallet,
+    amount,
+  });
 }
 
 export function useCheckout(): UseCheckoutResult {
@@ -79,13 +115,13 @@ export function useCheckout(): UseCheckoutResult {
       return null;
     }
 
-    if (!params.tambuMint.trim()) {
-      setCheckoutError('No se encontró el Tambu destino para la transacción.');
+    if (typeof params.signTransaction !== 'function') {
+      setCheckoutError('No se pudo acceder al firmador de la wallet.');
       return null;
     }
 
-    if (typeof params.signTransaction !== 'function') {
-      setCheckoutError('No se pudo acceder al firmador de la wallet.');
+    if (!isValidDestination(params.destination)) {
+      setCheckoutError('No se encontro el destino para la transaccion.');
       return null;
     }
 
@@ -94,11 +130,11 @@ export function useCheckout(): UseCheckoutResult {
     setCheckoutSignature(null);
 
     try {
-      const transaction = await payToTambu({
-        sender: walletPubKey,
-        tambuMint: params.tambuMint,
-        amount: auriosToSpend,
-      });
+      const transaction = await buildCheckoutTransaction(
+        params.destination,
+        walletPubKey,
+        auriosToSpend,
+      );
       const signedTransaction = await params.signTransaction(transaction);
       const connection = getAurioConnection();
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
