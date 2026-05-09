@@ -35,7 +35,8 @@ export const createReviewSlice: StateCreator<AppStore, [], [], ReviewSlice> = (s
   reviews: [],
   ...initialReviewFormState,
   setReviews: (reviews) => set({ reviews }),
-  updateCurrentReviewText: (currentReviewText) => set({ currentReviewText }),
+  updateCurrentReviewText: (currentReviewText) =>
+    set({ currentReviewText, reviewError: null, reviewSuccess: false }),
   setIsSubmittingReview: (isSubmittingReview) => set({ isSubmittingReview }),
   setReviewError: (reviewError) => set({ reviewError }),
   setReviewSuccess: (reviewSuccess) => set({ reviewSuccess }),

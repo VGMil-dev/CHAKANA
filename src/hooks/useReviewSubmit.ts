@@ -23,7 +23,7 @@ type UseReviewSubmitResult = {
 };
 
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'No se pudo enviar la reseña.';
+  return error instanceof Error ? error.message : 'No se pudo enviar la rese\u00f1a.';
 }
 
 function sleep(ms: number): Promise<void> {
@@ -52,9 +52,10 @@ export function useReviewSubmit(): UseReviewSubmitResult {
 
   const submitReview = async (params: SubmitReviewParams): Promise<void> => {
     const businessId = params.businessId.trim();
+    setReviewSuccess(false);
 
     if (reviewText.length < MIN_REVIEW_LENGTH) {
-      setReviewError('La reseña debe tener al menos 50 caracteres.');
+      setReviewError('La rese\u00f1a debe tener al menos 50 caracteres.');
       return;
     }
 
@@ -64,7 +65,7 @@ export function useReviewSubmit(): UseReviewSubmitResult {
     }
 
     if (!businessId) {
-      setReviewError('No se encontró la cafetería para guardar la reseña.');
+      setReviewError('No se encontr\u00f3 la cafeter\u00eda para guardar la rese\u00f1a.');
       return;
     }
 
@@ -84,6 +85,7 @@ export function useReviewSubmit(): UseReviewSubmitResult {
       setReviewSuccess(true);
       setActiveModal('reviewSuccess');
     } catch (error) {
+      setReviewSuccess(false);
       setReviewError(getErrorMessage(error));
     } finally {
       setIsSubmittingReview(false);
