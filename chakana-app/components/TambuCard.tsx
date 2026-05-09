@@ -1,8 +1,11 @@
 import React from 'react';
-import { StyleSheet, View, Text, ImageBackground } from 'react-native';
+import { StyleSheet, View, Text, ImageBackground, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { Link } from 'expo-router';
+
 export interface TambuCardProps {
+  id: string;
   name: string;
   barrio: string;
   cat: string;
@@ -15,10 +18,10 @@ export interface TambuCardProps {
 
 function TambuImg({ tone, label, height }: { tone: string, label: string, height: number }) {
   return (
-    <ImageBackground 
-      source={require('../assets/images/tambu_placeholder.webp')} 
-      style={[{ height }, styles.tambuImgContainer]}
-      imageStyle={{ resizeMode: 'cover' }}
+    <ImageBackground
+      source={require('../assets/images/tambu_placeholder.webp')}
+      style={[styles.tambuImgContainer, { height }]}
+      imageStyle={{ resizeMode: 'cover', width: "100%", height: "100%" }}
     >
       <View style={styles.tambuImgLabelContainer}>
         <Text style={styles.tambuImgLabel}>{label}</Text>
@@ -27,40 +30,46 @@ function TambuImg({ tone, label, height }: { tone: string, label: string, height
   );
 }
 
-export default function TambuCard({ name, barrio, cat, tone, rating, n, aurios, featured }: TambuCardProps) {
+export default function TambuCard({ id, name, barrio, cat, tone, rating, n, aurios, featured }: TambuCardProps) {
   return (
-    <View style={styles.card}>
-      <TambuImg tone={tone} label={cat} height={featured ? 168 : 130} />
-      <View style={styles.cardContent}>
-        <View style={styles.cardHeader}>
-          <View style={{ flex: 1, paddingRight: 10 }}>
-            <Text style={styles.cardName}>{name}</Text>
-            <View style={styles.cardLocation}>
-              <Ionicons name="location-outline" size={12} color="#6B645C" />
-              <Text style={styles.cardLocationText}>{barrio}</Text>
+    <Link href={`/inventario/${id}`} asChild>
+      <Pressable style={({ pressed }) => [
+        styles.card,
+        pressed && styles.cardPressed
+      ]}>
+        <TambuImg tone={tone} label={cat} height={featured ? 168 : 130} />
+        <View style={styles.cardContent}>
+          <View style={styles.cardHeader}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.cardName}>{name}</Text>
+              <View style={styles.cardLocation}>
+                <Ionicons name="location-outline" size={12} color="#6B645C" />
+                <Text style={styles.cardLocationText}>{barrio}</Text>
+              </View>
+            </View>
+            <View style={styles.cardRating}>
+              <Ionicons name="star" size={12} color="#A63A2F" />
+              <Text style={styles.cardRatingValue}>{rating}</Text>
+              <Text style={styles.cardRatingCount}>· {n}</Text>
             </View>
           </View>
-          <View style={styles.cardRating}>
-            <Ionicons name="star" size={12} color="#A63A2F" />
-            <Text style={styles.cardRatingValue}>{rating}</Text>
-            <Text style={styles.cardRatingCount}>· {n}</Text>
+
+          <View style={styles.cardFooter}>
+            <View style={styles.cardReward}>
+              <View style={styles.cardRewardDot} />
+              <Text style={styles.cardRewardText}>devuelve hasta {aurios}% en Aurios</Text>
+            </View>
+            <Ionicons name="arrow-forward" size={16} color="#6B645C" />
           </View>
         </View>
-        
-        <View style={styles.cardFooter}>
-          <View style={styles.cardReward}>
-            <View style={styles.cardRewardDot} />
-            <Text style={styles.cardRewardText}>devuelve hasta {aurios}% en Aurios</Text>
-          </View>
-          <Ionicons name="arrow-forward" size={16} color="#6B645C" />
-        </View>
-      </View>
-    </View>
+      </Pressable>
+    </Link>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
+    alignSelf: 'stretch',
     backgroundColor: '#FFFFFF',
     borderRadius: 10,
     overflow: 'hidden',
@@ -70,17 +79,24 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
+  cardPressed: {
+    transform: [{ translateY: 1 }],
+    shadowOpacity: 0.02,
+    shadowRadius: 6,
+  },
   tambuImgContainer: {
     width: '100%',
-    justifyContent: 'flex-end',
-    padding: 12,
+    justifyContent: 'flex-start',
+    padding: 0,
   },
   tambuImgLabelContainer: {
-    alignSelf: 'flex-start',
     backgroundColor: 'rgba(46, 42, 38, 0.6)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
+    marginRight: 12,
+    marginTop: 12,
+    alignSelf: 'flex-end',
   },
   tambuImgLabel: {
     color: '#FFFFFF',

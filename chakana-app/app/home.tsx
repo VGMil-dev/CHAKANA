@@ -21,9 +21,9 @@ export default function Home() {
     { label: 'Pan', iconName: 'restaurant-outline' as const },
   ];
   const tambus = [
-    { name: 'Tambu San Sebastián', barrio: 'San Sebastián · 0.4 km', cat: 'CAFÉ', tone: 'clay', rating: 4.9, n: 312, aurios: 12 },
-    { name: 'Hilos de Susudel', barrio: 'El Vado · 1.1 km', cat: 'TEXTIL', tone: 'weave', rating: 4.8, n: 187, aurios: 18 },
-    { name: 'Panadería Vieja Plaza', barrio: 'Centro · 0.6 km', cat: 'PAN', tone: 'ember', rating: 4.7, n: 421, aurios: 8 },
+    { id: 'tambu-san-sebastian', name: 'Tambu San Sebastián', barrio: 'San Sebastián · 0.4 km', cat: 'CAFÉ', tone: 'clay', rating: 4.9, n: 312, aurios: 12 },
+    { id: 'hilos-de-susudel', name: 'Hilos de Susudel', barrio: 'El Vado · 1.1 km', cat: 'TEXTIL', tone: 'weave', rating: 4.8, n: 187, aurios: 18 },
+    { id: 'panaderia-vieja-plaza', name: 'Panadería Vieja Plaza', barrio: 'Centro · 0.6 km', cat: 'PAN', tone: 'ember', rating: 4.7, n: 421, aurios: 8 },
   ];
 
   return (
@@ -40,9 +40,10 @@ export default function Home() {
         <BalancePill amount={2840} />
       </View>
 
-      <ScrollView 
-        stickyHeaderIndices={[1]} 
+      <ScrollView
+        stickyHeaderIndices={[1]}
         showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
       >
         {/* Eyebrow + display title */}
         <View style={styles.displaySection}>
@@ -161,6 +162,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingBottom: 180,
     gap: 28,
+
   },
   cycleNote: {
     marginTop: 8,
