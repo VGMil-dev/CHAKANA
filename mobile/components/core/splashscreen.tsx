@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import Animated, {
   FadeInDown, FadeInUp, FadeIn,
@@ -8,6 +8,7 @@ import Animated, {
 
 const SPEED = 1;
 const s = (sec: number) => sec * 1000 * SPEED;
+const shouldUseLayoutAnimations = Platform.OS !== 'web';
 
 const logoKeyframe = new Keyframe({
   0: { transform: [{ scale: 0.35 }, { rotate: '-22deg' }], opacity: 0 },
@@ -76,7 +77,7 @@ export default function AnimatedSplashScreen({
 
         <View style={styles.centerBlock}>
           <Animated.Image
-            entering={logoKeyframe}
+            entering={shouldUseLayoutAnimations ? logoKeyframe : undefined}
             source={require('../../assets/images/splash-icon.png')}
             resizeMode="contain"
             style={styles.logo}
@@ -86,7 +87,11 @@ export default function AnimatedSplashScreen({
             {titleLetters.map((l, i) => (
               <Animated.Text
                 key={i}
-                entering={FadeInDown.delay(s(1.25 + i * 0.06)).duration(s(0.55))}
+                entering={
+                  shouldUseLayoutAnimations
+                    ? FadeInDown.delay(s(1.25 + i * 0.06)).duration(s(0.55))
+                    : undefined
+                }
                 style={styles.titleLetter}
               >
                 {l}
@@ -95,14 +100,18 @@ export default function AnimatedSplashScreen({
           </View>
 
           <Animated.Text
-            entering={FadeInDown.delay(s(1.85)).duration(s(0.55))}
+            entering={
+              shouldUseLayoutAnimations
+                ? FadeInDown.delay(s(1.85)).duration(s(0.55))
+                : undefined
+            }
             style={styles.subtitle}
           >
             ECOSISTEMA DE ECONOMÍA CIRCULAR
           </Animated.Text>
 
           <Animated.View
-            entering={dividerKeyframe}
+            entering={shouldUseLayoutAnimations ? dividerKeyframe : undefined}
             style={styles.separator}
           />
 
@@ -110,7 +119,11 @@ export default function AnimatedSplashScreen({
             {mottoWords.map((t, i) => (
               <Animated.Text
                 key={i}
-                entering={FadeInDown.delay(s(t.d)).duration(s(0.55))}
+                entering={
+                  shouldUseLayoutAnimations
+                    ? FadeInDown.delay(s(t.d)).duration(s(0.55))
+                    : undefined
+                }
                 style={[styles.motto, t.highlight && styles.mottoHighlight]}
               >
                 {t.w}
@@ -119,23 +132,33 @@ export default function AnimatedSplashScreen({
           </View>
 
           <Animated.Text
-            entering={FadeInDown.delay(s(3.0)).duration(s(0.6))}
+            entering={
+              shouldUseLayoutAnimations ? FadeInDown.delay(s(3.0)).duration(s(0.6)) : undefined
+            }
             style={styles.location}
           >
             · CUENCA, ECUADOR ·
           </Animated.Text>
 
-          <Animated.View entering={FadeIn.delay(s(4.0)).duration(s(0.5))} style={styles.loaderContainer}>
+          <Animated.View
+            entering={shouldUseLayoutAnimations ? FadeIn.delay(s(4.0)).duration(s(0.5)) : undefined}
+            style={styles.loaderContainer}
+          >
             <ActivityIndicator size="small" color="#9E392D" />
           </Animated.View>
         </View>
 
         <View style={styles.bottomBlock}>
           <Animated.View
-            entering={FadeInUp.delay(s(3.4)).duration(s(0.5))}
+            entering={
+              shouldUseLayoutAnimations ? FadeInUp.delay(s(3.4)).duration(s(0.5)) : undefined
+            }
             style={styles.colorBarContainerWrapper}
           >
-            <Animated.View entering={barKeyframe} style={styles.colorBarContainer}>
+            <Animated.View
+              entering={shouldUseLayoutAnimations ? barKeyframe : undefined}
+              style={styles.colorBarContainer}
+            >
               <View style={[styles.colorBarSegment, { backgroundColor: '#9E392D' }]} />
               <View style={[styles.colorBarSegment, { backgroundColor: '#37AFB4' }]} />
               <View style={[styles.colorBarSegment, { backgroundColor: '#E2C2B3' }]} />
@@ -148,7 +171,11 @@ export default function AnimatedSplashScreen({
               return (
                 <Animated.Text
                   key={i}
-                  entering={FadeInDown.delay(s(3.7 + i * 0.025)).duration(s(0.4))}
+                  entering={
+                    shouldUseLayoutAnimations
+                      ? FadeInDown.delay(s(3.7 + i * 0.025)).duration(s(0.4))
+                      : undefined
+                  }
                   style={[styles.bottomText, isAtenas && styles.bottomTextHighlight]}
                 >
                   {ch === ' ' ? '\u00A0' : ch}
