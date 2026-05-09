@@ -47,16 +47,17 @@ function DialIcon({
   );
 }
 
-const EASE_OUT  = { duration: 260, easing: Easing.out(Easing.cubic) };
-const EASE_IN   = { duration: 200, easing: Easing.in(Easing.cubic) };
-const SPRING    = { damping: 12, stiffness: 300, mass: 0.8 };
-const SHIFT_PX  = 48;
+const EASE_OUT   = { duration: 260, easing: Easing.out(Easing.cubic) };
+const EASE_IN    = { duration: 200, easing: Easing.in(Easing.cubic) };
+const SPRING     = { damping: 12, stiffness: 300, mass: 0.8 };
+const BASE_SIZE  = 72;
+const PILL_WIDTH = 148;
 
 export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, centerLabel, compact, cartPill }: ChakanadialProps) {
-  const insets     = useSafeAreaInsets();
-  const cartCount  = useCartCount();
-  const role       = useAuthStore((s) => s.user?.role ?? 'embajador');
-  const handleTab  = (tab: DialTab) => onTabPress?.(tab);
+  const insets    = useSafeAreaInsets();
+  const cartCount = useCartCount();
+  const role      = useAuthStore((s) => s.user?.role ?? 'embajador');
+  const handleTab = (tab: DialTab) => onTabPress?.(tab);
 
   // Center bounce on press
   const centerScale = useSharedValue(1);
@@ -69,29 +70,24 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, cent
     glassScaleX.value  = withTiming(compact ? 0 : 1, compact ? EASE_IN : EASE_OUT);
   }, [compact]);
 
-  // Center label chip fades with glass (inverse)
+  // Center label chip (CHECKOUT) fades with compact
   const labelOpacity = useSharedValue(compact ? 1 : 0);
   useEffect(() => {
     labelOpacity.value = withTiming(compact ? 1 : 0, compact ? EASE_OUT : EASE_IN);
   }, [compact]);
 
-  // Center button shift when cartPill is present
-  const cartShift = useSharedValue(cartPill ? 1 : 0);
+  // Pill morph: 0 = circle, 1 = expanded pill with price
+  const pillExpand = useSharedValue(cartPill ? 1 : 0);
   useEffect(() => {
-    cartShift.value = cartPill ? withSpring(1, { damping: 14, stiffness: 180 }) : withTiming(0, EASE_OUT);
+    pillExpand.value = cartPill
+      ? withSpring(1, { damping: 14, stiffness: 180 })
+      : withTiming(0, EASE_OUT);
   }, [!!cartPill]);
 
-  // Cart pill fade + slide in from right
-  const pillOpacity    = useSharedValue(cartPill ? 1 : 0);
-  const pillTranslateX = useSharedValue(cartPill ? 0 : 20);
+  // Price text fades in as pill expands
+  const priceOpacity = useSharedValue(cartPill ? 1 : 0);
   useEffect(() => {
-    if (cartPill) {
-      pillOpacity.value    = withTiming(1, EASE_OUT);
-      pillTranslateX.value = withSpring(0, { damping: 14, stiffness: 200 });
-    } else {
-      pillOpacity.value    = withTiming(0, EASE_IN);
-      pillTranslateX.value = withTiming(20, EASE_IN);
-    }
+    priceOpacity.value = cartPill ? withTiming(1, EASE_OUT) : withTiming(0, EASE_IN);
   }, [!!cartPill]);
 
   const glassAnimStyle = useAnimatedStyle(() => ({
@@ -99,20 +95,21 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, cent
     transform: [{ scaleX: glassScaleX.value }],
   }));
 
-  // translateX: -36 keeps button centered; shift moves it left for pill
-  const centerAnimStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: -36 - cartShift.value * SHIFT_PX },
-      { scale: centerScale.value },
-    ],
-  }));
-
   const labelAnimStyle = useAnimatedStyle(() => ({ opacity: labelOpacity.value }));
 
-  const pillAnimStyle = useAnimatedStyle(() => ({
-    opacity:   pillOpacity.value,
-    transform: [{ translateX: pillTranslateX.value }],
-  }));
+  // Width morphs 72→148; translateX stays centered: -(width/2)
+  const centerAnimStyle = useAnimatedStyle(() => {
+    const w = BASE_SIZE + pillExpand.value * (PILL_WIDTH - BASE_SIZE);
+    return {
+      width: w,
+      transform: [
+        { translateX: -(w / 2) },
+        { scale: centerScale.value },
+      ],
+    };
+  });
+
+  const priceAnimStyle = useAnimatedStyle(() => ({ opacity: priceOpacity.value }));
 
   const leftTab = role === 'tambu'
     ? { tab: 'pedidos' as DialTab, icon: 'receipt-outline' as const, label: 'PEDIDOS', badge: undefined }
@@ -131,7 +128,7 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, cent
 
       <Animated.View style={[styles.dialGlass, glassAnimStyle]}>
         <DialIcon {...leftTab} active={activeTab === leftTab.tab} onPress={handleTab} />
-        <View style={{ width: 72 }} />
+        <View style={{ width: BASE_SIZE }} />
         <DialIcon tab="yo" icon="person-outline" label="PERFIL" active={activeTab === 'yo'} onPress={handleTab} />
       </Animated.View>
 
@@ -149,22 +146,14 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, cent
             style={styles.dialCenterButton}
           >
             <Image source={require('../../assets/images/splash-icon.png')} style={styles.dialCenterIcon} />
+            {cartPill != null && (
+              <Animated.Text style={[styles.dialCenterPrice, priceAnimStyle]}>
+                ${cartPill.total.toFixed(2)}
+              </Animated.Text>
+            )}
           </LinearGradient>
         </Pressable>
       </Animated.View>
-
-      {cartPill && (
-        <Animated.View style={[styles.cartPillWrapper, pillAnimStyle]}>
-          <Pressable onPress={() => { haptic.selection(); onCenterPress?.(); }}>
-            <View style={styles.cartPill}>
-              <Text style={styles.cartPillTotal}>${cartPill.total.toFixed(2)}</Text>
-              <View style={styles.cartPillBadge}>
-                <Text style={styles.cartPillBadgeText}>{cartPill.count > 9 ? '9+' : cartPill.count}</Text>
-              </View>
-            </View>
-          </Pressable>
-        </Animated.View>
-      )}
 
     </View>
   );
@@ -175,7 +164,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignSelf: 'center',
     width: '92%',
-    height: 72,
+    height: BASE_SIZE,
     zIndex: 20,
     shadowColor: '#86231A',
     shadowOffset: { width: 0, height: 16 },
@@ -202,8 +191,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: '50%',
     top: -4,
-    width: 72,
-    height: 72,
+    height: BASE_SIZE,
     borderRadius: 36,
     backgroundColor: '#FFFFFF',
     padding: 6,
@@ -216,14 +204,23 @@ const styles = StyleSheet.create({
   dialCenterButton: {
     flex: 1,
     borderRadius: 30,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 4,
   },
   dialCenterIcon: {
     width: 28,
     height: 28,
     tintColor: '#FDFAF7',
     resizeMode: 'contain',
+  },
+  dialCenterPrice: {
+    color: '#FDFAF7',
+    fontWeight: '700',
+    fontSize: 15,
+    letterSpacing: -0.3,
   },
   dialIconContainer: {
     alignItems: 'center',
@@ -282,44 +279,5 @@ const styles = StyleSheet.create({
   },
   dialIconLabelActive: {
     color: '#A63A2F',
-  },
-  cartPillWrapper: {
-    position: 'absolute',
-    left: '50%',
-    marginLeft: 4,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-  },
-  cartPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(140,133,123,0.15)',
-  },
-  cartPillTotal: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#3D3D3D',
-    letterSpacing: -0.3,
-  },
-  cartPillBadge: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#3AAFA9',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cartPillBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#FDFAF7',
-    lineHeight: 12,
   },
 });
