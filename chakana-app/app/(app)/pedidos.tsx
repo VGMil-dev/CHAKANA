@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   statDivider: { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.08)' },
   statValue: { fontSize: 26, fontWeight: '700', color: '#F5F0EB', letterSpacing: -0.5 },
   statValueTeal: { color: '#3AAFA9' },
-  statLabel: { fontSize: 8.5, fontWeight: '600', letterSpacing: 1.8, color: '#6B645C', textTransform: 'uppercase' },
+  statLabel: { fontSize: 9, fontWeight: '600', letterSpacing: 1.8, color: 'rgba(245,240,235,0.5)', textTransform: 'uppercase' },
 
   filtrosRow: { flexDirection: 'row', gap: 8, paddingBottom: 2 },
   filtroChip: {
