@@ -21,11 +21,13 @@ type ConfirmCheckoutParams = {
 
 type CheckoutSignatureResult = {
   signature: string;
+  redeemedAurios: number;
 };
 
 type UseCheckoutResult = {
   checkoutTotal: number;
   auriosToSpend: number;
+  redeemedAurios: number;
   discountResult: DiscountResult;
   sliderMax: number;
   isProcessing: boolean;
@@ -70,6 +72,7 @@ async function buildCheckoutTransaction(
 export function useCheckout(): UseCheckoutResult {
   const checkoutTotal = useAppStore((state) => state.checkoutTotal);
   const auriosToSpend = useAppStore((state) => state.auriosToSpend);
+  const redeemedAurios = useAppStore((state) => state.redeemedAurios);
   const aurioBalance = useAppStore((state) => state.aurioBalance);
   const walletPubKey = useAppStore((state) => state.walletPubKey);
   const isProcessing = useAppStore((state) => state.isProcessingCheckout);
@@ -77,6 +80,7 @@ export function useCheckout(): UseCheckoutResult {
   const checkoutSignature = useAppStore((state) => state.checkoutSignature);
   const setCheckoutTotal = useAppStore((state) => state.setCheckoutTotal);
   const setAuriosToSpend = useAppStore((state) => state.setAuriosToSpend);
+  const setRedeemedAurios = useAppStore((state) => state.setRedeemedAurios);
   const setAurioBalance = useAppStore((state) => state.setAurioBalance);
   const setIsProcessingCheckout = useAppStore((state) => state.setIsProcessingCheckout);
   const setCheckoutError = useAppStore((state) => state.setCheckoutError);
@@ -84,20 +88,27 @@ export function useCheckout(): UseCheckoutResult {
   const setActiveModal = useAppStore((state) => state.setActiveModal);
   const resetCheckout = useAppStore((state) => state.resetCheckout);
 
+  const effectiveAuriosToSpend = checkoutSignature ? redeemedAurios : auriosToSpend;
+  const effectiveAurioBalance = checkoutSignature
+    ? Math.max(aurioBalance, redeemedAurios)
+    : aurioBalance;
   const discountResult = calculateDiscount({
     subtotal: checkoutTotal,
-    auriosToSpend,
-    aurioBalance,
+    auriosToSpend: effectiveAuriosToSpend,
+    aurioBalance: effectiveAurioBalance,
   });
-  const sliderMax = getSliderMax(checkoutTotal, aurioBalance);
+  const sliderMax = checkoutSignature ? redeemedAurios : getSliderMax(checkoutTotal, aurioBalance);
 
   const onSliderChange = (value: number): void => {
+    if (checkoutSignature) return;
+
     const nextResult = calculateDiscount({
       subtotal: checkoutTotal,
       auriosToSpend: value,
       aurioBalance,
     });
     setAuriosToSpend(nextResult.auriosToSpend);
+    setRedeemedAurios(0);
     setCheckoutError(null);
     setCheckoutSignature(null);
   };
@@ -110,7 +121,9 @@ export function useCheckout(): UseCheckoutResult {
       return null;
     }
 
-    if (auriosToSpend <= 0) {
+    const auriosToRedeem = discountResult.auriosToSpend;
+
+    if (auriosToRedeem <= 0) {
       setCheckoutError('Selecciona una cantidad de Aurios para aplicar como descuento.');
       return null;
     }
@@ -133,19 +146,21 @@ export function useCheckout(): UseCheckoutResult {
       const transaction = await buildCheckoutTransaction(
         params.destination,
         walletPubKey,
-        auriosToSpend,
+        auriosToRedeem,
       );
       const signedTransaction = await params.signTransaction(transaction);
       const connection = getAurioConnection();
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
 
       await connection.confirmTransaction(signature, 'confirmed');
+      setRedeemedAurios(auriosToRedeem);
+      setAuriosToSpend(auriosToRedeem);
       const nextBalance = await getAurioBalance(walletPubKey);
       setAurioBalance(nextBalance);
       setCheckoutSignature(signature);
       setActiveModal('propina');
 
-      return { signature };
+      return { signature, redeemedAurios: auriosToRedeem };
     } catch (error) {
       setCheckoutError(getErrorMessage(error));
       return null;
@@ -157,6 +172,7 @@ export function useCheckout(): UseCheckoutResult {
   return {
     checkoutTotal,
     auriosToSpend: discountResult.auriosToSpend,
+    redeemedAurios,
     discountResult,
     sliderMax,
     isProcessing,

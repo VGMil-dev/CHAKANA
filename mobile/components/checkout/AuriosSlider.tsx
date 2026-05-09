@@ -12,6 +12,7 @@ interface Props {
   aurioBalance: number;
   sliderMax: number;
   isWalletConnected: boolean;
+  isLocked?: boolean;
   onAuriosChange: (aurios: number) => void;
   onClear: () => void;
 }
@@ -22,6 +23,7 @@ export default function AuriosSlider({
   aurioBalance,
   sliderMax,
   isWalletConnected,
+  isLocked = false,
   onAuriosChange,
   onClear,
 }: Props) {
@@ -33,19 +35,22 @@ export default function AuriosSlider({
   const overshootAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  const percentUsed = checkoutTotal > 0 ? (auriosToSpend * 0.01 * 100) / checkoutTotal : 0;
+  const safeAurios = Math.max(0, auriosToSpend);
+  const availableBalance = Math.max(0, Math.floor(aurioBalance));
+  const percentUsed = checkoutTotal > 0 ? (safeAurios * 0.01 * 100) / checkoutTotal : 0;
   const railMax = Math.max(sliderMax, 1);
-  const fillRatio = sliderMax > 0 ? Math.min(1, auriosToSpend / sliderMax) : 0;
+  const fillRatio = sliderMax > 0 ? Math.min(1, safeAurios / sliderMax) : 0;
   const auriosFor5Percent = usdToAurios(checkoutTotal * 0.05);
   const auriosFor10Percent = usdToAurios(checkoutTotal * 0.1);
 
   const applyAurios = (value: number): void => {
+    if (isLocked) return;
     onChangeRef.current(Math.min(value, sliderMax));
   };
 
   const applyX = useRef((x: number) => {
     const w = railWidth.current;
-    if (!w) return;
+    if (!w || isLocked) return;
 
     const ratio = Math.max(0, Math.min(1.22, x / w));
     const requested = Math.round(ratio * railMax);
@@ -61,8 +66,8 @@ export default function AuriosSlider({
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => !isLocked,
+      onMoveShouldSetPanResponder: () => !isLocked,
       onPanResponderGrant: (evt) => {
         Animated.spring(scaleAnim, {
           toValue: 1.06,
@@ -103,6 +108,7 @@ export default function AuriosSlider({
   const fillPct = `${fillRatio * 100}%` as `${number}%`;
   const discLeft = `${fillRatio * 100}%` as `${number}%`;
   const maxMarkerLeft = '100%' as `${number}%`;
+  const presetStyle = [styles.presetButton, isLocked ? styles.presetDisabled : null];
 
   return (
     <View style={styles.card}>
@@ -112,13 +118,11 @@ export default function AuriosSlider({
           <Text style={styles.pct}>{Math.round(percentUsed)}%</Text>
         </View>
         <View style={styles.balanceBlock}>
-          <Text style={styles.eyebrow}>BALANCE</Text>
-          <View style={styles.auriosRow}>
-            <Text style={styles.auriosValue}>-{auriosToSpend}</Text>
-            <Text style={styles.auriosMax}>
-              {isWalletConnected ? ` / ${Math.floor(aurioBalance)} Aurios` : ' · conecta wallet'}
-            </Text>
-          </View>
+          <Text style={styles.eyebrow}>BALANCE DISPONIBLE</Text>
+          <Text style={styles.auriosValue}>
+            {isWalletConnected ? `${availableBalance} Aurios` : 'Conecta wallet'}
+          </Text>
+          <Text style={styles.auriosMax}>Aurios aplicados: {safeAurios}</Text>
         </View>
       </View>
 
@@ -151,29 +155,32 @@ export default function AuriosSlider({
       </View>
 
       <View style={styles.presets}>
-        <Pressable style={styles.presetButton} onPress={() => applyAurios(auriosFor5Percent)}>
+        <Pressable style={presetStyle} onPress={() => applyAurios(auriosFor5Percent)} disabled={isLocked}>
           <Text style={styles.presetLabel}>5% de descuento</Text>
           <Text style={styles.presetValue}>{Math.min(auriosFor5Percent, sliderMax)} Aurios</Text>
         </Pressable>
-        <Pressable style={styles.presetButton} onPress={() => applyAurios(auriosFor10Percent)}>
+        <Pressable style={presetStyle} onPress={() => applyAurios(auriosFor10Percent)} disabled={isLocked}>
           <Text style={styles.presetLabel}>10% de descuento</Text>
           <Text style={styles.presetValue}>{Math.min(auriosFor10Percent, sliderMax)} Aurios</Text>
         </Pressable>
-        <Pressable style={styles.presetButton} onPress={() => applyAurios(sliderMax)}>
-          <Text style={styles.presetLabel}>Máximo permitido</Text>
+        <Pressable style={presetStyle} onPress={() => applyAurios(sliderMax)} disabled={isLocked}>
+          <Text style={styles.presetLabel}>Maximo permitido</Text>
           <Text style={styles.presetValue}>{sliderMax} Aurios</Text>
         </Pressable>
-        <Pressable style={[styles.presetButton, styles.clearButton]} onPress={onClear}>
+        <Pressable
+          style={[styles.presetButton, styles.clearButton, isLocked ? styles.presetDisabled : null]}
+          onPress={onClear}
+          disabled={isLocked}>
           <Text style={styles.presetLabel}>Limpiar</Text>
           <Text style={styles.presetValue}>0 Aurios</Text>
         </Pressable>
       </View>
 
       <Text style={styles.hint}>
-        {auriosToSpend >= sliderMax && sliderMax > 0 ? (
-          <Text style={styles.hintMax}>
-            Llegaste al límite del ciclo. Más allá, lo guarda la tierra.
-          </Text>
+        {isLocked ? (
+          <Text style={styles.hintMax}>Descuento Aurio aplicado. El balance ya fue actualizado.</Text>
+        ) : safeAurios >= sliderMax && sliderMax > 0 ? (
+          <Text style={styles.hintMax}>Llegaste al limite del ciclo. Mas alla, lo guarda la tierra.</Text>
         ) : (
           `1 Aurio = 1 centavo. Puedes usar hasta ${formatAurios(sliderMax)} en este pedido.`
         )}
@@ -216,10 +223,6 @@ const styles = StyleSheet.create({
     color: '#A63A2F',
     letterSpacing: 0,
     lineHeight: 46,
-  },
-  auriosRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
   },
   auriosValue: {
     fontWeight: '600',
@@ -303,6 +306,9 @@ const styles = StyleSheet.create({
     minWidth: 132,
     paddingHorizontal: 12,
     paddingVertical: 10,
+  },
+  presetDisabled: {
+    opacity: 0.55,
   },
   clearButton: {
     backgroundColor: '#E6E2DD',

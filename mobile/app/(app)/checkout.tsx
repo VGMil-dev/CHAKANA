@@ -17,6 +17,7 @@ import AuriosSlider from '../../components/checkout/AuriosSlider';
 import OrderCard from '../../components/checkout/OrderCard';
 import ReviewForm from '../../components/reviews/ReviewForm';
 import { useCartItems, useCartTotal } from '../../store/cart';
+import { useAuth } from '../../../src/hooks/useAuth';
 import { type CheckoutDestination, useCheckout } from '../../../src/hooks/useCheckout';
 import { useHybridCheckout } from '../../../src/hooks/useHybridCheckout';
 import { useWallet } from '../../../src/hooks/useWallet';
@@ -59,6 +60,7 @@ export default function Checkout() {
   const [stripeSessionId, setStripeSessionId] = useState<string | null>(null);
   const cartItems = useCartItems();
   const visualSubtotal = useCartTotal();
+  const { isConnected: isSupabaseConnected } = useAuth();
   const { aurioBalance, walletPubKey } = useWallet();
   const { signTransaction } = useWalletSigner();
   const {
@@ -68,6 +70,7 @@ export default function Checkout() {
     sliderMax,
     checkoutError,
     checkoutSignature,
+    redeemedAurios,
     isProcessing,
     setTotal,
     onSliderChange,
@@ -79,15 +82,22 @@ export default function Checkout() {
   const cartPayload = cartItems.map((item) => ({ productId: item.id, quantity: item.qty }));
   const hasCart = cartPayload.length > 0 && subtotal > 0;
   const hasAurioDiscount = auriosToSpend > 0;
-  const hasAppliedAurioDiscount = hasAurioDiscount && Boolean(checkoutSignature);
+  const hasAppliedAurioDiscount = redeemedAurios > 0 && Boolean(checkoutSignature);
+  const displayedAurios = hasAppliedAurioDiscount ? redeemedAurios : auriosToSpend;
   const isAurioDisabled =
-    !walletPubKey || !hasAurioDiscount || !signTransaction || !destination || isProcessing;
+    !walletPubKey ||
+    !hasAurioDiscount ||
+    !signTransaction ||
+    !destination ||
+    isProcessing ||
+    hasAppliedAurioDiscount;
   const isCardDisabled =
     !qaBusinessId ||
     !hasCart ||
+    !isSupabaseConnected ||
     isProcessing ||
     isHybridProcessing ||
-    (hasAurioDiscount && !checkoutSignature);
+    (hasAurioDiscount && !hasAppliedAurioDiscount);
 
   useEffect(() => {
     if (subtotal !== checkoutTotal) {
@@ -158,7 +168,7 @@ export default function Checkout() {
 
         <OrderCard
           subtotal={subtotal}
-          aurios={auriosToSpend}
+          aurios={displayedAurios}
           discount={discountResult.discountUSD}
         />
 
@@ -173,13 +183,16 @@ export default function Checkout() {
             aurioBalance={aurioBalance}
             sliderMax={sliderMax}
             isWalletConnected={Boolean(walletPubKey)}
+            isLocked={hasAppliedAurioDiscount}
             onAuriosChange={handleAuriosChange}
             onClear={handleClearDiscount}
           />
           <View style={styles.statusCard}>
-            <Text style={styles.statusTitle}>Balance Aurios</Text>
+            <Text style={styles.statusTitle}>Balance disponible</Text>
             <Text style={styles.statusValue}>{Math.floor(aurioBalance)} Aurios</Text>
-            <Text style={styles.statusLine}>Aurios a aplicar: {auriosToSpend}</Text>
+            <Text style={styles.statusLine}>
+              {hasAppliedAurioDiscount ? 'Aurios aplicados' : 'Aurios a aplicar'}: {displayedAurios} Aurios
+            </Text>
             <Text style={styles.statusLine}>
               Descuento aplicado: {formatUSD(discountResult.discountUSD)}
             </Text>
@@ -238,6 +251,18 @@ export default function Checkout() {
           <Text style={styles.sectionCopy}>
             Stripe cobra el total a pagar con tarjeta despues de aplicar el descuento Aurio.
           </Text>
+          {!isSupabaseConnected ? (
+            <>
+              <Text style={styles.warning}>Inicia sesión para pagar con tarjeta.</Text>
+              <Pressable
+                accessibilityRole="button"
+                testID="checkout-login-button"
+                style={styles.loginButton}
+                onPress={() => router.push('/login')}>
+                <Text style={styles.loginButtonText}>Ir a iniciar sesión</Text>
+              </Pressable>
+            </>
+          ) : null}
           {hasAurioDiscount && !hasAppliedAurioDiscount ? (
             <Text style={styles.warning}>Primero aplica el descuento Aurio.</Text>
           ) : null}
@@ -434,6 +459,19 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: '#A63A2F',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  loginButton: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: '#F8F3EE',
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+  },
+  loginButtonText: {
+    color: '#86231A',
     fontSize: 13,
     fontWeight: '700',
   },

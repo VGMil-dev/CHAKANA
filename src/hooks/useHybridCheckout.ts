@@ -39,6 +39,7 @@ export function useHybridCheckout(): UseHybridCheckoutResult {
   const { walletPubKey } = useWallet();
   const {
     auriosToSpend,
+    redeemedAurios,
     discountResult,
     checkoutSignature,
     confirmCheckout,
@@ -92,7 +93,7 @@ export function useHybridCheckout(): UseHybridCheckoutResult {
       const stripeSession = await createStripeCheckoutSession({
         businessId,
         cartItems,
-        auriosToSpend,
+        auriosToSpend: checkoutSignature ? redeemedAurios : auriosToSpend,
         aurioDiscountUsd: discountResult.discountUSD,
         finalTotal: discountResult.finalTotal,
         aurioSignature,
