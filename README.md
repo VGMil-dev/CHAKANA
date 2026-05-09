@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/bf32ea39-7a58-47ea-9293-74f683ab31ea" alt="CHAKANA header" width="900" />
+  <img src="https://github.com/user-attachments/assets/157ef459-2a03-4e8b-99de-8338b82d3bca" alt="CHAKANA header" width="900" />
 
   <p><strong>🌎 Trust infrastructure for circular local commerce</strong></p>
 
@@ -16,6 +16,9 @@
 ## ✨ Overview
 CHAKANA is an ancestral-modern platform for local circular economy. It combines mobile UX, blockchain verification, and programmable incentives so community impact can be trusted, rewarded, and scaled.
 
+> [!NOTE]
+> This README is optimized for hackathon jury demo context.
+
 ## 🎯 Why This Matters
 - **Trust at source:** Community actions can be verified and audited.
 - **Real incentives:** The Aurio token model connects social value with economic value.
@@ -28,6 +31,9 @@ CHAKANA is an ancestral-modern platform for local circular economy. It combines 
 3. A verifiable hash is anchored on blockchain.
 4. Reward logic is triggered (Aurio flow).
 5. Merchant/community value is visible in-app.
+
+> [!TIP]
+> Follow this Golden Path first for the fastest product understanding.
 
 ## 🧱 Product Pillars
 - **Verified Reviews & Reputation**
@@ -45,26 +51,19 @@ CHAKANA is an ancestral-modern platform for local circular economy. It combines 
 - **Cross-chain:** LI.FI
 - **Voice AI:** ElevenLabs (backend-only)
 
-## 📌 Important Notes
-> [!NOTE]
-> This is an information-focused README built for hackathon judges and demo context.
-
-> [!TIP]
-> Follow the **Golden Path** for the fastest 2-minute product understanding.
-
 > [!IMPORTANT]
 > Secrets and API keys are never committed; sensitive operations run server-side.
 
 > [!WARNING]
 > This repository prioritizes MVP speed and demo reliability over non-essential complexity.
 
-> [!CAUTION]
-> Core integrations are evolving quickly during the hackathon window; scope can shift.
-
 ## 🚦 Current Status
 - Hackathon MVP architecture is defined.
 - Core integration tracks are documented (mobile, backend, blockchain, payments).
 - Team execution is structured by role (UI, logic, web3, backend).
+
+> [!CAUTION]
+> Integrations evolve quickly during hackathon execution, so scope may shift.
 
 ## ⚖️ License
 This project is licensed under the **MIT License**. See [LICENSE](./LICENSE).

@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/bf32ea39-7a58-47ea-9293-74f683ab31ea" alt="Header CHAKANA" width="900" />
+  <img src="https://github.com/user-attachments/assets/157ef459-2a03-4e8b-99de-8338b82d3bca" alt="Header CHAKANA" width="900" />
 
   <p><strong>🌎 Infraestructura de confianza para comercio local circular</strong></p>
 
@@ -16,6 +16,9 @@
 ## ✨ Resumen
 CHAKANA es una plataforma ancestral-moderna para economía circular local. Combina experiencia móvil, verificación en blockchain e incentivos programables para que el impacto comunitario sea confiable, recompensado y escalable.
 
+> [!NOTE]
+> Este README está optimizado para contexto de demo ante jurado.
+
 ## 🎯 Por Qué Importa
 - **Confianza desde el origen:** Las acciones comunitarias se pueden verificar y auditar.
 - **Incentivos reales:** El modelo de token Aurio conecta valor social con valor económico.
@@ -28,6 +31,9 @@ CHAKANA es una plataforma ancestral-moderna para economía circular local. Combi
 3. Un hash verificable se ancla en blockchain.
 4. Se activa la lógica de recompensa (flujo Aurio).
 5. El valor para comercios/comunidad se visualiza en la app.
+
+> [!TIP]
+> Empieza por este Golden Path para entender la propuesta más rápido.
 
 ## 🧱 Pilares del Producto
 - **Reseñas verificadas y reputación**
@@ -45,26 +51,19 @@ CHAKANA es una plataforma ancestral-moderna para economía circular local. Combi
 - **Cross-chain:** LI.FI
 - **IA de voz:** ElevenLabs (solo backend)
 
-## 📌 Notas Importantes
-> [!NOTE]
-> Esta es una nota informativa para resaltar el enfoque del README para jurado.
-
-> [!TIP]
-> Sigue el **Golden Path** para entender la propuesta completa en menos de 2 minutos.
-
 > [!IMPORTANT]
 > No olvides que las API keys y secretos van solo en backend, nunca en el repositorio.
 
 > [!WARNING]
 > Cuidado: el proyecto prioriza velocidad de MVP, por lo que algunas partes siguen en evolución.
 
-> [!CAUTION]
-> Cambios de alcance durante hackathon pueden impactar integraciones activas.
-
 ## 🚦 Estado Actual
 - La arquitectura del MVP de hackathon está definida.
 - Las líneas de integración clave están documentadas (mobile, backend, blockchain, pagos).
 - La ejecución del equipo está organizada por roles (UI, lógica, web3, backend).
+
+> [!CAUTION]
+> Cambios de alcance durante el hackathon pueden impactar integraciones activas.
 
 ## ⚖️ Licencia
 Este proyecto está licenciado bajo **MIT License**. Consulta [LICENSE](./LICENSE).
