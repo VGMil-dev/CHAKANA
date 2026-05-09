@@ -37,6 +37,14 @@ function getCommerceApiUrl(path: string) {
   return `${supabaseUrl}/functions/v1/commerce-api${normalizedPath}`;
 }
 
+function getSupabaseAnonKey() {
+  const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  if (!anonKey) {
+    throw new Error('EXPO_PUBLIC_SUPABASE_ANON_KEY no esta configurado.');
+  }
+  return anonKey;
+}
+
 function asObject(value: unknown): CommerceCheckoutResponse {
   if (!value || typeof value !== 'object') return {};
   return value as CommerceCheckoutResponse;
@@ -60,6 +68,7 @@ export async function createStripeCheckoutSession(
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
+      apikey: getSupabaseAnonKey(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
