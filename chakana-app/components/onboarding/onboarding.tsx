@@ -69,10 +69,10 @@ export default function Onboarding() {
           <TouchableOpacity
             style={styles.primaryButton}
             activeOpacity={0.8}
-            onPress={() => router.push('/home')}
+            onPress={() => router.push('/login')}
           >
-            <Text style={styles.primaryButtonText}>Conecta tu Wallet</Text>
-            <Ionicons name="wallet-outline" size={18} color="#FFFFFF" style={{ marginLeft: 8 }} />
+            <Text style={styles.primaryButtonText}>Descubre la ciudad</Text>
+            <Ionicons name="map-outline" size={18} color="#FFFFFF" style={{ marginLeft: 8 }} />
           </TouchableOpacity>
 
           <TouchableOpacity

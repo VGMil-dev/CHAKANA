@@ -15,7 +15,7 @@ export interface ChakanadialProps {
 const TABS: { tab: DialTab; icon: React.ComponentProps<typeof Ionicons>['name']; label: string }[] = [
   { tab: 'home',  icon: 'home-outline',         label: 'HOY'  },
   { tab: 'ciclo', icon: 'sync-outline',          label: 'CICLO'},
-  { tab: 'yo',    icon: 'person-outline',        label: 'YO'   },
+  { tab: 'yo',    icon: 'person-outline',        label: 'PERFIL'},
   { tab: 'eco',   icon: 'notifications-outline', label: 'ECO'  },
 ];
 

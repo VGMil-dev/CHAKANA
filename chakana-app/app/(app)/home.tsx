@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
-import HomeHeader from '../components/home/HomeHeader';
-import DisplaySection from '../components/home/DisplaySection';
-import CategoryChipsBar from '../components/home/CategoryChipsBar';
-import TambuFeed from '../components/home/TambuFeed';
-import ChakanaDial from '../components/core/ChakanaDial';
+import HomeHeader from '../../components/home/HomeHeader';
+import DisplaySection from '../../components/home/DisplaySection';
+import CategoryChipsBar from '../../components/home/CategoryChipsBar';
+import TambuFeed from '../../components/home/TambuFeed';
+import ChakanaDial from '../../components/core/ChakanaDial';
 
-import { MARKET_CATEGORIES } from '../data/categories';
-import { TAMBUSES } from '../data/tambuses';
+import { MARKET_CATEGORIES } from '../../data/categories';
+import { TAMBUSES } from '../../data/tambuses';
 
 export default function Home() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [active, setActive] = useState('Café');
 
   return (
@@ -39,7 +41,11 @@ export default function Home() {
         />
       </ScrollView>
 
-      <ChakanaDial activeTab="home" />
+      <ChakanaDial
+        activeTab="home"
+        onTabPress={(tab) => { if (tab === 'yo') router.push('/perfil'); }}
+        onCenterPress={() => router.replace('/home')}
+      />
     </View>
   );
 }
