@@ -1,5 +1,5 @@
 import { getAurioBalance } from 'aurio-sdk';
-import { insertReview } from '../services/supabase';
+import { submitReviewReward } from '../services/supabase';
 import { useAppStore } from '../store';
 
 const MIN_REVIEW_LENGTH = 50;
@@ -26,7 +26,7 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'No se pudo enviar la reseña.';
 }
 
-function wait(ms: number): Promise<void> {
+function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
@@ -40,53 +40,51 @@ export function useReviewSubmit(): UseReviewSubmitResult {
   const walletPubKey = useAppStore((state) => state.walletPubKey);
   const updateCurrentReviewText = useAppStore((state) => state.updateCurrentReviewText);
   const setIsSubmittingReview = useAppStore((state) => state.setIsSubmittingReview);
+  const setReviewError = useAppStore((state) => state.setReviewError);
   const setReviewSuccess = useAppStore((state) => state.setReviewSuccess);
   const resetReviewForm = useAppStore((state) => state.resetReviewForm);
   const setAurioBalance = useAppStore((state) => state.setAurioBalance);
   const setActiveModal = useAppStore((state) => state.setActiveModal);
 
-  const isTextValid = currentReviewText.trim().length >= MIN_REVIEW_LENGTH;
+  const reviewText = currentReviewText.trim();
+  const isTextValid = reviewText.length >= MIN_REVIEW_LENGTH;
   const charsRemaining = MIN_REVIEW_LENGTH - currentReviewText.length;
 
   const submitReview = async (params: SubmitReviewParams): Promise<void> => {
-    if (!isTextValid) {
-      useAppStore.setState({
-        reviewError: `La reseña debe tener al menos ${MIN_REVIEW_LENGTH} caracteres.`,
-      });
+    const businessId = params.businessId.trim();
+
+    if (reviewText.length < MIN_REVIEW_LENGTH) {
+      setReviewError('La reseña debe tener al menos 50 caracteres.');
       return;
     }
 
     if (!walletPubKey) {
-      useAppStore.setState({
-        reviewError: 'Conecta tu wallet para recibir Aurios.',
-      });
+      setReviewError('Conecta tu wallet para recibir Aurios.');
       return;
     }
 
-    if (!params.businessId.trim()) {
-      useAppStore.setState({
-        reviewError: 'No se encontró la cafetería para guardar la reseña.',
-      });
+    if (!businessId) {
+      setReviewError('No se encontró la cafetería para guardar la reseña.');
       return;
     }
 
     setIsSubmittingReview(true);
+    setReviewError(null);
     setReviewSuccess(false);
-    useAppStore.setState({ reviewError: null });
 
     try {
-      await insertReview({
-        business_id: params.businessId,
-        text: currentReviewText.trim(),
-        solana_memo_signature: params.solanaMemoSignature,
+      await submitReviewReward({
+        userWallet: walletPubKey,
+        reviewText,
+        businessId,
       });
-      await wait(ORACLE_WAIT_MS);
+      await sleep(ORACLE_WAIT_MS);
       const nextBalance = await getAurioBalance(walletPubKey);
       setAurioBalance(nextBalance);
       setReviewSuccess(true);
       setActiveModal('reviewSuccess');
     } catch (error) {
-      useAppStore.setState({ reviewError: getErrorMessage(error) });
+      setReviewError(getErrorMessage(error));
     } finally {
       setIsSubmittingReview(false);
     }
