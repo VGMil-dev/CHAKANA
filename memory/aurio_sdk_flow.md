@@ -2,6 +2,9 @@
 
 ## Reward por resena
 
+- 1 comentario post-compra valido recompensa 1 Aurio.
+- 1 Aurio = $0.01 USD de descuento futuro.
+- La validacion minima es 50 palabras.
 - Dev 2 llama la Edge Function `mint-aurio-on-review`.
 - Dev 4 mintea AURIO server-side.
 - Dev 2 espera la confirmacion del endpoint y refresca balance real con `getAurioBalance(walletPubKey)`.

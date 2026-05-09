@@ -23,14 +23,14 @@ Dev 1 NUNCA importa desde:
 | `useAuth` | `authUserId`, `authEmail`, `isConnected`, `isAuthLoading`, `authError` | `login`, `register`, `logout`, `initAuth` |
 | `useWallet` | `walletPubKey`, `aurioBalance`, `isConnected`, `isConnectingWallet`, `walletError` | `connectWallet`, `disconnectWallet`, `refreshAurioBalance` |
 | `useBusinesses` | `listaTambus`, `tambuActivo`, `isLoadingBusinesses`, `businessError` | `fetchBusinesses`, `selectTambu`, `clearSelection` |
-| `useReviewSubmit` | `currentReviewText`, `isTextValid`, `charsRemaining`, `isSubmittingReview`, `reviewError`, `reviewSuccess` | `onTextChange`, `submitReview`, `resetForm` |
+| `useReviewSubmit` | `currentReviewText`, `isTextValid`, `wordsCount`, `wordsRemaining`, `isSubmittingReview`, `reviewError`, `reviewSuccess` | `onTextChange`, `submitReview`, `resetForm` |
 | `useCheckout` | `checkoutTotal`, `discountResult`, `sliderMax`, `isProcessing`, `checkoutError` | `setTotal`, `onSliderChange`, `confirmCheckout` |
 | `useHybridCheckout` | `isHybridProcessing`, `hybridError` | `confirmHybridCheckout` |
 | `useDiscount` | `result`, `sliderMax` | `onSliderChange`, `resetDiscount` |
 
 ## Integracion con Aurio SDK
 
-- `useReviewSubmit` refresca el balance con `getAurioBalance(walletPubKey)` despues de enviar una reseña y esperar al oraculo.
+- `useReviewSubmit` valida minimo 50 palabras y refresca el balance con `getAurioBalance(walletPubKey)` despues de enviar una reseña post-compra y esperar al oraculo.
 - `useCheckout` construye la transaccion real de Aurios con `payToTambu({ sender, tambuMint, amount })` cuando existe NFT mint real del Tambu.
 - `useCheckout` usa `buildAurioTransferTx({ sender, recipient: payoutWallet, amount })` para el workaround MVP con wallet destino QA.
 - `useCheckout` usa `getAurioConnection()` para enviar y confirmar la transaccion firmada.
@@ -97,7 +97,7 @@ Responsabilidades:
 - Dev 2 nunca usa mint authority.
 
 Nota importante:
-AURIO tiene 6 decimals. Si amount=1000 son unidades base, eso equivale a 0.001 AURIO. Confirmar con Dev 4 si el reward esperado es 1000 raw units o 1 AURIO completo.
+1 comentario post-compra valido recompensa 1 Aurio. 1 Aurio = $0.01 USD de descuento futuro.
 
 ## Selectores disponibles
 
@@ -112,6 +112,8 @@ AURIO tiene 6 decimals. Si amount=1000 son unidades base, eso equivale a 0.001 A
 - `useListaTambus`
 - `useIsLoadingBusinesses`
 - `useCurrentReviewText`
+- `useReviewWordsCount`
+- `useReviewWordsRemaining`
 - `useIsSubmittingReview`
 - `useReviewSuccess`
 - `useReviewError`
@@ -129,6 +131,6 @@ AURIO tiene 6 decimals. Si amount=1000 son unidades base, eso equivale a 0.001 A
 3. `useBusinesses.selectTambu(business)` al entrar al detalle.
 4. `useCheckout.setTotal(amount)` al entrar a Checkout.
 5. `useCheckout.onSliderChange(value)` al mover el slider.
-6. `useCheckout.confirmCheckout({ destination, signTransaction })` al confirmar.
-7. `useReviewSubmit.onTextChange(text)` y `submitReview()` en Review Form.
-8. `setActiveModal('propina')` se dispara automaticamente post-checkout.
+6. `useCheckout.confirmCheckout({ destination, signTransaction })` al aplicar descuento Aurio, si el usuario eligio Aurios.
+7. `useHybridCheckout.confirmHybridCheckout(...)` crea la sesion Stripe para pagar con tarjeta.
+8. Tras compra Stripe completada, `useReviewSubmit.onTextChange(text)` y `submitReview()` publican comentario minimo 50 palabras.

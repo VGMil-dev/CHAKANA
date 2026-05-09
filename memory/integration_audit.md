@@ -19,7 +19,7 @@ La integración recomendada es usar `mobile/` como runtime base porque ya contie
   - `useWallet` refresca con `getAurioBalance(walletPubKey)`.
   - No hay escrituras manuales de balance detectadas; el balance se lee on-chain.
 - Reseña reward:
-  - `src/hooks/useReviewSubmit.ts` valida mínimo 50 caracteres.
+  - `src/hooks/useReviewSubmit.ts` valida mínimo 50 palabras.
   - Llama `submitReviewReward` y luego refresca balance real con `getAurioBalance`.
   - Abre `activeModal = "reviewSuccess"` cuando termina.
 - Edge Function Dev 4:
@@ -172,7 +172,7 @@ La integración recomendada es usar `mobile/` como runtime base porque ya contie
   - `currentReviewText`
   - `onTextChange`
   - `isTextValid`
-  - `charsRemaining`
+  - `wordsRemaining`
   - `submitReview({ businessId })`
   - `isSubmittingReview`, `reviewError`, `reviewSuccess`
 - Usar `businessId` real de `tambuActivo` o params.
@@ -197,8 +197,8 @@ La integración recomendada es usar `mobile/` como runtime base porque ya contie
 2. Conectar wallet.
 3. Ver balance Aurio real.
 4. Entrar a Raíz Café.
-5. Escribir reseña válida de mínimo 50 caracteres.
-6. Recibir reward AURIO vía Edge Function.
+5. Escribir reseña válida de mínimo 50 palabras.
+6. Recibir 1 Aurio vía Edge Function.
 7. Refrescar/ver balance aumentado por lectura real on-chain.
 8. Hacer checkout con descuento máximo 25% y clamp por balance.
 9. Firmar transacción con wallet Dev 3.

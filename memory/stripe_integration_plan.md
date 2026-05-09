@@ -30,6 +30,14 @@
 - En futuro, la redencion puede usar `payToTambu` con NFT Tambu metadata.
 - Backend debe verificar `aurioSignature` antes de aplicar descuento en produccion.
 
+## Comentario post-compra
+
+- Despues de una compra Stripe completada, el usuario puede publicar un comentario.
+- La UI existente `ReviewForm` usa `useReviewSubmit`.
+- El comentario debe tener minimo 50 palabras.
+- 1 comentario valido recompensa 1 Aurio.
+- 1 Aurio = $0.01 USD de descuento futuro.
+
 ## Archivos extraidos
 
 - `supabase/functions/commerce-api/index.ts`

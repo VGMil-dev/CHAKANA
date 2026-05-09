@@ -39,6 +39,14 @@
 - Backend debe verificar `aurioSignature` antes de aplicar descuento en produccion.
 - `useHybridCheckout` orquesta la secuencia sin mezclar `aurio-sdk` con el servicio Stripe.
 
+## Comentario post-compra
+
+- Despues de una compra Stripe completada, el usuario puede publicar un comentario.
+- La UI existente `ReviewForm` usa `useReviewSubmit`.
+- El comentario debe tener minimo 50 palabras.
+- 1 comentario valido recompensa 1 Aurio.
+- 1 Aurio = $0.01 USD de descuento futuro.
+
 ## Estado requerido
 
 - `walletPubKey`
