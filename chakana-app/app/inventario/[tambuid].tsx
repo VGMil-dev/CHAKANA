@@ -162,7 +162,7 @@ export default function InventoryScreen() {
             <Ionicons name="bag-outline" size={18} color="#FDFAF7" />
             <Text style={styles.cartBtnText}>Ver carrito</Text>
             <View style={styles.cartDivider} />
-            <Text style={styles.cartBtnTotal}>{cartTotal} Aurios</Text>
+            <Text style={styles.cartBtnTotal}>$ {cartTotal.toFixed(2)}</Text>
             <View style={styles.cartBadge}>
               <Text style={styles.cartBadgeText}>{cartCount}</Text>
             </View>

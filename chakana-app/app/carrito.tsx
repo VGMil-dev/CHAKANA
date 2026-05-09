@@ -18,7 +18,6 @@ export default function Carrito() {
   const items  = cartStore.getItems();
   const count  = cartStore.getCount();
   const total  = cartStore.getTotal();
-  const canPay = total <= AURIOS_BALANCE;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -56,7 +55,7 @@ export default function Carrito() {
             <View style={styles.itemInfo}>
               <Text style={styles.itemType}>{item.type}</Text>
               <Text style={styles.itemTitle} numberOfLines={2}>{item.title}</Text>
-              <Text style={styles.itemPrice}>{item.price * item.qty} Aurios</Text>
+              <Text style={styles.itemPrice}>$ {(item.price * item.qty).toFixed(2)}</Text>
             </View>
             <View style={styles.qtyControl}>
               <Pressable
@@ -95,23 +94,19 @@ export default function Carrito() {
           <View style={styles.summaryCard}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>{count} artículo{count !== 1 ? 's' : ''}</Text>
-              <Text style={styles.summaryValue}>{total} Aurios</Text>
+              <Text style={styles.summaryValue}>$ {total.toFixed(2)}</Text>
             </View>
             <View style={styles.summaryDivider} />
             <View style={styles.balanceRow}>
               <View style={styles.balanceDot} />
               <Text style={styles.balanceText}>
-                Saldo disponible:{' '}
-                <Text style={[styles.balanceAmount, !canPay && styles.balanceInsufficient]}>
+                Tenés{' '}
+                <Text style={styles.balanceAmount}>
                   {AURIOS_BALANCE} Aurios
                 </Text>
+                {' '}disponibles para descuento
               </Text>
             </View>
-            {!canPay && (
-              <Text style={styles.insufficientNote}>
-                Aurios insuficientes. Retirá algún artículo.
-              </Text>
-            )}
           </View>
         )}
 
@@ -121,21 +116,18 @@ export default function Carrito() {
       {items.length > 0 && (
         <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
           <Pressable
-            onPress={() => {
-              if (canPay) router.push('/checkout' as any);
-            }}
+            onPress={() => router.push('/checkout' as any)}
             style={({ pressed }) => [pressed && { opacity: 0.9 }]}
-            disabled={!canPay}
           >
             <LinearGradient
-              colors={canPay ? ['#86231A', '#A63A2F'] : ['#C4BDB6', '#B0A89F']}
+              colors={['#86231A', '#A63A2F']}
               style={styles.ctaBtn}
               start={{ x: 0, y: 0 }}
               end={{ x: 0, y: 1 }}
             >
-              <Text style={styles.ctaLabel}>Pagar con Aurios</Text>
+              <Text style={styles.ctaLabel}>Ir al checkout</Text>
               <View style={styles.ctaDivider} />
-              <Text style={styles.ctaTotal}>{total}</Text>
+              <Text style={styles.ctaTotal}>$ {total.toFixed(2)}</Text>
               <Ionicons name="arrow-forward" size={16} color="#FDFAF7" style={{ marginLeft: 4 }} />
             </LinearGradient>
           </Pressable>

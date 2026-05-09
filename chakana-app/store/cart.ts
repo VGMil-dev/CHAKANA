@@ -4,7 +4,7 @@ export interface CartEntry {
   id: string;
   title: string;
   type: string;
-  price: number; // in Aurios
+  price: number; // in USD
   qty: number;
   image: ReturnType<typeof require>;
 }
