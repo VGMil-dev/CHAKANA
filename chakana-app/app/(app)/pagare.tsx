@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-import { useCartTotal } from '../../store/cart';
+import { useCartStore, useCartTotal } from '../../store/cart';
 import { CHECKOUT_CONFIG } from '../../data/checkout';
 import PageNav from '../../components/core/PageNav';
 import PageHeader from '../../components/core/PageHeader';
@@ -15,6 +15,7 @@ export default function Pagare() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const subtotal = useCartTotal();
+  const clearCart = useCartStore((s) => s.clear);
   const [loading, setLoading] = useState(false);
 
   const discount = subtotal * (CHECKOUT_CONFIG.initialDiscountPct / 100);
@@ -24,6 +25,7 @@ export default function Pagare() {
     setLoading(true);
     setTimeout(() => {
       haptic.success();
+      clearCart();
       router.replace('/resena' as any);
     }, 1800);
   };
