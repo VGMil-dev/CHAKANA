@@ -29,15 +29,20 @@ export default function TambuView() {
       </View>
 
       <View style={styles.sectionContained}>
-        <Text style={styles.eyebrow}>DASHBOARD SEMANAL</Text>
-        <Text style={styles.dashboardTitle}>El pulso{'\n'}del barrio.</Text>
+        <Text style={styles.eyebrow}>MI PANEL</Text>
         <TouchableOpacity
-          style={styles.dashboardCta}
+          style={styles.panelRow}
           activeOpacity={0.7}
-          onPress={() => router.push('/dashboard')}
+          onPress={() => router.replace('/dashboard')}
         >
-          <Text style={styles.dashboardCtaText}>Ver análisis completo</Text>
-          <Ionicons name="arrow-forward" size={14} color="#A63A2F" />
+          <View style={styles.panelIconBox}>
+            <Ionicons name="bar-chart-outline" size={18} color="#A63A2F" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.panelRowTitle}>Panel del Tambu</Text>
+            <Text style={styles.panelRowSub}>Métricas, reseñas e insights IA</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color="#9A938A" />
         </TouchableOpacity>
       </View>
     </>
@@ -93,25 +98,31 @@ const styles = StyleSheet.create({
     opacity: 0.08,
     marginHorizontal: 16,
   },
-  dashboardTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#3D3D3D',
-    letterSpacing: -0.5,
-    lineHeight: 34,
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  dashboardCta: {
+  panelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    alignSelf: 'flex-start',
+    gap: 14,
+    backgroundColor: '#FDFAF7',
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 4,
   },
-  dashboardCtaText: {
+  panelIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#F2D9D5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  panelRowTitle: {
     fontSize: 14,
-    color: '#A63A2F',
-    fontWeight: '600',
-    textDecorationLine: 'underline',
+    fontWeight: '700',
+    color: '#3D3D3D',
+    marginBottom: 2,
+  },
+  panelRowSub: {
+    fontSize: 12,
+    color: '#9A938A',
   },
 });

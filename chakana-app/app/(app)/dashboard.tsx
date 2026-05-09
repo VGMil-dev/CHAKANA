@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 
 import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import WeekDisplayTitle from '../../components/dashboard/WeekDisplayTitle';
@@ -10,7 +9,9 @@ import MetricCard, { RatingDots, MiniBars } from '../../components/dashboard/Met
 import AuriosCard from '../../components/dashboard/AuriosCard';
 import AiNarratorPlayer from '../../components/dashboard/AiNarratorPlayer';
 import InsightCard from '../../components/dashboard/InsightCard';
+import ChakanaDial from '../../components/core/ChakanaDial';
 
+import { useAuthStore } from '../../store/auth';
 import { DASHBOARD_MOCK } from '../../data/dashboard';
 
 const { header, ratingMetric, reviewsMetric, auriosTotal, narrator, insights } = DASHBOARD_MOCK;
@@ -18,17 +19,17 @@ const { header, ratingMetric, reviewsMetric, auriosTotal, narrator, insights } =
 export default function Dashboard() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+
+  const tambuName = user?.name ?? header.tambuName;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <View style={styles.navBar}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()} activeOpacity={0.7}>
-          <Ionicons name="arrow-back" size={20} color="#6B645C" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-        <DashboardHeader tambuName={header.tambuName} />
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 96 }]}
+        bounces={false}
+      >
+        <DashboardHeader tambuName={tambuName} />
 
         <WeekDisplayTitle
           dateRange={header.dateRange}
@@ -77,27 +78,21 @@ export default function Dashboard() {
           ))}
         </View>
       </ScrollView>
+
+      <ChakanaDial
+        activeTab="home"
+        onCenterPress={() => router.replace('/dashboard')}
+        onTabPress={(tab) => { if (tab === 'yo') router.push('/perfil'); }}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F0EB' },
-  navBar: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scrollContent: {
     paddingHorizontal: 22,
     paddingTop: 16,
-    paddingBottom: 40,
     gap: 20,
   },
   metricsRow: { flexDirection: 'row' },
