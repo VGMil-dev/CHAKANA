@@ -42,7 +42,11 @@ export default function Home() {
       </ScrollView>
 
       <ChakanaDial
-        onTabPress={(tab) => { if (tab === 'yo') router.push('/perfil'); }}
+        role="embajador"
+        onTabPress={(tab) => {
+          if (tab === 'yo')      router.push('/perfil');
+          if (tab === 'carrito') router.push('/carrito');
+        }}
         onCenterPress={() => router.replace('/home')}
       />
     </View>

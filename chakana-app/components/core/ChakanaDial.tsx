@@ -4,57 +4,62 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export type DialTab = 'ciclo' | 'yo';
+import { useCartCount } from '../../store/cart';
+
+export type DialTab = 'carrito' | 'pedidos' | 'yo';
 
 export interface ChakanadialProps {
+  role?: 'embajador' | 'tambu';
   activeTab?: DialTab;
   onTabPress?: (tab: DialTab) => void;
   onCenterPress?: () => void;
 }
-
-const TABS: { tab: DialTab; icon: React.ComponentProps<typeof Ionicons>['name']; label: string }[] = [
-  { tab: 'ciclo', icon: 'sync-outline',   label: 'CICLO' },
-  { tab: 'yo',    icon: 'person-outline', label: 'PERFIL'},
-];
 
 function DialIcon({
   tab,
   icon,
   label,
   active,
+  badge,
   onPress,
 }: {
   tab: DialTab;
   icon: React.ComponentProps<typeof Ionicons>['name'];
   label: string;
   active: boolean;
+  badge?: number;
   onPress: (tab: DialTab) => void;
 }) {
   return (
     <TouchableOpacity style={styles.dialIconContainer} activeOpacity={0.6} onPress={() => onPress(tab)}>
-      <Ionicons name={icon} size={24} color={active ? '#A63A2F' : '#6B645C'} />
+      <View style={styles.iconWrap}>
+        <Ionicons name={icon} size={24} color={active ? '#A63A2F' : '#6B645C'} />
+        {badge != null && badge > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{badge > 9 ? '9+' : badge}</Text>
+          </View>
+        )}
+      </View>
       <Text style={[styles.dialIconLabel, active && styles.dialIconLabelActive]}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
-export default function ChakanaDial({ activeTab, onTabPress, onCenterPress }: ChakanadialProps) {
+export default function ChakanaDial({ role = 'embajador', activeTab, onTabPress, onCenterPress }: ChakanadialProps) {
   const insets = useSafeAreaInsets();
+  const cartCount = useCartCount();
   const handleTab = (tab: DialTab) => onTabPress?.(tab);
 
-  const left  = TABS.slice(0, 1);
-  const right = TABS.slice(1);
+  const leftTab = role === 'tambu'
+    ? { tab: 'pedidos' as DialTab, icon: 'receipt-outline' as const, label: 'PEDIDOS', badge: undefined }
+    : { tab: 'carrito' as DialTab, icon: 'bag-outline' as const,     label: 'CARRITO', badge: cartCount };
 
   return (
     <View style={[styles.dialContainer, { bottom: insets.bottom + 18 }]}>
       <View style={styles.dialGlass}>
-        {left.map(t => (
-          <DialIcon key={t.tab} {...t} active={activeTab === t.tab} onPress={handleTab} />
-        ))}
+        <DialIcon {...leftTab} active={activeTab === leftTab.tab} onPress={handleTab} />
         <View style={{ width: 72 }} />
-        {right.map(t => (
-          <DialIcon key={t.tab} {...t} active={activeTab === t.tab} onPress={handleTab} />
-        ))}
+        <DialIcon tab="yo" icon="person-outline" label="PERFIL" active={activeTab === 'yo'} onPress={handleTab} />
       </View>
 
       <View style={styles.dialCenterWrapper}>
@@ -133,6 +138,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     width: 48,
+  },
+  iconWrap: {
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -5,
+    right: -7,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#A63A2F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#FDFAF7',
+    lineHeight: 12,
   },
   dialIconLabel: {
     fontSize: 9.5,
