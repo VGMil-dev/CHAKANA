@@ -14,13 +14,18 @@ export interface TambuCardProps {
   rating?: number | null;
   n?: number | null;
   aurios?: number | null;
+  image?: string | null;
   featured?: boolean;
 }
 
-function TambuImg({ label, height }: { tone?: string, label?: string, height: number }) {
+function TambuImg({ label, height, imageUri }: { tone?: string, label?: string, height: number, imageUri?: string | null }) {
+  const source = imageUri
+    ? { uri: imageUri }
+    : require('../../assets/images/tambu_placeholder.webp');
+
   return (
     <ImageBackground
-      source={require('../../assets/images/tambu_placeholder.webp')}
+      source={source}
       style={[styles.tambuImgContainer, { height }]}
       imageStyle={{ resizeMode: 'cover', width: "100%", height: "100%" }}
     >
@@ -31,14 +36,14 @@ function TambuImg({ label, height }: { tone?: string, label?: string, height: nu
   );
 }
 
-export default function TambuCard({ id, name, barrio, cat, tone, rating, n, aurios, featured }: TambuCardProps) {
+export default function TambuCard({ id, name, barrio, cat, tone, rating, n, aurios, image, featured }: TambuCardProps) {
   return (
     <Link href={`/inventario/${id}`} asChild>
       <Pressable
         onPressIn={() => haptic.light()}
         style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       >
-        <TambuImg tone={tone} label={cat} height={featured ? 168 : 130} />
+        <TambuImg tone={tone} label={cat} height={featured ? 168 : 130} imageUri={image} />
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
             <View style={{ flex: 1, paddingRight: 10 }}>

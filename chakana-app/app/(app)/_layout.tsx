@@ -9,8 +9,7 @@ const HIDDEN_ROUTES  = ['/checkout', '/pagare', '/resena'];
 const COMPACT_ROUTES = ['/carrito'];
 
 export default function AppLayout() {
-  const { isConnected, isAuthLoading } = useAuth();
-  const role       = 'embajador' as 'embajador' | 'tambu';
+  const { isConnected, isAuthLoading, role } = useAuth();
   const cartCount  = useCartCount();
   const cartTotal  = useCartTotal();
   const pathname   = usePathname();
@@ -64,6 +63,7 @@ export default function AppLayout() {
           activeTab={activeTab}
           centerLabel={centerLabel}
           cartPill={cartPill}
+          role={role}
           onCenterPress={onCenterPress}
           onTabPress={onTabPress}
         />

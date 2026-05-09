@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, Image, Pressable } from 'react-native';
+import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withSequence } from 'react-native-reanimated';
 import { CartEntry } from '../../store/cart';
@@ -26,15 +27,12 @@ export default function CartItemCard({ item, onAdd, onRemove }: CartItemCardProp
 
   return (
     <View style={styles.card}>
-      {item.image ? (
-        <Image
-          source={typeof item.image === 'string' ? { uri: item.image } : item.image}
-          style={styles.image}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={styles.image} />
-      )}
+      <Image
+        source={item.image ? (typeof item.image === 'string' ? { uri: item.image } : item.image) : require('../../assets/images/tambu_placeholder.webp')}
+        style={styles.image}
+        contentFit="cover"
+        transition={200}
+      />
       <View style={styles.info}>
         <Text style={styles.type}>{item.type}</Text>
         <Text style={styles.title} numberOfLines={2}>{item.title}</Text>

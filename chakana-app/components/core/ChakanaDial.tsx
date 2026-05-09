@@ -19,6 +19,7 @@ export interface ChakanadialProps {
   centerLabel?: string;
   compact?: boolean;
   cartPill?: { count: number; total: number };
+  role?: 'embajador' | 'tambu';
 }
 
 function DialIcon({
@@ -52,10 +53,9 @@ const SPRING     = { damping: 12, stiffness: 300, mass: 0.8 };
 const BASE_SIZE  = 72;
 const PILL_WIDTH = 148;
 
-export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, centerLabel, compact, cartPill }: ChakanadialProps) {
+export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, centerLabel, compact, cartPill, role = 'embajador' }: ChakanadialProps) {
   const insets    = useSafeAreaInsets();
   const cartCount = useCartCount();
-  const role      = 'embajador' as 'embajador' | 'tambu';
   const handleTab = (tab: DialTab) => onTabPress?.(tab);
 
   // Center bounce on press

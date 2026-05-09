@@ -1,15 +1,19 @@
 import type { StateCreator } from 'zustand';
 import type { AppStore } from '../index';
 
+export type UserRole = 'embajador' | 'tambu';
+
 export type UserSlice = {
   authUserId: string | null;
   authEmail: string | null;
+  role: UserRole;
   walletPubKey: string | null;
   aurioBalance: number;
   isConnected: boolean;
   isAuthLoading: boolean;
   authError: string | null;
   setUser: (user: Partial<UserState>) => void;
+  setRole: (role: UserRole) => void;
   setWalletPubKey: (walletPubKey: string | null) => void;
   setAurioBalance: (aurioBalance: number) => void;
   setIsConnected: (isConnected: boolean) => void;
@@ -21,6 +25,7 @@ type UserState = Pick<
   UserSlice,
   | 'authUserId'
   | 'authEmail'
+  | 'role'
   | 'walletPubKey'
   | 'aurioBalance'
   | 'isConnected'
@@ -31,6 +36,7 @@ type UserState = Pick<
 const initialUserState: UserState = {
   authUserId: null,
   authEmail: null,
+  role: 'embajador',
   walletPubKey: null,
   aurioBalance: 0,
   isConnected: false,
@@ -41,6 +47,7 @@ const initialUserState: UserState = {
 export const createUserSlice: StateCreator<AppStore, [], [], UserSlice> = (set) => ({
   ...initialUserState,
   setUser: (user) => set(user),
+  setRole: (role) => set({ role }),
   setWalletPubKey: (walletPubKey) => set({ walletPubKey }),
   setAurioBalance: (aurioBalance) => set({ aurioBalance }),
   setIsConnected: (isConnected) => set({ isConnected }),

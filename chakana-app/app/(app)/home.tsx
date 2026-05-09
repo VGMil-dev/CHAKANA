@@ -53,7 +53,7 @@ export default function Home() {
     void fetchBusinesses();
   }, [fetchBusinesses]);
 
-  const displayName = authEmail?.split('@')[0] ?? 'Valentina';
+  const displayName = authEmail?.split('@')[0] ?? 'Explorador';
   const initials = getInitials(displayName);
   const greeting = `Hola, ${displayName.split(/[.\s_-]/)[0]}.`;
 
@@ -62,19 +62,23 @@ export default function Home() {
       listaTambus.map((business) => ({
         id: business.id,
         name: business.name,
-        barrio: business.description ?? undefined,
-        cat: 'Tambú',
+        barrio: business.location ?? undefined,
+        cat: business.category ?? undefined,
         tone: 'andes',
         rating: null,
         n: null,
         aurios: null,
+        image: business.image_url ?? undefined,
       })),
     [listaTambus],
   );
 
   const filteredTambus = active === 'Todos'
     ? tambus
-    : tambus.filter(t => t.cat === 'Tambú' || !t.cat || t.cat.toLowerCase() === active.toLowerCase());
+    : tambus.filter(t => {
+      if (!t.cat) return true;
+      return t.cat.toLowerCase() === active.toLowerCase();
+    });
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>

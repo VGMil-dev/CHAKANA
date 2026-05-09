@@ -1,10 +1,12 @@
 import { useCallback } from 'react';
-import { getSession, signIn, signOut, signUp } from '../services/supabase';
+import { getSession, getUserRole, signIn, signOut, signUp } from '../services/supabase';
 import { useAppStore } from '../store';
+import type { UserRole } from '../store/slices/userSlice';
 
 type UseAuthResult = {
   authUserId: string | null;
   authEmail: string | null;
+  role: UserRole;
   isConnected: boolean;
   isAuthLoading: boolean;
   authError: string | null;
@@ -30,6 +32,7 @@ function getErrorMessage(error: unknown): string {
 export function useAuth(): UseAuthResult {
   const authUserId = useAppStore((state) => state.authUserId);
   const authEmail = useAppStore((state) => state.authEmail);
+  const role = useAppStore((state) => state.role);
   const isAuthLoading = useAppStore((state) => state.isAuthLoading);
   const authError = useAppStore((state) => state.authError);
   const setUser = useAppStore((state) => state.setUser);
@@ -38,9 +41,11 @@ export function useAuth(): UseAuthResult {
     setUser({ isAuthLoading: true, authError: null });
     try {
       const user = await signIn(email, password);
+      const userRole = user ? await getUserRole(user.id) : 'embajador';
       setUser({
         authUserId: user?.id ?? null,
         authEmail: user?.email ?? email,
+        role: userRole,
         isAuthLoading: false,
         authError: null,
       });
@@ -87,6 +92,7 @@ export function useAuth(): UseAuthResult {
       setUser({
         authUserId: null,
         authEmail: null,
+        role: 'embajador',
         isAuthLoading: false,
         authError: null,
       });
@@ -103,9 +109,11 @@ export function useAuth(): UseAuthResult {
     try {
       const session = await getSession();
       const user = session?.user ?? null;
+      const userRole = user ? await getUserRole(user.id) : 'embajador';
       setUser({
         authUserId: user?.id ?? null,
         authEmail: user?.email ?? null,
+        role: userRole,
         isAuthLoading: false,
         authError: null,
       });
@@ -113,6 +121,7 @@ export function useAuth(): UseAuthResult {
       setUser({
         authUserId: null,
         authEmail: null,
+        role: 'embajador',
         isAuthLoading: false,
         authError: getErrorMessage(error),
       });
@@ -122,6 +131,7 @@ export function useAuth(): UseAuthResult {
   return {
     authUserId,
     authEmail,
+    role,
     isConnected: !!authUserId,
     isAuthLoading,
     authError,

@@ -12,6 +12,7 @@ export default function Pedidos() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,7 +23,8 @@ export default function Pedidos() {
       })
       .catch((nextError: unknown) => {
         setError(nextError instanceof Error ? nextError.message : 'No se pudieron cargar pedidos.');
-      });
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   const total = orders.reduce((sum, order) => sum + order.final_total_cents, 0) / 100;
@@ -54,7 +56,11 @@ export default function Pedidos() {
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <View style={styles.cardsList}>
-          {orders.length === 0 ? (
+          {isLoading ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>Cargando pedidos...</Text>
+            </View>
+          ) : orders.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="receipt-outline" size={32} color="#C4BEB8" />
               <Text style={styles.emptyText}>Sin pedidos todavía.</Text>

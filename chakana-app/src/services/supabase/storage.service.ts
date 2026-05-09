@@ -1,5 +1,10 @@
 import { supabase } from './client';
 
+export function getPublicUrl(bucket: string, path: string): string {
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+  return data.publicUrl;
+}
+
 export async function getAudioReportUrl(storagePath: string): Promise<string> {
   const { data, error } = await supabase.storage
     .from('reports')

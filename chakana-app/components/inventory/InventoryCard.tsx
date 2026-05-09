@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, Text, Image, Pressable } from 'react-native';
+import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withSequence } from 'react-native-reanimated';
@@ -41,16 +42,12 @@ export default function InventoryCard({ title, type, price, image, qty, onPress,
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
     >
       <View style={styles.imageContainer}>
-        {image
-          ? (
-            <Image
-              source={typeof image === 'string' ? { uri: image } : image}
-              style={StyleSheet.absoluteFill}
-              resizeMode="cover"
-            />
-          )
-          : <View style={[StyleSheet.absoluteFill, styles.imagePlaceholder]} />
-        }
+        <Image
+          source={image ? (typeof image === 'string' ? { uri: image } : image) : require('../../assets/images/tambu_placeholder.webp')}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          transition={200}
+        />
         <LinearGradient
           colors={['transparent', 'rgba(255,255,255,0.4)', '#FFFFFF']}
           style={StyleSheet.absoluteFill}

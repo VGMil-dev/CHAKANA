@@ -82,7 +82,7 @@ export default function InventoryScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
       >
         <ImageBackground
-          source={require('../../../assets/images/tambu_placeholder.webp')}
+          source={tambu?.image_url ? { uri: tambu.image_url } : require('../../../assets/images/tambu_placeholder.webp')}
           style={styles.heroBanner}
           imageStyle={{ resizeMode: 'cover' }}
         >

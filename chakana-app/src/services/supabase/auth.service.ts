@@ -41,6 +41,16 @@ export async function getUser() {
   return data.user;
 }
 
+export async function getUserRole(userId: string): Promise<'embajador' | 'tambu'> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .single();
+  if (error || !data) return 'embajador';
+  return data.role === 'tambu' ? 'tambu' : 'embajador';
+}
+
 export function onAuthStateChange(callback: (user: User | null) => void) {
   const { data } = supabase.auth.onAuthStateChange((_event, session) => {
     callback(session?.user ?? null);

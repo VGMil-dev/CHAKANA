@@ -13,24 +13,25 @@ function initials(name: string) {
   return name.trim().split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
 }
 
+const WALLET_PLACEHOLDER = 'phantom_placeholder';
+
 function truncateWallet(address?: string) {
-  if (!address || address === 'phantom_placeholder') return null;
+  if (!address || address === WALLET_PLACEHOLDER) return null;
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 export default function Perfil() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { authEmail, signOut } = useAuth();
+  const { authEmail, role, signOut } = useAuth();
   const { walletPubKey, aurioBalance } = useWallet();
 
-  const role = 'embajador';
   const isEmbajador = role === 'embajador';
   const displayName = authEmail?.split('@')[0] ?? 'Embajador';
   const wallet = truncateWallet(walletPubKey ?? undefined);
 
-  const handleLogout = () => {
-    signOut();
+  const handleLogout = async () => {
+    await signOut();
     router.replace('/');
   };
 

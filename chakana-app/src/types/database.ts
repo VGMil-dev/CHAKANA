@@ -43,9 +43,12 @@ export type Database = {
       }
       businesses: {
         Row: {
+          category: string | null
           created_at: string
           description: string | null
           id: string
+          image_url: string | null
+          location: string | null
           name: string
           nfc_adress: string | null
           owner_id: string | null
@@ -56,9 +59,12 @@ export type Database = {
           wallet_adress: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
+          location?: string | null
           name: string
           nfc_adress?: string | null
           owner_id?: string | null
@@ -69,9 +75,12 @@ export type Database = {
           wallet_adress?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
+          location?: string | null
           name?: string
           nfc_adress?: string | null
           owner_id?: string | null
