@@ -66,9 +66,14 @@ test.describe('Chakana web smoke', () => {
 
     await expect(page.getByText(/Checkout/i).first()).toBeVisible();
     await expect(page.getByText(/Descuento Aurio/i).first()).toBeVisible();
+    await expect(page.getByText(/Aplicar descuento Aurio/i).first()).toBeVisible();
     await expect(page.getByText(/Pagar con tarjeta/i).first()).toBeVisible();
     await expect(page.getByText(/Total a pagar con tarjeta/i).first()).toBeVisible();
     await expect(page.getByText(aurioPaymentCopyPattern)).toHaveCount(0);
+    await expect(page.getByText(/-\d+\s*\/\s*\d+\s*Aurios/i)).toHaveCount(0);
+    await expect(
+      page.getByText(/Inicia sesión para pagar con tarjeta|Se requiere una sesión activa para iniciar checkout con tarjeta/i),
+    ).toBeVisible();
     await expect(page.getByTestId('checkout-pay-button')).toBeVisible();
     await expect(
       page.getByText(
