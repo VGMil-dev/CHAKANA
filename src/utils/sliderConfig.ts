@@ -17,7 +17,7 @@ export function getSliderStep(): number {
 
 export function formatAurios(amount: number): string {
   const safeAmount = Number.isFinite(amount) && amount > 0 ? Math.floor(amount) : 0;
-  return `${safeAmount.toLocaleString('en-US')} ✦`;
+  return `${safeAmount.toLocaleString('en-US')} \u2726`;
 }
 
 export function formatUSD(amount: number): string {
