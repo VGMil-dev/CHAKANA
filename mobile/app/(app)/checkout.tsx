@@ -8,13 +8,13 @@ import {
   Text,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import AuriosSlider from '../../components/checkout/AuriosSlider';
 import OrderCard from '../../components/checkout/OrderCard';
+import StripePaymentCard from '../../components/checkout/StripePaymentCard';
 import ReviewForm from '../../components/reviews/ReviewForm';
 import { useCartItems, useCartTotal } from '../../store/cart';
 import { useAuth } from '../../../src/hooks/useAuth';
@@ -27,6 +27,7 @@ import { formatUSD } from '../../../src/utils/sliderConfig';
 const qaTambuMint = process.env.EXPO_PUBLIC_QA_TAMBU_MINT;
 const qaPayoutWallet = process.env.EXPO_PUBLIC_QA_PAYOUT_WALLET;
 const qaBusinessId = process.env.EXPO_PUBLIC_QA_BUSINESS_ID ?? 'raiz-cafe';
+type CheckoutStep = 'discount' | 'payment' | 'postPurchaseReview';
 // TODO: reemplazar env QA por destino real del negocio seleccionado cuando Businesses este conectado.
 const destination: CheckoutDestination | null =
   typeof qaTambuMint === 'string' && qaTambuMint.length > 0
@@ -58,6 +59,8 @@ export default function Checkout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [stripeSessionId, setStripeSessionId] = useState<string | null>(null);
+  const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>('discount');
+  const [didSkipDiscount, setDidSkipDiscount] = useState(false);
   const cartItems = useCartItems();
   const visualSubtotal = useCartTotal();
   const { isConnected: isSupabaseConnected } = useAuth();
@@ -75,6 +78,7 @@ export default function Checkout() {
     setTotal,
     onSliderChange,
     confirmCheckout,
+    resetCheckout,
   } = useCheckout();
   const { isHybridProcessing, hybridError, confirmHybridCheckout } = useHybridCheckout();
 
@@ -83,6 +87,7 @@ export default function Checkout() {
   const hasCart = cartPayload.length > 0 && subtotal > 0;
   const hasAurioDiscount = auriosToSpend > 0;
   const hasAppliedAurioDiscount = redeemedAurios > 0 && Boolean(checkoutSignature);
+  const hasAvailableAurios = aurioBalance > 0 || hasAppliedAurioDiscount;
   const displayedAurios = hasAppliedAurioDiscount ? redeemedAurios : auriosToSpend;
   const isAurioDisabled =
     !walletPubKey ||
@@ -105,6 +110,21 @@ export default function Checkout() {
     }
   }, [checkoutTotal, setTotal, subtotal]);
 
+  useEffect(() => {
+    if (!hasAvailableAurios && checkoutStep === 'discount') {
+      setCheckoutStep('payment');
+    }
+    if (
+      hasAvailableAurios &&
+      !didSkipDiscount &&
+      !hasAppliedAurioDiscount &&
+      !stripeSessionId &&
+      checkoutStep === 'payment'
+    ) {
+      setCheckoutStep('discount');
+    }
+  }, [checkoutStep, didSkipDiscount, hasAppliedAurioDiscount, hasAvailableAurios, stripeSessionId]);
+
   const handleAuriosChange = (value: number): void => {
     onSliderChange(Math.min(value, sliderMax));
   };
@@ -113,12 +133,24 @@ export default function Checkout() {
     onSliderChange(0);
   };
 
+  const handleSkipDiscount = (): void => {
+    resetCheckout();
+    setTotal(subtotal);
+    setDidSkipDiscount(true);
+    setCheckoutStep('payment');
+  };
+
   const handleApplyAurioDiscount = (): void => {
     if (!destination || !signTransaction || isAurioDisabled) return;
 
     void confirmCheckout({
       destination,
       signTransaction,
+    }).then((result) => {
+      if (result) {
+        setDidSkipDiscount(false);
+        setCheckoutStep('payment');
+      }
     });
   };
 
@@ -133,6 +165,7 @@ export default function Checkout() {
     }).then((result) => {
       if (result?.stripeSessionId) {
         setStripeSessionId(result.stripeSessionId);
+        setCheckoutStep('postPurchaseReview');
       }
       if (result?.stripeCheckoutUrl) {
         openCheckoutUrl(result.stripeCheckoutUrl);
@@ -172,106 +205,106 @@ export default function Checkout() {
           discount={discountResult.discountUSD}
         />
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Descuento Aurio</Text>
-          <Text style={styles.sectionCopy}>
-            Puedes elegir 0 Aurios y pagar todo con tarjeta, o redimir Aurios antes del cobro.
-          </Text>
-          <AuriosSlider
-            checkoutTotal={subtotal}
-            auriosToSpend={auriosToSpend}
-            aurioBalance={aurioBalance}
-            sliderMax={sliderMax}
-            isWalletConnected={Boolean(walletPubKey)}
-            isLocked={hasAppliedAurioDiscount}
-            onAuriosChange={handleAuriosChange}
-            onClear={handleClearDiscount}
-          />
-          <View style={styles.statusCard}>
-            <Text style={styles.statusTitle}>Balance disponible</Text>
-            <Text style={styles.statusValue}>{Math.floor(aurioBalance)} Aurios</Text>
-            <Text style={styles.statusLine}>
-              {hasAppliedAurioDiscount ? 'Aurios aplicados' : 'Aurios a aplicar'}: {displayedAurios} Aurios
+        {hasAvailableAurios && checkoutStep === 'discount' ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Descuento Aurio</Text>
+            <Text style={styles.sectionCopy}>
+              ¿Quieres aplicar tus Aurios como descuento? Tambien puedes omitirlo y pagar el total con tarjeta.
             </Text>
-            <Text style={styles.statusLine}>
-              Descuento aplicado: {formatUSD(discountResult.discountUSD)}
-            </Text>
-            <Text style={styles.statusLine}>Maximo permitido: {sliderMax} Aurios</Text>
-            {!hasAurioDiscount ? (
-              <Text style={styles.neutral}>No aplicaras descuento Aurio.</Text>
-            ) : null}
-            {checkoutError ? <Text style={styles.error}>{checkoutError}</Text> : null}
-            {hybridError ? <Text style={styles.error}>{hybridError}</Text> : null}
-            {checkoutSignature ? (
-              <Text style={styles.success}>Firma de redencion Aurio: {checkoutSignature}</Text>
-            ) : null}
-          </View>
-
-          {!destination ? (
-            <View style={styles.notice}>
-              <Text style={styles.noticeText}>
-                Falta tambuMint o payout wallet para probar redencion.
+            <AuriosSlider
+              checkoutTotal={subtotal}
+              auriosToSpend={auriosToSpend}
+              aurioBalance={aurioBalance}
+              sliderMax={sliderMax}
+              isWalletConnected={Boolean(walletPubKey)}
+              isLocked={hasAppliedAurioDiscount}
+              onAuriosChange={handleAuriosChange}
+              onClear={handleClearDiscount}
+            />
+            <View style={styles.statusCard}>
+              <Text style={styles.statusTitle}>Balance disponible</Text>
+              <Text style={styles.statusValue}>{Math.max(0, Math.floor(aurioBalance))} Aurios</Text>
+              <Text style={styles.statusLine}>
+                {hasAppliedAurioDiscount ? 'Aurios aplicados' : 'Aurios a aplicar'}: {displayedAurios} Aurios
               </Text>
-            </View>
-          ) : destination.mode === 'tambu' ? (
-            <View style={styles.notice}>
-              <Text style={styles.noticeConnectedText}>
-                Tambu conectado para prueba devnet.
+              <Text style={styles.statusLine}>
+                Descuento aplicado: {formatUSD(discountResult.discountUSD)}
               </Text>
-              <Text style={styles.noticeMuted}>{shortenAddress(destination.tambuMint)}</Text>
+              <Text style={styles.statusLine}>Maximo permitido: {sliderMax} Aurios</Text>
+              {!hasAurioDiscount ? (
+                <Text style={styles.neutral}>No aplicaras descuento Aurio.</Text>
+              ) : null}
+              {checkoutError ? <Text style={styles.error}>{checkoutError}</Text> : null}
+              {hybridError ? <Text style={styles.error}>{hybridError}</Text> : null}
+              {checkoutSignature ? (
+                <Text style={styles.success}>Firma de redencion Aurio: {checkoutSignature}</Text>
+              ) : null}
             </View>
-          ) : (
-            <View style={styles.notice}>
-              <Text style={styles.noticeConnectedText}>
-                Modo QA: redencion directa de Aurios.
-              </Text>
-              <Text style={styles.noticeMuted}>{shortenAddress(destination.payoutWallet)}</Text>
-            </View>
-          )}
 
-          <Pressable
-            accessibilityRole="button"
-            testID="checkout-aurio-discount-button"
-            onPress={handleApplyAurioDiscount}
-            disabled={isAurioDisabled}
-            style={({ pressed }) => [
-              styles.secondaryButton,
-              isAurioDisabled ? styles.secondaryButtonDisabled : null,
-              pressed && !isAurioDisabled ? styles.payPressed : null,
-            ]}>
-            <Ionicons name="ticket-outline" size={17} color="#A63A2F" />
-            <Text style={styles.secondaryButtonText}>
-              {isProcessing ? 'Redimiendo...' : 'Aplicar descuento Aurio'}
-            </Text>
-          </Pressable>
-        </View>
+            {!destination ? (
+              <View style={styles.notice}>
+                <Text style={styles.noticeText}>
+                  Falta tambuMint o payout wallet para probar redencion.
+                </Text>
+              </View>
+            ) : destination.mode === 'tambu' ? (
+              <View style={styles.notice}>
+                <Text style={styles.noticeConnectedText}>
+                  Tambu conectado para prueba devnet.
+                </Text>
+                <Text style={styles.noticeMuted}>{shortenAddress(destination.tambuMint)}</Text>
+              </View>
+            ) : (
+              <View style={styles.notice}>
+                <Text style={styles.noticeConnectedText}>
+                  Modo QA: redencion directa de Aurios.
+                </Text>
+                <Text style={styles.noticeMuted}>{shortenAddress(destination.payoutWallet)}</Text>
+              </View>
+            )}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pago con tarjeta</Text>
-          <Text style={styles.sectionCopy}>
-            Stripe cobra el total a pagar con tarjeta despues de aplicar el descuento Aurio.
-          </Text>
-          {!isSupabaseConnected ? (
-            <>
-              <Text style={styles.warning}>Inicia sesión para pagar con tarjeta.</Text>
+            <View style={styles.discountActions}>
               <Pressable
                 accessibilityRole="button"
-                testID="checkout-login-button"
-                style={styles.loginButton}
-                onPress={() => router.push('/login')}>
-                <Text style={styles.loginButtonText}>Ir a iniciar sesión</Text>
+                testID="checkout-aurio-discount-button"
+                onPress={handleApplyAurioDiscount}
+                disabled={isAurioDisabled}
+                style={({ pressed }) => [
+                  styles.secondaryButton,
+                  isAurioDisabled ? styles.secondaryButtonDisabled : null,
+                  pressed && !isAurioDisabled ? styles.payPressed : null,
+                ]}>
+                <Ionicons name="ticket-outline" size={17} color="#A63A2F" />
+                <Text style={styles.secondaryButtonText}>
+                  {isProcessing ? 'Redimiendo...' : 'Aplicar descuento Aurio'}
+                </Text>
               </Pressable>
-            </>
-          ) : null}
-          {hasAurioDiscount && !hasAppliedAurioDiscount ? (
-            <Text style={styles.warning}>Primero aplica el descuento Aurio.</Text>
-          ) : null}
-          {!hasCart ? (
-            <Text style={styles.warning}>Agrega productos al carrito para crear el pago.</Text>
-          ) : null}
-        </View>
+              <Pressable
+                accessibilityRole="button"
+                testID="checkout-skip-discount-button"
+                onPress={handleSkipDiscount}
+                style={styles.skipButton}>
+                <Text style={styles.skipButtonText}>Omitir descuento</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
 
-        {stripeSessionId ? (
+        {checkoutStep === 'payment' ? (
+          <StripePaymentCard
+            subtotal={subtotal}
+            auriosApplied={displayedAurios}
+            aurioDiscount={discountResult.discountUSD}
+            total={discountResult.finalTotal}
+            isProcessing={isHybridProcessing}
+            isDisabled={isCardDisabled}
+            requiresLogin={!isSupabaseConnected}
+            onPay={handleCardPayment}
+            onLogin={() => router.push('/login')}
+          />
+        ) : null}
+
+        {checkoutStep === 'postPurchaseReview' && stripeSessionId ? (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Cuéntanos tu experiencia</Text>
             <Text style={styles.sectionCopy}>
@@ -282,32 +315,6 @@ export default function Checkout() {
           </View>
         ) : null}
       </ScrollView>
-
-      <View style={[styles.totalBar, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
-        <View style={styles.totalCard}>
-          <View>
-            <Text style={styles.totalLabel}>Total a pagar con tarjeta</Text>
-            <Text style={styles.totalValue}>{formatUSD(discountResult.finalTotal)}</Text>
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            testID="checkout-pay-button"
-            onPress={handleCardPayment}
-            disabled={isCardDisabled}
-            style={({ pressed }) => [pressed && !isCardDisabled ? styles.payPressed : null]}>
-            <LinearGradient
-              colors={isCardDisabled ? ['#6B645C', '#7B746C'] : ['#86231A', '#A63A2F']}
-              style={[styles.payBtn, isCardDisabled ? styles.payBtnDisabled : null]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}>
-              <Ionicons name="card-outline" size={18} color="#FDFAF7" />
-              <Text style={styles.payBtnText}>
-                {isHybridProcessing ? 'Creando pago...' : 'Pagar con tarjeta'}
-              </Text>
-            </LinearGradient>
-          </Pressable>
-        </View>
-      </View>
     </View>
   );
 }
