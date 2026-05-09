@@ -43,12 +43,13 @@ function StarButton({ filled, onPress, onPressIn, onPressOut, isLast }: {
   );
 }
 
-const PROMPTS = [
-  'Frescura del producto',
-  'Atención del Tambu',
-  'Empaque sostenible',
-  'Lo recomendaría',
-];
+const PROMPTS_BY_STARS: Record<number, string[]> = {
+  1: ['Producto en mal estado', 'Mala atención', 'Empaque deficiente', 'No lo recomendaría'],
+  2: ['Frescura mejorable', 'Atención regular', 'Empaque mejorable', 'Llegó incompleto'],
+  3: ['Producto aceptable', 'Atención correcta', 'Empaque básico', 'Podría mejorar'],
+  4: ['Buen producto', 'Buena atención', 'Buen empaque', 'Lo recomendaría'],
+  5: ['Frescura del producto', 'Atención del Tambu', 'Empaque sostenible', 'Lo recomendaría'],
+};
 
 export default function Resena() {
   const router = useRouter();
@@ -63,7 +64,8 @@ export default function Resena() {
     setTags(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
   };
 
-  const canSubmit = stars > 0;
+  const commentValid = comment.length === 0 || comment.length >= 50;
+  const canSubmit = stars > 0 && commentValid;
 
   const handleSubmit = () => {
     haptic.success();
@@ -107,7 +109,7 @@ export default function Resena() {
               key={i}
               filled={i < display}
               isLast={i === STAR_COUNT - 1}
-              onPress={() => setStars(i + 1)}
+              onPress={() => { setStars(i + 1); setTags([]); }}
               onPressIn={() => setHovered(i + 1)}
               onPressOut={() => setHovered(0)}
             />
@@ -120,20 +122,22 @@ export default function Resena() {
           </Text>
         )}
 
-        <View style={styles.tagsWrap}>
-          {PROMPTS.map(t => {
-            const active = tags.includes(t);
-            return (
-              <Pressable
-                key={t}
-                onPress={() => toggleTag(t)}
-                style={[styles.tag, active && styles.tagActive]}
-              >
-                <Text style={[styles.tagText, active && styles.tagTextActive]}>{t}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        {stars > 0 && (
+          <View style={styles.tagsWrap}>
+            {(PROMPTS_BY_STARS[stars] ?? []).map(t => {
+              const active = tags.includes(t);
+              return (
+                <Pressable
+                  key={t}
+                  onPress={() => toggleTag(t)}
+                  style={[styles.tag, active && styles.tagActive]}
+                >
+                  <Text style={[styles.tagText, active && styles.tagTextActive]}>{t}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
 
         <View style={styles.inputWrap}>
           <Text style={styles.inputLabel}>COMENTARIO (OPCIONAL)</Text>
@@ -147,7 +151,14 @@ export default function Resena() {
             onChangeText={setComment}
             maxLength={280}
           />
-          <Text style={styles.charCount}>{comment.length} / 280</Text>
+          <View style={styles.charRow}>
+            {comment.length > 0 && !commentValid && (
+              <Text style={styles.charHint}>mínimo 50 caracteres</Text>
+            )}
+            <Text style={[styles.charCount, comment.length > 0 && !commentValid && styles.charCountWarn]}>
+              {comment.length} / 280
+            </Text>
+          </View>
         </View>
 
         <View style={styles.aurios}>
@@ -209,7 +220,10 @@ const styles = StyleSheet.create({
     minHeight: 96, textAlignVertical: 'top',
     borderWidth: 1, borderColor: 'rgba(140,133,123,0.15)',
   },
+  charRow: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8 },
   charCount: { fontSize: 11, color: '#C9C1B8', textAlign: 'right' },
+  charCountWarn: { color: '#A63A2F' },
+  charHint: { fontSize: 11, color: '#A63A2F', fontWeight: '500' },
   aurios: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: '#EDF7F6', borderRadius: 10,

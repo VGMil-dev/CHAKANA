@@ -32,7 +32,7 @@ function TambuCardSkeleton({ featured }: { featured?: boolean }) {
 export default function Home() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [active, setActive] = useState('Café');
+  const [active, setActive] = useState('Todos');
   const [loading, setLoading] = useState(true);
   const user = useAuthStore((s) => s.user);
 
