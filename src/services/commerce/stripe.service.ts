@@ -8,6 +8,11 @@ export type StripeCheckoutCartItem = {
 export type CreateStripeCheckoutSessionParams = {
   businessId: string;
   cartItems: StripeCheckoutCartItem[];
+  auriosToSpend?: number;
+  aurioDiscountUsd?: number;
+  finalTotal?: number;
+  aurioSignature?: string;
+  walletPubKey?: string;
   successUrl?: string;
   cancelUrl?: string;
 };
@@ -63,6 +68,11 @@ export async function createStripeCheckoutSession(
         product_id: item.productId,
         quantity: item.quantity,
       })),
+      aurios_to_spend: params.auriosToSpend ?? 0,
+      aurio_discount_usd: params.aurioDiscountUsd ?? 0,
+      final_total: params.finalTotal,
+      aurio_signature: params.aurioSignature,
+      wallet_pubkey: params.walletPubKey,
       success_url: params.successUrl,
       cancel_url: params.cancelUrl,
     }),

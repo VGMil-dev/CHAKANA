@@ -207,7 +207,7 @@ export default function Index() {
         <Text style={styles.text}>Descuento elegido: {chosenDiscountLabel}</Text>
         <Text style={styles.text}>Aurios a gastar: {formatAurios(auriosToSpend)}</Text>
         <Text style={styles.text}>Descuento USD: {formatUSD(discountResult.discountUSD)}</Text>
-        <Text style={styles.total}>Total final: {formatUSD(discountResult.finalTotal)}</Text>
+        <Text style={styles.total}>Total a pagar con tarjeta: {formatUSD(discountResult.finalTotal)}</Text>
         <Pressable
           style={[styles.button, canConfirmCheckout ? null : styles.disabledButton]}
           onPress={handleConfirmCheckout}

@@ -2,5 +2,6 @@ export { useAuth } from './useAuth';
 export { useBusinesses } from './useBusinesses';
 export { useReviewSubmit } from './useReviewSubmit';
 export { useCheckout } from './useCheckout';
+export { useHybridCheckout } from './useHybridCheckout';
 export { useDiscount } from './useDiscount';
 export { useWallet } from './useWallet';

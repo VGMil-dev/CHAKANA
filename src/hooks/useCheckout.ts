@@ -38,7 +38,7 @@ type UseCheckoutResult = {
 };
 
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'No se pudo completar el pago con Aurios.';
+  return error instanceof Error ? error.message : 'No se pudo redimir el descuento Aurio.';
 }
 
 function isValidDestination(destination: CheckoutDestination): boolean {
@@ -106,12 +106,12 @@ export function useCheckout(): UseCheckoutResult {
     params: ConfirmCheckoutParams,
   ): Promise<CheckoutSignatureResult | null> => {
     if (!walletPubKey) {
-      setCheckoutError('Conecta tu wallet antes de pagar con Aurios.');
+      setCheckoutError('Conecta tu wallet antes de redimir Aurios.');
       return null;
     }
 
     if (auriosToSpend <= 0) {
-      setCheckoutError('Selecciona una cantidad de Aurios para usar.');
+      setCheckoutError('Selecciona una cantidad de Aurios para aplicar como descuento.');
       return null;
     }
 
@@ -121,7 +121,7 @@ export function useCheckout(): UseCheckoutResult {
     }
 
     if (!isValidDestination(params.destination)) {
-      setCheckoutError('No se encontro el destino para la transaccion.');
+      setCheckoutError('No se encontro el destino para la redencion Aurio.');
       return null;
     }
 

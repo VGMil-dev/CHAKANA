@@ -45,7 +45,7 @@ export default function OrderCard({ subtotal, aurios, discount }: Props) {
       ))}
       <View style={styles.divider} />
       <SummaryRow label="Subtotal" value={`$ ${subtotal.toFixed(2)}`} />
-      <SummaryRow label={`Aurios aplicados · -${aurios}`} value={`- $ ${discount.toFixed(2)}`} accent />
+      <SummaryRow label={`Descuento Aurio · -${aurios}`} value={`- $ ${discount.toFixed(2)}`} accent />
     </View>
   );
 }
