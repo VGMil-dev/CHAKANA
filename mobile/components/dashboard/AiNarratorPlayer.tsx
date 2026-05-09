@@ -8,7 +8,7 @@ function ProgressBar({ progress }: { progress: number }) {
 
   useEffect(() => {
     widthAnim.value = withTiming(progress, { duration: 100 });
-  }, [progress]);
+  }, [progress, widthAnim]);
 
   const style = useAnimatedStyle(() => ({ width: `${widthAnim.value}%` }));
 

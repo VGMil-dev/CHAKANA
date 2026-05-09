@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, Text, Modal, TouchableOpacity, TouchableWithoutFeedback, Animated, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, Modal, TouchableOpacity, Animated, Dimensions } from 'react-native';
 
 interface BottomSheetProps {
   visible: boolean;

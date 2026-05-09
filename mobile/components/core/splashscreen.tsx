@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import Animated, {
   FadeInDown, FadeInUp, FadeIn,
@@ -78,6 +78,7 @@ export default function AnimatedSplashScreen({
           <Animated.Image
             entering={logoKeyframe}
             source={require('../../assets/images/splash-icon.png')}
+            resizeMode="contain"
             style={styles.logo}
           />
 
@@ -182,7 +183,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 90,
     height: 90,
-    resizeMode: 'contain',
     marginBottom: 26,
   },
   titleContainer: {

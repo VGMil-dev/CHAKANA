@@ -26,6 +26,7 @@
 - App Expo tras `reset-project`: pantalla temporal en `mobile/app/index.tsx` para probar wallet, balance AURIO, resenas y checkout.
 - Dev 2 checkout Aurio: `useCheckout` integra `payToTambu`, recibe `signTransaction`, envia/confirma la transaccion y refresca balance real con `getAurioBalance(walletPubKey)`.
 - Fase 4 prep checkout: UI visual de `mobile/app/(app)/checkout.tsx` conectada a `useCheckout`, balance real, presets Aurios y pago bloqueado hasta recibir `tambuMint` real de Dev 4.
+- Limpieza lint Expo: `npm run lint` queda en 0 errores y 0 warnings; smoke e2e sigue pasando.
 
 ---
 

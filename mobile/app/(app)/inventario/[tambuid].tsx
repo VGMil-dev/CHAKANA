@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import {
-  StyleSheet, View, Text, ScrollView, ImageBackground,
+  StyleSheet, View, Text, ImageBackground,
   Pressable, Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -24,6 +24,7 @@ export default function InventoryScreen() {
   const { add, remove, items: cartItems } = useCartStore();
   const cartCount = useCartCount();
   const cartTotal = useCartTotal();
+  const hasCartItems = cartCount > 0;
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const headerOpacity = scrollY.interpolate({
@@ -35,13 +36,13 @@ export default function InventoryScreen() {
   const cartBtnAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.spring(cartBtnAnim, {
-      toValue: cartCount > 0 ? 1 : 0,
+      toValue: hasCartItems ? 1 : 0,
       useNativeDriver: true,
       damping: 14,
       stiffness: 200,
       mass: 0.8,
     }).start();
-  }, [cartCount > 0]);
+  }, [cartBtnAnim, cartCount, hasCartItems]);
 
   const id = typeof tambuid === 'string' ? tambuid : tambuid[0];
   // TODO: reemplazar fallback por businessId real del Tambu cuando Supabase Businesses esté conectado.
@@ -79,7 +80,7 @@ export default function InventoryScreen() {
         <ImageBackground
           source={require('../../../assets/images/tambu_placeholder.webp')}
           style={styles.heroBanner}
-          imageStyle={{ resizeMode: 'cover' }}
+          resizeMode="cover"
         >
           <LinearGradient
             colors={['transparent', 'rgba(245,240,235,0.4)', '#F5F0EB']}
@@ -141,7 +142,7 @@ export default function InventoryScreen() {
             ],
           },
         ]}
-        pointerEvents={cartCount > 0 ? 'auto' : 'none'}
+        pointerEvents={hasCartItems ? 'auto' : 'none'}
       >
         <Pressable
           onPress={() => router.push('/carrito')}

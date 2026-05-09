@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import BottomSheet from './bottomsheet';
 
@@ -16,6 +16,7 @@ export default function Onboarding() {
         <View style={styles.header}>
           <Image
             source={require('../../assets/images/splash-icon.png')}
+            resizeMode="contain"
             style={styles.logo}
           />
           <Text style={styles.titleBlack}>Tu ciudad.</Text>
@@ -114,7 +115,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 80,
     height: 80,
-    resizeMode: 'contain',
     marginBottom: 24,
   },
   titleBlack: {
