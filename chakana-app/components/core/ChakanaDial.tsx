@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export type DialTab = 'home' | 'ciclo' | 'yo' | 'eco';
+export type DialTab = 'ciclo' | 'yo';
 
 export interface ChakanadialProps {
   activeTab?: DialTab;
@@ -13,10 +13,8 @@ export interface ChakanadialProps {
 }
 
 const TABS: { tab: DialTab; icon: React.ComponentProps<typeof Ionicons>['name']; label: string }[] = [
-  { tab: 'home',  icon: 'home-outline',         label: 'HOY'  },
-  { tab: 'ciclo', icon: 'sync-outline',          label: 'CICLO'},
-  { tab: 'yo',    icon: 'person-outline',        label: 'PERFIL'},
-  { tab: 'eco',   icon: 'notifications-outline', label: 'ECO'  },
+  { tab: 'ciclo', icon: 'sync-outline',   label: 'CICLO' },
+  { tab: 'yo',    icon: 'person-outline', label: 'PERFIL'},
 ];
 
 function DialIcon({
@@ -44,8 +42,8 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress }: Ch
   const insets = useSafeAreaInsets();
   const handleTab = (tab: DialTab) => onTabPress?.(tab);
 
-  const left  = TABS.slice(0, 2);
-  const right = TABS.slice(2);
+  const left  = TABS.slice(0, 1);
+  const right = TABS.slice(1);
 
   return (
     <View style={[styles.dialContainer, { bottom: insets.bottom + 18 }]}>

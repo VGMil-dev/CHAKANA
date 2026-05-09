@@ -80,7 +80,6 @@ export default function Dashboard() {
       </ScrollView>
 
       <ChakanaDial
-        activeTab="home"
         onCenterPress={() => router.replace('/dashboard')}
         onTabPress={(tab) => { if (tab === 'yo') router.push('/perfil'); }}
       />

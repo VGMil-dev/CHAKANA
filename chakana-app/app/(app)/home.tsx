@@ -42,7 +42,6 @@ export default function Home() {
       </ScrollView>
 
       <ChakanaDial
-        activeTab="home"
         onTabPress={(tab) => { if (tab === 'yo') router.push('/perfil'); }}
         onCenterPress={() => router.replace('/home')}
       />

@@ -96,7 +96,7 @@ export default function Perfil() {
 
       <ChakanaDial
         activeTab="yo"
-        onTabPress={(tab) => { if (tab === 'home') router.replace('/home'); }}
+        onTabPress={(tab) => { if (tab === 'ciclo') router.replace('/home'); }}
         onCenterPress={() => router.replace(isEmbajador ? '/home' : '/dashboard')}
       />
     </View>
