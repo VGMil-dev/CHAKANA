@@ -54,7 +54,10 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress }: Ch
   const handleTab = (tab: DialTab) => onTabPress?.(tab);
 
   const centerScale = useSharedValue(1);
-  const centerAnimStyle = useAnimatedStyle(() => ({ transform: [{ scale: centerScale.value }] }));
+  // translateX: -36 must live here — if kept in StyleSheet, the animated transform array would override it
+  const centerAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: -36 }, { scale: centerScale.value }],
+  }));
   const SPRING = { damping: 12, stiffness: 300, mass: 0.8 };
 
   const leftTab = role === 'tambu'
@@ -124,7 +127,6 @@ const styles = StyleSheet.create({
     top: -4,
     width: 72,
     height: 72,
-    transform: [{ translateX: -36 }],
     borderRadius: 36,
     backgroundColor: '#FFFFFF',
     padding: 6,
