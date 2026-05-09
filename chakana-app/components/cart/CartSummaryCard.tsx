@@ -1,13 +1,13 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 
-interface Props {
+export interface CartSummaryCardProps {
   count: number;
   total: number;
   auriosBalance: number;
 }
 
-export default function CartSummaryCard({ count, total, auriosBalance }: Props) {
+export default function CartSummaryCard({ count, total, auriosBalance }: CartSummaryCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.row}>

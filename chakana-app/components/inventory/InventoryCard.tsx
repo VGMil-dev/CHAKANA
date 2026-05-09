@@ -2,30 +2,25 @@ import React from 'react';
 import { StyleSheet, View, Text, Image, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { cartStore, useCart } from '../store/cart';
 
 export interface InventoryCardProps {
   id: string;
   title: string;
   type: string;
-  price: number; // Aurios
+  price: number;
   image?: ReturnType<typeof require>;
+  qty: number;
   onPress?: () => void;
+  onAdd: () => void;
+  onRemove: () => void;
 }
 
-export default function InventoryCard({ id, title, type, price, image, onPress }: InventoryCardProps) {
-  useCart(); // re-render whenever the cart changes
-  const qty = cartStore.getQty(id);
-
-  const handleAdd = () => cartStore.add({ id, title, type, price, image });
-  const handleRemove = () => cartStore.remove(id);
-
+export default function InventoryCard({ title, type, price, image, qty, onPress, onAdd, onRemove }: InventoryCardProps) {
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
     >
-      {/* Image area */}
       <View style={styles.imageContainer}>
         {image
           ? <Image source={image} style={StyleSheet.absoluteFill} resizeMode="cover" />
@@ -37,15 +32,13 @@ export default function InventoryCard({ id, title, type, price, image, onPress }
           start={{ x: 0.5, y: 0.5 }}
           end={{ x: 0.5, y: 1 }}
         />
-        {/* Type tag */}
         <View style={styles.typeTag}>
           <Text style={styles.typeTagText}>{type}</Text>
         </View>
 
-        {/* Add button (qty = 0) */}
         {qty === 0 && (
           <Pressable
-            onPress={handleAdd}
+            onPress={onAdd}
             hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
             style={({ pressed }) => [styles.addBtn, pressed && { opacity: 0.85 }]}
           >
@@ -60,22 +53,17 @@ export default function InventoryCard({ id, title, type, price, image, onPress }
           </Pressable>
         )}
 
-        {/* Stepper overlay (qty > 0) */}
         {qty > 0 && (
           <View style={styles.stepperOverlay}>
             <Pressable
-              onPress={handleRemove}
+              onPress={onRemove}
               style={({ pressed }) => [styles.stepBtn, pressed && { opacity: 0.7 }]}
             >
-              <Ionicons
-                name={qty === 1 ? 'trash-outline' : 'remove'}
-                size={14}
-                color="#FDFAF7"
-              />
+              <Ionicons name={qty === 1 ? 'trash-outline' : 'remove'} size={14} color="#FDFAF7" />
             </Pressable>
             <Text style={styles.stepQty}>{qty}</Text>
             <Pressable
-              onPress={handleAdd}
+              onPress={onAdd}
               style={({ pressed }) => [styles.stepBtn, pressed && { opacity: 0.7 }]}
             >
               <Ionicons name="add" size={14} color="#FDFAF7" />
@@ -84,7 +72,6 @@ export default function InventoryCard({ id, title, type, price, image, onPress }
         )}
       </View>
 
-      {/* Details */}
       <View style={styles.details}>
         <Text style={styles.itemTitle} numberOfLines={2}>{title}</Text>
         <View style={styles.priceRow}>
@@ -118,8 +105,6 @@ const styles = StyleSheet.create({
     transform: [{ translateY: 1 }],
     shadowOpacity: 0.02,
   },
-
-  // Image
   imageContainer: {
     width: '100%',
     height: 160,
@@ -143,8 +128,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     color: '#A63A2F',
   },
-
-  // Add button
   addBtn: {
     position: 'absolute',
     bottom: 10,
@@ -163,8 +146,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-
-  // Stepper overlay
   stepperOverlay: {
     position: 'absolute',
     bottom: 0,
@@ -193,8 +174,6 @@ const styles = StyleSheet.create({
     minWidth: 20,
     textAlign: 'center',
   },
-
-  // Details
   details: {
     paddingHorizontal: 12,
     paddingBottom: 12,

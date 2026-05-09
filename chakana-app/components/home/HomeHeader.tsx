@@ -2,14 +2,14 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import BalancePill from './BalancePill';
 
-interface Props {
+export interface HomeHeaderProps {
   initials: string;
   eyebrow: string;
   greeting: string;
   amount: number;
 }
 
-export default function HomeHeader({ initials, eyebrow, greeting, amount }: Props) {
+export default function HomeHeader({ initials, eyebrow, greeting, amount }: HomeHeaderProps) {
   return (
     <View style={styles.header}>
       <View style={styles.avatar}>

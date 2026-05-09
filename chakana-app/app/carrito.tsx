@@ -5,10 +5,9 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { cartStore, useCart } from '../store/cart';
-import CartItemCard from '../components/CartItemCard';
-import CartSummaryCard from '../components/CartSummaryCard';
-
-const AURIOS_BALANCE = 2772;
+import CartItemCard from '../components/cart/CartItemCard';
+import CartSummaryCard from '../components/cart/CartSummaryCard';
+import { AURIOS_BALANCE } from '../data/checkout';
 
 export default function Carrito() {
   const router = useRouter();
@@ -46,7 +45,12 @@ export default function Carrito() {
         contentContainerStyle={styles.scrollContent}
       >
         {items.map(item => (
-          <CartItemCard key={item.id} item={item} />
+          <CartItemCard
+            key={item.id}
+            item={item}
+            onAdd={() => cartStore.add({ id: item.id, title: item.title, type: item.type, price: item.price, image: item.image })}
+            onRemove={() => cartStore.remove(item.id)}
+          />
         ))}
 
         {items.length === 0 && (

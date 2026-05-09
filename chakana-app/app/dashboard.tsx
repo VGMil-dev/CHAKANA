@@ -2,12 +2,16 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import DashboardHeader from '../components/DashboardHeader';
-import WeekDisplayTitle from '../components/WeekDisplayTitle';
-import MetricCard, { RatingDots, MiniBars } from '../components/MetricCard';
-import AuriosCard from '../components/AuriosCard';
-import AiNarratorPlayer from '../components/AiNarratorPlayer';
-import InsightCard from '../components/InsightCard';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
+import WeekDisplayTitle from '../components/dashboard/WeekDisplayTitle';
+import MetricCard, { RatingDots, MiniBars } from '../components/dashboard/MetricCard';
+import AuriosCard from '../components/dashboard/AuriosCard';
+import AiNarratorPlayer from '../components/dashboard/AiNarratorPlayer';
+import InsightCard from '../components/dashboard/InsightCard';
+
+import { DASHBOARD_MOCK } from '../data/dashboard';
+
+const { header, ratingMetric, reviewsMetric, auriosTotal, narrator, insights } = DASHBOARD_MOCK;
 
 export default function Dashboard() {
   const insets = useSafeAreaInsets();
@@ -15,47 +19,53 @@ export default function Dashboard() {
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-        <DashboardHeader tambuName="Tambu San Sebastián" />
+        <DashboardHeader tambuName={header.tambuName} />
 
         <WeekDisplayTitle
-          dateRange="SEMANA · 28 ABR — 04 MAY"
-          title="El pulso"
-          accentLine="del barrio."
+          dateRange={header.dateRange}
+          title={header.title}
+          accentLine={header.accentLine}
         />
 
         <View style={styles.metricsRow}>
           <MetricCard
-            eyebrow="RATING"
-            value="4.9"
-            unit="/ 5"
-            sub="312 voces de barrio"
-            chart={<RatingDots active={5} />}
-            tone="red"
+            eyebrow={ratingMetric.eyebrow}
+            value={ratingMetric.value}
+            unit={ratingMetric.unit}
+            sub={ratingMetric.sub}
+            chart={<RatingDots active={ratingMetric.ratingActive} />}
+            tone={ratingMetric.tone}
             flex={1.15}
             marginRight={10}
           />
           <MetricCard
-            eyebrow="RESEÑAS"
-            value="+12"
-            unit="esta semana"
-            sub={<Text style={styles.reviewsTrend}>↑ 38% vs. sem pasada</Text>}
-            tone="jade"
-            chart={<MiniBars data={[3, 5, 4, 7, 9, 11, 12]} />}
+            eyebrow={reviewsMetric.eyebrow}
+            value={reviewsMetric.value}
+            unit={reviewsMetric.unit}
+            sub={<Text style={styles.reviewsTrend}>{reviewsMetric.trendText}</Text>}
+            tone={reviewsMetric.tone}
+            chart={<MiniBars data={reviewsMetric.weeklyData} />}
           />
         </View>
 
-        <AuriosCard amount={4218} />
+        <AuriosCard amount={auriosTotal} />
 
         <AiNarratorPlayer
-          title={'Resumen narrado\nde tu semana.'}
-          duration="2 min · Locución de barrio"
-          totalSeconds={120}
+          title={narrator.title}
+          duration={narrator.duration}
+          totalSeconds={narrator.totalSeconds}
         />
 
         <Text style={styles.insightsTitle}>HALLAZGOS ACCIONABLES</Text>
         <View style={styles.insightsList}>
-          <InsightCard tone="jade" eyebrow="RECURRENCIA" body="6 embajadores nuevos volvieron 3 veces. Reconocelos." />
-          <InsightCard tone="amber" eyebrow="HORA PICO" body="Martes 8–10am supera tu capacidad. ¿Pre-orden?" />
+          {insights.map(insight => (
+            <InsightCard
+              key={insight.eyebrow}
+              tone={insight.tone}
+              eyebrow={insight.eyebrow}
+              body={insight.body}
+            />
+          ))}
         </View>
       </ScrollView>
     </View>

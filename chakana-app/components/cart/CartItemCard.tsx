@@ -1,13 +1,15 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { cartStore, CartEntry } from '../store/cart';
+import { CartEntry } from '../../store/cart';
 
-interface Props {
+export interface CartItemCardProps {
   item: CartEntry;
+  onAdd: () => void;
+  onRemove: () => void;
 }
 
-export default function CartItemCard({ item }: Props) {
+export default function CartItemCard({ item, onAdd, onRemove }: CartItemCardProps) {
   return (
     <View style={styles.card}>
       <Image source={item.image} style={styles.image} resizeMode="cover" />
@@ -18,14 +20,14 @@ export default function CartItemCard({ item }: Props) {
       </View>
       <View style={styles.qtyControl}>
         <Pressable
-          onPress={() => cartStore.add({ id: item.id, title: item.title, type: item.type, price: item.price, image: item.image })}
+          onPress={onAdd}
           style={({ pressed }) => [styles.qtyBtn, pressed && styles.pressed]}
         >
           <Ionicons name="add" size={14} color="#3D3D3D" />
         </Pressable>
         <Text style={styles.qtyValue}>{item.qty}</Text>
         <Pressable
-          onPress={() => cartStore.remove(item.id)}
+          onPress={onRemove}
           style={({ pressed }) => [styles.qtyBtn, pressed && styles.pressed]}
         >
           <Ionicons

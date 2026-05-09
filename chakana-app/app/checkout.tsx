@@ -7,13 +7,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { CHECKOUT_CONFIG, AURIOS_BALANCE } from '../data/checkout';
+import { cartStore, useCart } from '../store/cart';
 
-const MAX_PCT   = 25;
-const SUBTOTAL  = 8.40;
+const { maxDiscountPct: MAX_PCT, railRange: RAIL_RANGE, initialDiscountPct: INITIAL_PCT } = CHECKOUT_CONFIG;
 const DISC_SIZE = 28;
-// The rail visually represents a 0-33% range so MAX (25%) sits at 75.7% of the rail,
-// leaving room for a rubber-band overshoot past the cap marker.
-const RAIL_RANGE = 33;
 
 // ─────────────────────────────────────────────────────────────
 // Components
@@ -66,14 +64,28 @@ function SummaryRow({ label, value, accent }: { label: string; value: string; ac
   );
 }
 
-function OrderCard({ aurios, discount }: { aurios: number; discount: number }) {
+function OrderCard({
+  subtotal,
+  aurios,
+  discount,
+}: {
+  subtotal: number;
+  aurios: number;
+  discount: number;
+}) {
+  const items = cartStore.getItems();
   return (
     <View style={styles.card}>
-      <LineItem title="Café de altura · Saraguro"   detail="237 ml · doble"   price="3.40" />
-      <LineItem title="Bizcocho de panela"           detail="con queso fresco" price="2.50" />
-      <LineItem title="Empanada de viento"           detail="azúcar morena"    price="2.50" />
+      {items.map(item => (
+        <LineItem
+          key={item.id}
+          title={item.title}
+          detail={`${item.type}${item.qty > 1 ? ` · ×${item.qty}` : ''}`}
+          price={(item.price * item.qty).toFixed(2)}
+        />
+      ))}
       <View style={styles.cardDivider} />
-      <SummaryRow label="Subtotal"               value={`$ ${SUBTOTAL.toFixed(2)}`} />
+      <SummaryRow label="Subtotal"               value={`$ ${subtotal.toFixed(2)}`} />
       <SummaryRow
         label={`Aurios aplicados · −${aurios}`}
         value={`− $ ${discount.toFixed(2)}`}
@@ -85,9 +97,11 @@ function OrderCard({ aurios, discount }: { aurios: number; discount: number }) {
 
 function AuriosSlider({
   initialPct = 18,
+  subtotal,
   onPctChange,
 }: {
   initialPct?: number;
+  subtotal: number;
   onPctChange: (pct: number) => void;
 }) {
   const [pct, setPct]     = useState(initialPct);
@@ -99,7 +113,7 @@ function AuriosSlider({
   const overshootAnim     = useRef(new Animated.Value(0)).current;
   const scaleAnim         = useRef(new Animated.Value(1)).current;
 
-  const aurios = Math.round(SUBTOTAL * 100 * (pct / 100));
+  const aurios = Math.round(subtotal * 100 * (pct / 100));
 
   const applyX = useRef((x: number) => {
     const w = railWidth.current;
@@ -170,7 +184,7 @@ function AuriosSlider({
           <Text style={styles.sliderEyebrow}>AURIOS</Text>
           <View style={styles.sliderAuriosRow}>
             <Text style={styles.sliderAuriosValue}>−{aurios}</Text>
-            <Text style={styles.sliderAuriosMax}> / 2840</Text>
+            <Text style={styles.sliderAuriosMax}> / {AURIOS_BALANCE}</Text>
           </View>
         </View>
       </View>
@@ -261,11 +275,14 @@ export default function Checkout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [pct, setPct] = useState(18);
+  useCart();
+  const subtotal = cartStore.getTotal();
 
-  const aurios   = Math.round(SUBTOTAL * 100 * (pct / 100));
+  const [pct, setPct] = useState(INITIAL_PCT);
+
+  const aurios   = Math.round(subtotal * 100 * (pct / 100));
   const discount = aurios / 100;
-  const total    = (SUBTOTAL - discount).toFixed(2);
+  const total    = (subtotal - discount).toFixed(2);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -278,8 +295,8 @@ export default function Checkout() {
         contentContainerStyle={styles.scrollContent}
       >
         <TambuHeader />
-        <OrderCard aurios={aurios} discount={discount} />
-        <AuriosSlider initialPct={18} onPctChange={setPct} />
+        <OrderCard subtotal={subtotal} aurios={aurios} discount={discount} />
+        <AuriosSlider initialPct={INITIAL_PCT} subtotal={subtotal} onPctChange={setPct} />
       </ScrollView>
 
       <TotalBar

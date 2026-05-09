@@ -2,16 +2,16 @@ import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-interface Props {
+export interface DashboardHeaderProps {
   tambuName: string;
   onBellPress?: () => void;
 }
 
-export default function DashboardHeader({ tambuName, onBellPress }: Props) {
+export default function DashboardHeader({ tambuName, onBellPress }: DashboardHeaderProps) {
   return (
     <View style={styles.row}>
       <View style={styles.logoContainer}>
-        <Image source={require('../assets/images/splash-icon.png')} style={styles.logo} />
+        <Image source={require('../../assets/images/splash-icon.png')} style={styles.logo} />
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.eyebrow}>· PANEL DEL TAMBU ·</Text>

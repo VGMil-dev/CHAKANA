@@ -19,7 +19,7 @@ export interface TambuCardProps {
 function TambuImg({ tone, label, height }: { tone: string, label: string, height: number }) {
   return (
     <ImageBackground
-      source={require('../assets/images/tambu_placeholder.webp')}
+      source={require('../../assets/images/tambu_placeholder.webp')}
       style={[styles.tambuImgContainer, { height }]}
       imageStyle={{ resizeMode: 'cover', width: "100%", height: "100%" }}
     >

@@ -7,8 +7,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import InventoryCard from '../../components/InventoryCard';
+import InventoryCard from '../../components/inventory/InventoryCard';
 import { cartStore, useCart } from '../../store/cart';
+import { getTambu } from '../../data/tambuses';
+import { getProducts } from '../../data/inventory';
 
 export default function InventoryScreen() {
   const { tambuid } = useLocalSearchParams();
@@ -39,22 +41,10 @@ export default function InventoryScreen() {
     }).start();
   }, [cartCount > 0]);
 
-  const tambuName =
-    tambuid === 'tambu-san-sebastian'    ? 'Tambu San Sebastián'  :
-    tambuid === 'hilos-de-susudel'       ? 'Hilos de Susudel'     :
-    tambuid === 'panaderia-vieja-plaza'  ? 'Panadería Vieja Plaza':
-    'Tambu Desconocido';
-
-  const inventoryItems = [
-    { id: '1', title: 'Silla de Roble Restaurada', type: 'MUEBLE',       price: 150, image: require('../../assets/images/tambu_placeholder.webp') },
-    { id: '2', title: 'Bicicleta Vintage',          type: 'TRANSPORTE',   price: 320, image: require('../../assets/images/tambu_placeholder.webp') },
-    { id: '3', title: 'Juego de Té Andino',         type: 'CERÁMICA',     price: 45,  image: require('../../assets/images/tambu_placeholder.webp') },
-    { id: '4', title: 'Lámpara de Cobre',           type: 'ILUMINACIÓN',  price: 80,  image: require('../../assets/images/tambu_placeholder.webp') },
-    { id: '5', title: 'Maceta de Barro Cocido',     type: 'CERÁMICA',     price: 25,  image: require('../../assets/images/tambu_placeholder.webp') },
-    { id: '6', title: 'Mesa de Centro Rústica',     type: 'MUEBLE',       price: 210, image: require('../../assets/images/tambu_placeholder.webp') },
-    { id: '7', title: 'Poncho de Alpaca',           type: 'TEXTIL',       price: 115, image: require('../../assets/images/tambu_placeholder.webp') },
-    { id: '8', title: 'Cámara Analógica 35mm',      type: 'ELECTRÓNICA',  price: 190, image: require('../../assets/images/tambu_placeholder.webp') },
-  ];
+  const id = typeof tambuid === 'string' ? tambuid : tambuid[0];
+  const tambu = getTambu(id);
+  const tambuName = tambu?.name ?? 'Tambu Desconocido';
+  const products = getProducts(id);
 
   return (
     <View style={styles.container}>
@@ -109,18 +99,18 @@ export default function InventoryScreen() {
             <View style={styles.statsRow}>
               <View style={styles.statChip}>
                 <Ionicons name="star" size={14} color="#A63A2F" />
-                <Text style={styles.statValue}>4.9</Text>
+                <Text style={styles.statValue}>{tambu?.rating ?? '—'}</Text>
               </View>
               <View style={styles.statChip}>
                 <Ionicons name="location-outline" size={14} color="#6B645C" />
-                <Text style={styles.statValue}>Centro</Text>
+                <Text style={styles.statValue}>{tambu?.barrio ?? '—'}</Text>
               </View>
             </View>
           </View>
 
           <Text style={styles.sectionEyebrow}>INVENTARIO DISPONIBLE</Text>
           <View style={styles.grid}>
-            {inventoryItems.map(item => (
+            {products.map(item => (
               <InventoryCard
                 key={item.id}
                 id={item.id}
@@ -128,6 +118,9 @@ export default function InventoryScreen() {
                 type={item.type}
                 price={item.price}
                 image={item.image}
+                qty={cartStore.getQty(item.id)}
+                onAdd={() => cartStore.add({ id: item.id, title: item.title, type: item.type, price: item.price, image: item.image })}
+                onRemove={() => cartStore.remove(item.id)}
               />
             ))}
           </View>

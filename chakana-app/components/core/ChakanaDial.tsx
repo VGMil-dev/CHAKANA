@@ -4,38 +4,72 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
-function DialIcon({ icon, label }: { icon: any, label: string }) {
+export type DialTab = 'home' | 'ciclo' | 'yo' | 'eco';
+
+export interface ChakanadialProps {
+  activeTab?: DialTab;
+  onTabPress?: (tab: DialTab) => void;
+  onCenterPress?: () => void;
+}
+
+const TABS: { tab: DialTab; icon: React.ComponentProps<typeof Ionicons>['name']; label: string }[] = [
+  { tab: 'home',  icon: 'home-outline',         label: 'HOY'  },
+  { tab: 'ciclo', icon: 'sync-outline',          label: 'CICLO'},
+  { tab: 'yo',    icon: 'person-outline',        label: 'YO'   },
+  { tab: 'eco',   icon: 'notifications-outline', label: 'ECO'  },
+];
+
+function DialIcon({
+  tab,
+  icon,
+  label,
+  active,
+  onPress,
+}: {
+  tab: DialTab;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  active: boolean;
+  onPress: (tab: DialTab) => void;
+}) {
   return (
-    <TouchableOpacity style={styles.dialIconContainer} activeOpacity={0.6}>
-      {icon}
-      <Text style={styles.dialIconLabel}>{label}</Text>
+    <TouchableOpacity style={styles.dialIconContainer} activeOpacity={0.6} onPress={() => onPress(tab)}>
+      <Ionicons name={icon} size={24} color={active ? '#A63A2F' : '#6B645C'} />
+      <Text style={[styles.dialIconLabel, active && styles.dialIconLabelActive]}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
-export default function ChakanaDial() {
+export default function ChakanaDial({ activeTab, onTabPress, onCenterPress }: ChakanadialProps) {
   const insets = useSafeAreaInsets();
+  const handleTab = (tab: DialTab) => onTabPress?.(tab);
+
+  const left  = TABS.slice(0, 2);
+  const right = TABS.slice(2);
+
   return (
     <View style={[styles.dialContainer, { bottom: insets.bottom + 18 }]}>
-      {/* Solid white bar */}
       <View style={styles.dialGlass}>
-        <DialIcon icon={<Ionicons name="home-outline" size={24} color="#6B645C" />} label="HOY" />
-        <DialIcon icon={<Ionicons name="sync-outline" size={24} color="#6B645C" />} label="CICLO" />
+        {left.map(t => (
+          <DialIcon key={t.tab} {...t} active={activeTab === t.tab} onPress={handleTab} />
+        ))}
         <View style={{ width: 72 }} />
-        <DialIcon icon={<Ionicons name="person-outline" size={24} color="#6B645C" />} label="YO" />
-        <DialIcon icon={<Ionicons name="notifications-outline" size={24} color="#6B645C" />} label="ECO" />
+        {right.map(t => (
+          <DialIcon key={t.tab} {...t} active={activeTab === t.tab} onPress={handleTab} />
+        ))}
       </View>
 
-      {/* Center Chakana button */}
       <View style={styles.dialCenterWrapper}>
-        <LinearGradient
-          colors={['#C5836F', '#A63A2F', '#6E1C13']}
-          start={{ x: 0.35, y: 0.3 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.dialCenterButton}
-        >
-          <Image source={require('../assets/images/splash-icon.png')} style={styles.dialCenterIcon} />
-        </LinearGradient>
+        <TouchableOpacity activeOpacity={0.8} onPress={onCenterPress} style={{ flex: 1 }}>
+          <LinearGradient
+            colors={['#C5836F', '#A63A2F', '#6E1C13']}
+            start={{ x: 0.35, y: 0.3 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.dialCenterButton}
+          >
+            <Image source={require('../../assets/images/splash-icon.png')} style={styles.dialCenterIcon} />
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -108,5 +142,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     fontWeight: '700',
     color: '#6B645C',
+  },
+  dialIconLabelActive: {
+    color: '#A63A2F',
   },
 });

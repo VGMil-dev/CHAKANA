@@ -1,17 +1,17 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 
-type Tone = 'jade' | 'amber' | 'red';
+export type InsightTone = 'jade' | 'amber' | 'red';
 
-interface Props {
+export interface InsightCardProps {
   eyebrow: string;
   body: string;
-  tone: Tone;
+  tone: InsightTone;
 }
 
-const ACCENT: Record<Tone, string> = { jade: '#3AAFA9', amber: '#C97A3A', red: '#A63A2F' };
+const ACCENT: Record<InsightTone, string> = { jade: '#3AAFA9', amber: '#C97A3A', red: '#A63A2F' };
 
-export default function InsightCard({ eyebrow, body, tone }: Props) {
+export default function InsightCard({ eyebrow, body, tone }: InsightCardProps) {
   const color = ACCENT[tone];
   return (
     <View style={styles.card}>

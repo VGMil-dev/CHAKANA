@@ -77,7 +77,7 @@ export default function AnimatedSplashScreen({
         <View style={styles.centerBlock}>
           <Animated.Image
             entering={logoKeyframe}
-            source={require('../assets/images/splash-icon.png')}
+            source={require('../../assets/images/splash-icon.png')}
             style={styles.logo}
           />
 

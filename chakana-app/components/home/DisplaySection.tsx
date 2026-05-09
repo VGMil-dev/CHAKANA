@@ -1,16 +1,16 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 
-interface Props {
-  dateRange: string;
+export interface DisplaySectionProps {
+  eyebrow: string;
   title: string;
   accentLine: string;
 }
 
-export default function WeekDisplayTitle({ dateRange, title, accentLine }: Props) {
+export default function DisplaySection({ eyebrow, title, accentLine }: DisplaySectionProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.dateRange}>{dateRange}</Text>
+      <Text style={styles.eyebrow}>{eyebrow}</Text>
       <Text style={styles.title}>
         {title}{'\n'}
         <Text style={styles.accent}>{accentLine}</Text>
@@ -21,22 +21,24 @@ export default function WeekDisplayTitle({ dateRange, title, accentLine }: Props
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 18,
+    paddingHorizontal: 28,
+    paddingTop: 8,
+    paddingBottom: 24,
   },
-  dateRange: {
+  eyebrow: {
     fontWeight: '600',
     fontSize: 10,
-    letterSpacing: 2,
-    color: '#6B645C',
+    letterSpacing: 2.2,
+    color: '#A63A2F',
     textTransform: 'uppercase',
   },
   title: {
-    marginTop: 6,
     fontWeight: '700',
-    fontSize: 26,
-    lineHeight: 30,
-    color: '#2E2A26',
-    letterSpacing: -0.5,
+    fontSize: 34,
+    lineHeight: 38,
+    color: '#3D3D3D',
+    letterSpacing: -0.8,
+    marginTop: 12,
   },
   accent: {
     color: '#A63A2F',

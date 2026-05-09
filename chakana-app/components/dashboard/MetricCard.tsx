@@ -30,22 +30,22 @@ export function MiniBars({ data }: { data: number[] }) {
   );
 }
 
-type Tone = 'red' | 'jade';
+export type MetricTone = 'red' | 'jade';
 
-interface Props {
+export interface MetricCardProps {
   eyebrow: string;
   value: string;
   unit: string;
   sub: string | React.ReactNode;
-  tone: Tone;
+  tone: MetricTone;
   chart: React.ReactNode;
   flex?: number;
   marginRight?: number;
 }
 
-const ACCENT: Record<Tone, string> = { red: '#A63A2F', jade: '#277B77' };
+const ACCENT: Record<MetricTone, string> = { red: '#A63A2F', jade: '#277B77' };
 
-export default function MetricCard({ eyebrow, value, unit, sub, tone, chart, flex = 1, marginRight = 0 }: Props) {
+export default function MetricCard({ eyebrow, value, unit, sub, tone, chart, flex = 1, marginRight = 0 }: MetricCardProps) {
   const accent = ACCENT[tone];
   return (
     <View style={[styles.card, { flex, marginRight }]}>

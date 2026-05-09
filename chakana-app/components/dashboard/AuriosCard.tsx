@@ -2,11 +2,11 @@ import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-interface Props {
+export interface AuriosCardProps {
   amount: number;
 }
 
-export default function AuriosCard({ amount }: Props) {
+export default function AuriosCard({ amount }: AuriosCardProps) {
   return (
     <View style={styles.card}>
       <View>

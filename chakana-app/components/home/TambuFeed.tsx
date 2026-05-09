@@ -13,12 +13,12 @@ export interface TambuItem {
   aurios: number;
 }
 
-interface Props {
+export interface TambuFeedProps {
   tambus: TambuItem[];
   note?: string;
 }
 
-export default function TambuFeed({ tambus, note }: Props) {
+export default function TambuFeed({ tambus, note }: TambuFeedProps) {
   return (
     <View style={styles.container}>
       {tambus.map((t, i) => <TambuCard key={t.id} {...t} featured={i === 0} />)}

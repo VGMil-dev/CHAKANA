@@ -15,7 +15,7 @@ export default function Onboarding() {
         {/* Header / Logo */}
         <View style={styles.header}>
           <Image
-            source={require('../assets/images/splash-icon.png')}
+            source={require('../../assets/images/splash-icon.png')}
             style={styles.logo}
           />
           <Text style={styles.titleBlack}>Tu ciudad.</Text>

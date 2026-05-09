@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
-import AnimatedSplashScreen from '../components/splashscreen';
+import AnimatedSplashScreen from '../components/core/splashscreen';
 import { StatusBar } from 'expo-status-bar';
 import * as NavigationBar from 'expo-navigation-bar';
 

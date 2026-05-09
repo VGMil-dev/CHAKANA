@@ -8,13 +8,13 @@ export interface Category {
   iconName: React.ComponentProps<typeof Ionicons>['name'];
 }
 
-interface Props {
+export interface CategoryChipsBarProps {
   categories: Category[];
   active: string;
   onSelect: (label: string) => void;
 }
 
-export default function CategoryChipsBar({ categories, active, onSelect }: Props) {
+export default function CategoryChipsBar({ categories, active, onSelect }: CategoryChipsBarProps) {
   return (
     <View style={styles.stickyContainer}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.inner}>

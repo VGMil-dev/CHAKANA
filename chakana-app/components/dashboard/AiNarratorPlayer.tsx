@@ -24,21 +24,45 @@ const barStyles = StyleSheet.create({
   fill: { height: '100%', backgroundColor: '#3AAFA9', borderRadius: 999 },
 });
 
-interface Props {
+export interface AiNarratorPlayerProps {
   title: string;
   duration: string;
   totalSeconds: number;
+  /** Controlled: override internal play state from a hook */
+  isPlaying?: boolean;
+  onPlayPause?: (playing: boolean) => void;
+  /** Controlled: override internal progress (0–100) from a hook */
+  progress?: number;
 }
 
-export default function AiNarratorPlayer({ title, duration, totalSeconds }: Props) {
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(38);
+export default function AiNarratorPlayer({
+  title,
+  duration,
+  totalSeconds,
+  isPlaying: isPlayingProp,
+  onPlayPause,
+  progress: progressProp,
+}: AiNarratorPlayerProps) {
+  const [playingInternal, setPlayingInternal] = useState(false);
+  const [progressInternal, setProgressInternal] = useState(38);
+
+  const controlled = isPlayingProp !== undefined;
+  const playing  = controlled ? isPlayingProp : playingInternal;
+  const progress = progressProp !== undefined ? progressProp : progressInternal;
+
+  const togglePlay = () => {
+    if (controlled) {
+      onPlayPause?.(!playing);
+    } else {
+      setPlayingInternal(p => !p);
+    }
+  };
 
   useEffect(() => {
-    if (!playing) return;
-    const id = setInterval(() => setProgress(p => (p >= 100 ? 0 : p + 0.6)), 100);
+    if (controlled || !playingInternal) return;
+    const id = setInterval(() => setProgressInternal(p => (p >= 100 ? 0 : p + 0.6)), 100);
     return () => clearInterval(id);
-  }, [playing]);
+  }, [controlled, playingInternal]);
 
   const elapsed = Math.floor((progress / 100) * totalSeconds);
   const fmt = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
@@ -46,7 +70,7 @@ export default function AiNarratorPlayer({ title, duration, totalSeconds }: Prop
   return (
     <View style={styles.container}>
       <Image
-        source={require('../assets/images/splash-icon.png')}
+        source={require('../../assets/images/splash-icon.png')}
         style={styles.bgIcon}
       />
       <View style={styles.badgeRow}>
@@ -57,7 +81,7 @@ export default function AiNarratorPlayer({ title, duration, totalSeconds }: Prop
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.duration}>{duration}</Text>
       <View style={styles.controlsRow}>
-        <TouchableOpacity onPress={() => setPlaying(p => !p)} style={styles.playButton}>
+        <TouchableOpacity onPress={togglePlay} style={styles.playButton}>
           <Feather name={playing ? 'pause' : 'play'} size={18} color="#FDFAF7" style={playing ? {} : { marginLeft: 2 }} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>

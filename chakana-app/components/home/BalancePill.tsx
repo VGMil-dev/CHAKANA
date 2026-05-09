@@ -17,7 +17,7 @@ export default function BalancePill({ amount }: BalancePillProps) {
     >
       <View style={styles.iconContainer}>
         <Image 
-          source={require('../assets/Logo.svg')} 
+          source={require('../../assets/Logo.svg')} 
           style={styles.logoIcon}
           contentFit="contain"
         />
