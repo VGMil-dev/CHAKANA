@@ -6,11 +6,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useAuthStore } from '../../store/auth';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function Login() {
   const router = useRouter();
-  const login = useAuthStore((s) => s.login);
+  const { signIn, signOut } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -20,18 +20,15 @@ export default function Login() {
   // Placeholder — teammate wires Phantom here
   const handleWalletConnect = () => {
     setError(null);
-    login({ name: 'Embajador', walletAddress: 'phantom_placeholder' });
-    router.replace('/home');
+    // signIn with wallet address once Phantom is integrated
   };
 
-  // Placeholder — teammate wires Supabase auth here
-  // Signature to implement: async () => { setLoading(true); const { error } = await supabase.auth.signInWithPassword(...)
-  // if (error) { setError(error.message); setLoading(false); return; } login(...); router.replace('/home'); }
-  const handleEmailLogin = () => {
+  const handleEmailLogin = async () => {
     setError(null);
     if (!email || !password) return;
     setLoading(true);
-    login({ name: email.split('@')[0], email });
+    const { error } = await signIn(email, password);
+    if (error) { setError(error); setLoading(false); return; }
     router.replace('/home');
   };
 
