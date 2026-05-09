@@ -25,6 +25,8 @@
 - Aurio es descuento opcional.
 - Stripe cobra el total final.
 - El usuario puede pagar sin usar Aurios.
+- Si `aurioBalance <= 0`, la UI salta directo al paso de pago Stripe.
+- Si hay Aurios, la UI muestra un paso opcional para aplicar u omitir descuento.
 - Si usa Aurios, primero se redimen.
 - La redencion guarda `redeemedAurios` y bloquea el descuento aplicado para que el balance refrescado no recalculе el descuento hacia abajo.
 - Despues Stripe cobra `subtotal - descuentoAurio`.

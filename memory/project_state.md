@@ -34,6 +34,7 @@
 - Stripe/commerce: se extrajeron Edge Functions y migracion commerce desde `origin/copilot/complete-integration-workflow` sin mergear la rama; el frontend Stripe queda aislado en `src/services/commerce/stripe.service.ts` y no toca el checkout Aurio.
 - Checkout hibrido: Aurio queda como descuento opcional/redencion previa y Stripe como pago final con tarjeta; `useHybridCheckout` orquesta crear la sesion Stripe despues de redimir Aurios o directo si `auriosToSpend` es 0.
 - Checkout UI: tras redimir Aurios se guarda `redeemedAurios`, se muestra balance disponible separado de Aurios aplicados y Stripe pide sesion Supabase activa antes de crear checkout.
+- Checkout visual por pasos: si `aurioBalance <= 0`, se salta descuento y se muestra pago Stripe; si hay Aurios, el usuario puede aplicar u omitir descuento antes de pagar con tarjeta.
 - Comentarios post-compra: `ReviewForm` de Dev 1 usa `useReviewSubmit`, exige minimo 50 palabras y recompensa 1 Aurio ($0.01 USD de descuento futuro) tras compra Stripe.
 
 ---
