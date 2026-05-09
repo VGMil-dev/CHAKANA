@@ -102,6 +102,41 @@ function sendJson(body: Record<string, unknown>, status = 200) {
   });
 }
 
+function readStringField(payload: Record<string, unknown>, key: string): string | null {
+  const value = payload[key];
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+function readNumberField(payload: Record<string, unknown>, key: string): number {
+  const value = payload[key];
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+function centsFromUsd(amount: number): number {
+  if (!Number.isFinite(amount) || amount <= 0) return 0;
+  return Math.round(amount * 100);
+}
+
+function calculateAurioDiscountCents(subtotalCents: number, requestedAurios: number) {
+  const safeAurios = Number.isFinite(requestedAurios) && requestedAurios > 0
+    ? Math.floor(requestedAurios)
+    : 0;
+  const requestedDiscountCents = safeAurios;
+  const maxDiscountCents = Math.floor(subtotalCents * 0.25);
+  const discountCents = Math.min(requestedDiscountCents, maxDiscountCents);
+
+  return {
+    auriosToSpend: discountCents,
+    discountCents,
+    finalTotalCents: Math.max(subtotalCents - discountCents, 0),
+  };
+}
+
 function assertMerchant(user: UserContext) {
   if (user.role !== 'merchant' && user.role !== 'admin') {
     throw new Error('Only merchant/admin can perform this action');
@@ -408,7 +443,7 @@ async function handleCart(req: Request) {
 
 async function handleCheckout(req: Request) {
   const user = await getUserContext(req);
-  const payload = await req.json();
+  const payload = await req.json() as Record<string, unknown>;
 
   const items = Array.isArray(payload.items)
     ? payload.items.map((item: Record<string, unknown>) => ({
@@ -422,6 +457,19 @@ async function handleCheckout(req: Request) {
   }
 
   const { priced, totalCents } = await readProductsAndTotal(items);
+  const requestedAuriosToSpend = readNumberField(payload, 'aurios_to_spend');
+  const clientAurioDiscountCents = centsFromUsd(readNumberField(payload, 'aurio_discount_usd'));
+  const clientFinalTotalCents = centsFromUsd(readNumberField(payload, 'final_total'));
+  const aurioSignature = readStringField(payload, 'aurio_signature');
+  const walletPubKey = readStringField(payload, 'wallet_pubkey');
+  const businessId = readStringField(payload, 'business_id');
+  const discount = calculateAurioDiscountCents(totalCents, requestedAuriosToSpend);
+
+  if (discount.auriosToSpend > 0 && !aurioSignature) {
+    return sendJson({ error: 'aurio_signature is required when applying Aurio discount' }, 400);
+  }
+
+  // TODO: verify aurioSignature before applying discount in production.
   const merchantId = priced[0]?.product.merchant_id ?? null;
 
   const supabase = getSupabaseAdmin();
@@ -430,7 +478,7 @@ async function handleCheckout(req: Request) {
     .insert({
       user_id: user.userId,
       merchant_id: merchantId,
-      total_cents: totalCents,
+      total_cents: discount.finalTotalCents,
       currency: priced[0]?.product.currency ?? 'usd',
       status: 'pending',
     })
@@ -455,19 +503,33 @@ async function handleCheckout(req: Request) {
 
   const customerId = await ensureStripeCustomer(user);
   const appBaseUrl = Deno.env.get('APP_BASE_URL') ?? 'https://example.com';
+  const stripeMetadata: Record<string, string> = {
+    order_id: order.id,
+    user_id: user.userId,
+    business_id: businessId ?? '',
+    subtotal_cents: String(totalCents),
+    aurios_to_spend: String(discount.auriosToSpend),
+    aurio_discount_cents: String(discount.discountCents),
+    aurio_discount_usd_client: String(clientAurioDiscountCents),
+    final_total_cents: String(discount.finalTotalCents),
+    final_total_cents_client: String(clientFinalTotalCents),
+    aurio_signature: aurioSignature ?? '',
+    wallet_pubkey: walletPubKey ?? '',
+  };
 
   const stripeSession = await stripePost('/checkout/sessions', new URLSearchParams({
     mode: 'payment',
     customer: customerId,
     success_url: String(payload.success_url ?? `${appBaseUrl}/checkout/success?order_id=${order.id}`),
     cancel_url: String(payload.cancel_url ?? `${appBaseUrl}/checkout/cancel?order_id=${order.id}`),
-    'metadata[order_id]': order.id,
-    'metadata[user_id]': user.userId,
-    ...priced.reduce<Record<string, string>>((acc, entry, index) => {
-      acc[`line_items[${index}][price_data][currency]`] = entry.product.currency;
-      acc[`line_items[${index}][price_data][unit_amount]`] = String(entry.product.price_cents);
-      acc[`line_items[${index}][price_data][product_data][name]`] = entry.product.title;
-      acc[`line_items[${index}][quantity]`] = String(entry.quantity);
+    'line_items[0][price_data][currency]': priced[0]?.product.currency ?? 'usd',
+    'line_items[0][price_data][unit_amount]': String(discount.finalTotalCents),
+    'line_items[0][price_data][product_data][name]': discount.discountCents > 0
+      ? 'Chakana order with Aurio discount'
+      : 'Chakana order',
+    'line_items[0][quantity]': '1',
+    ...Object.entries(stripeMetadata).reduce<Record<string, string>>((acc, [key, value]) => {
+      acc[`metadata[${key}]`] = value;
       return acc;
     }, {}),
   })) as { id: string; url: string | null; payment_intent: string | null };
@@ -485,7 +547,7 @@ async function handleCheckout(req: Request) {
   await supabase.from('payments').upsert({
     order_id: order.id,
     stripe_payment_id: stripeSession.payment_intent,
-    amount_cents: totalCents,
+    amount_cents: discount.finalTotalCents,
     status: 'pending',
   });
 
@@ -495,7 +557,9 @@ async function handleCheckout(req: Request) {
     order_id: order.id,
     checkout_url: stripeSession.url,
     checkout_session_id: stripeSession.id,
-    total_cents: totalCents,
+    subtotal_cents: totalCents,
+    aurio_discount_cents: discount.discountCents,
+    total_cents: discount.finalTotalCents,
   }, 201);
 }
 
