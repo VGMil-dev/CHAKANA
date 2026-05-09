@@ -17,7 +17,9 @@ test.describe('Chakana web smoke', () => {
   test('la app carga la UI migrada', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByText(['Edit app', '/index.tsx to edit this screen'].join(''), { exact: false })).toHaveCount(0);
+    await expect(
+      page.getByText(['Edit app', '/index.tsx to edit this screen'].join(''), { exact: false }),
+    ).toHaveCount(0);
     await expect(page.getByText(/Tu ciudad|Tu retorno|Chakana|Conectar wallet|Tambu/i).first()).toBeVisible();
   });
 
@@ -50,5 +52,16 @@ test.describe('Chakana web smoke', () => {
     await expect(page.getByTestId('review-text-input')).toBeVisible();
     await expect(page.getByTestId('submit-review-button')).toBeVisible();
     await expect(page.getByText(/Deja tu reseña|Mínimo 50 caracteres/i).first()).toBeVisible();
+  });
+
+  test('checkout renderiza pago Aurio bloqueado sin tambuMint', async ({ page }) => {
+    await page.goto('/checkout');
+
+    await expect(page.getByText(/Checkout/i).first()).toBeVisible();
+    await expect(page.getByText(/Balance Aurios|Aurios/i).first()).toBeVisible();
+    await expect(page.getByTestId('checkout-pay-button')).toBeVisible();
+    await expect(
+      page.getByText('Falta el tambuMint real de raiz-cafe para probar transferencia.'),
+    ).toBeVisible();
   });
 });
