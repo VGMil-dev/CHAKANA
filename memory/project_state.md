@@ -6,9 +6,9 @@
 
 ## Foco Actual
 
-- **Objetivo:** Integración end-to-end de auth, tambús/productos, checkout Stripe y órdenes.
-- **Decisiones activas:** `email+password`, Stripe Checkout (no Elements), sin Stripe Connect en esta iteración.
-- **Contexto critico:** Mantener MVP funcional completo y seguro (RLS + webhooks + variables de entorno).
+- **Objetivo:** Integración end-to-end de auth, tambús/productos, Stripe Connect con embedded flows (NO custom backend).
+- **Decisiones activas:** `email+password`, **Stripe Connect + Embedded Account Onboarding**, merchants reciben pagos directamente vía Connected Accounts.
+- **Contexto critico:** Merchants se onboarding via Stripe UI embebida (webview/API); clientes pagan directo a merchant accounts. Minimal backend (thin wrappers a Stripe SDK).
 
 ---
 
