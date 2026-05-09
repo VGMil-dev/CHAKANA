@@ -10,6 +10,7 @@ import { useAuth } from '../../hooks/useAuth';
 import FormInput from '../../components/auth/FormInput';
 import AuthDivider from '../../components/auth/AuthDivider';
 import ErrorAlert from '../../components/auth/ErrorAlert';
+import RoleCard from '../../components/auth/RoleCard';
 
 export default function Register() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'embajador' | 'tambu'>('embajador');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +32,7 @@ export default function Register() {
   const handleRegister = async () => {
     setError(null);
     setLoading(true);
-    const { error } = await signUp(name, email, password, 'embajador')
+    const { error } = await signUp(name, email, password, role)
     if (error) { setError(error); setLoading(false); return; }
     router.replace('/home');
   };
@@ -92,6 +94,8 @@ export default function Register() {
               secureTextEntry
             />
           </View>
+
+          <RoleCard value={role} onChange={setRole} />
 
           <ErrorAlert error={error} />
 
@@ -187,7 +191,7 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 16,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   submitButton: {
     backgroundColor: '#9E392D',
