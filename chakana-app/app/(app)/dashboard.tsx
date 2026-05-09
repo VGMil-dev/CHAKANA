@@ -82,7 +82,10 @@ export default function Dashboard() {
       <ChakanaDial
         role="tambu"
         onCenterPress={() => router.replace('/dashboard')}
-        onTabPress={(tab) => { if (tab === 'yo') router.push('/perfil'); }}
+        onTabPress={(tab) => {
+          if (tab === 'yo')      router.push('/perfil');
+          if (tab === 'pedidos') router.push('/pedidos');
+        }}
       />
     </View>
   );
