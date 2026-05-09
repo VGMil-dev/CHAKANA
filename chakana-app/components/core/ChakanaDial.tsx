@@ -78,7 +78,7 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, cent
   // Center button shift when cartPill is present
   const cartShift = useSharedValue(cartPill ? 1 : 0);
   useEffect(() => {
-    cartShift.value = cartPill ? withSpring(1, { damping: 14, stiffness: 180 }) : 0;
+    cartShift.value = cartPill ? withSpring(1, { damping: 14, stiffness: 180 }) : withTiming(0, EASE_OUT);
   }, [!!cartPill]);
 
   // Cart pill fade + slide in from right
