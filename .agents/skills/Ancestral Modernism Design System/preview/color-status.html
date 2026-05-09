@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Status colors</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin:0; padding:24px; background: var(--background); }
+  .row { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .badge { padding: 14px; border-radius: var(--radius-md); display:flex; flex-direction:column; gap: 8px; }
+  .dot { width: 10px; height: 10px; border-radius: 999px; }
+  .label { font-family: var(--font-body); font-weight: 600; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+  .name { font-family: var(--font-display); font-weight: 600; font-size: 16px; color: var(--on-surface); }
+  .hex { font-family: var(--font-mono); font-size: 11px; color: var(--on-surface-variant); }
+  .note { font-family: var(--font-body); font-size: 12px; color: var(--on-surface-variant); line-height:1.5; }
+</style></head>
+<body>
+  <div class="row">
+    <div class="badge" style="background: var(--secondary-container);">
+      <div style="display:flex;align-items:center;gap:8px;"><span class="dot" style="background:var(--positive)"></span><span class="label" style="color:var(--secondary-deep)">Positivo</span></div>
+      <div class="name">positive</div>
+      <div class="hex">#3AAFA9 · uses secondary</div>
+    </div>
+    <div class="badge" style="background: #F4E4D5;">
+      <div style="display:flex;align-items:center;gap:8px;"><span class="dot" style="background:var(--warning)"></span><span class="label" style="color:#7A4520">Aviso</span></div>
+      <div class="name">warning</div>
+      <div class="hex">#C97A3A · clay amber</div>
+    </div>
+    <div class="badge" style="background: var(--primary-container);">
+      <div style="display:flex;align-items:center;gap:8px;"><span class="dot" style="background:var(--critical)"></span><span class="label" style="color:var(--primary-deep)">Crítico</span></div>
+      <div class="name">critical</div>
+      <div class="hex">#A63A2F · uses primary</div>
+    </div>
+  </div>
+  <p class="note" style="margin-top: 14px;">No saturated success greens — Turquesa Andino does that work to keep the palette harmonious.</p>
+</body></html>

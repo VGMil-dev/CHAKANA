@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git -C \"D:\\\\Dev\\\\CHAKANA\" status)",
+      "Bash(git -C \"D:\\\\Dev\\\\CHAKANA\" diff HEAD)",
+      "Bash(git -C \"D:\\\\Dev\\\\CHAKANA\" add chakana-app/app/home.tsx chakana-app/app/dashboard.tsx chakana-app/components/HomeHeader.tsx chakana-app/components/DisplaySection.tsx chakana-app/components/CategoryChipsBar.tsx chakana-app/components/TambuFeed.tsx chakana-app/components/DashboardHeader.tsx chakana-app/components/WeekDisplayTitle.tsx chakana-app/components/MetricCard.tsx chakana-app/components/AuriosCard.tsx chakana-app/components/AiNarratorPlayer.tsx chakana-app/components/InsightCard.tsx)",
+      "Bash(git -C 'D:\\\\Dev\\\\CHAKANA' commit -m ' *)",
+      "Bash(git commit *)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Dev\\\\CHAKANA\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Dev\\\\CHAKANA\\\\chakana-app\" | Where-Object { $_.PSIsContainer } | Select-Object Name)",
+      "Bash(Get-ChildItem \"D:\\\\Dev\\\\CHAKANA\\\\chakana-app\\\\components\" -File)",
+      "Bash(Select-Object Name, FullName)",
+      "PowerShell(Get-ChildItem \"D:\\\\Dev\\\\CHAKANA\\\\chakana-app\\\\app\" -File -Recurse | ForEach-Object { $_.FullName.Replace\\(\"D:\\\\Dev\\\\CHAKANA\\\\chakana-app\\\\\", \"\"\\) })",
+      "PowerShell(Get-ChildItem \"D:\\\\Dev\\\\CHAKANA\\\\chakana-app\\\\components\" -File -Recurse | ForEach-Object { $_.FullName.Replace\\(\"D:\\\\Dev\\\\CHAKANA\\\\chakana-app\\\\\", \"\"\\) })",
+      "PowerShell(Get-ChildItem \"D:\\\\Dev\\\\CHAKANA\\\\chakana-app\\\\components\" -Recurse | Where-Object { !$_.PSIsContainer } | ForEach-Object { $_.FullName.Replace\\(\"D:\\\\Dev\\\\CHAKANA\\\\chakana-app\\\\\", \"\"\\) } | Sort-Object)",
+      "PowerShell(Move-Item *)",
+      "PowerShell(Get-ChildItem \"D:\\\\Dev\\\\CHAKANA\\\\chakana-app\\\\data\" -File | ForEach-Object { $_.Name })",
+      "PowerShell(git *)",
+      "Bash(Select-String \"zustand\")"
+    ]
+  }
+}

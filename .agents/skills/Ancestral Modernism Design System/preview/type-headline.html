@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Headline + title</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin:0; padding:24px; background: var(--background); }
+  .row { display:flex; flex-direction: column; gap: 12px; }
+  .item { display:grid; grid-template-columns: 1fr auto; gap: 16px; align-items: baseline; }
+  .meta { font-family: var(--font-mono); font-size: 11px; color: var(--on-surface-muted); white-space: nowrap; text-align: right; }
+  .meta b { color: var(--primary); font-weight: 600; }
+  .sample { color: var(--on-surface); }
+</style></head>
+<body>
+  <div class="row">
+    <div class="item">
+      <div class="sample" style="font-family:var(--font-display); font-weight:600; font-size:1.75rem; line-height:1.20;">Lo que circula en el barrio esta semana</div>
+      <div class="meta"><b>headline-lg</b><br>Raleway 600 · 28/34</div>
+    </div>
+    <div class="item">
+      <div class="sample" style="font-family:var(--font-display); font-weight:600; font-size:1.375rem; line-height:1.25;">Talleres de restauración en la Mariscal</div>
+      <div class="meta"><b>headline-md</b><br>Raleway 600 · 22/28</div>
+    </div>
+    <div class="item">
+      <div class="sample" style="font-family:var(--font-body); font-weight:500; font-size:1.125rem; line-height:1.40;">Donaciones recientes</div>
+      <div class="meta"><b>title-lg</b><br>Inter 500 · 18/25</div>
+    </div>
+    <div class="item">
+      <div class="sample" style="font-family:var(--font-body); font-weight:500; font-size:1rem; line-height:1.45;">Ver detalles del intercambio</div>
+      <div class="meta"><b>title-md</b><br>Inter 500 · 16/23</div>
+    </div>
+  </div>
+</body></html>

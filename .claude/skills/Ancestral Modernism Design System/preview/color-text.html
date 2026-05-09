@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Text colors</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin:0; padding:24px; background: var(--background); }
+  .row { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .item { background: var(--surface-container-lowest); border-radius: var(--radius-md); padding: 14px 16px; }
+  .item .sample { font-family: var(--font-display); font-weight:700; font-size: 22px; margin-bottom: 4px; }
+  .item .meta { display:flex; justify-content: space-between; align-items: baseline; }
+  .item .name { font-family: var(--font-body); font-size: 12px; font-weight:500; }
+  .item .hex { font-family: var(--font-mono); font-size: 11px; color: var(--on-surface-muted); }
+  .item .role { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--primary); font-weight:600; margin-bottom: 6px; }
+</style></head>
+<body>
+  <div class="row">
+    <div class="item">
+      <div class="role">Body / default</div>
+      <div class="sample" style="color: var(--on-background)">Aa Gris Carbón</div>
+      <div class="meta"><div class="name">on-background</div><div class="hex">#3D3D3D</div></div>
+    </div>
+    <div class="item">
+      <div class="role">Display / heading</div>
+      <div class="sample" style="color: var(--on-surface)">Aa Tinta profunda</div>
+      <div class="meta"><div class="name">on-surface</div><div class="hex">#2E2A26</div></div>
+    </div>
+    <div class="item">
+      <div class="role">Metadata / caption</div>
+      <div class="sample" style="color: var(--on-surface-variant)">Aa Secundario</div>
+      <div class="meta"><div class="name">on-surface-variant</div><div class="hex">#6B645C</div></div>
+    </div>
+    <div class="item">
+      <div class="role">Placeholder / muted</div>
+      <div class="sample" style="color: var(--on-surface-muted)">Aa Tenue</div>
+      <div class="meta"><div class="name">on-surface-muted</div><div class="hex">#9A938A</div></div>
+    </div>
+  </div>
+  <p class="body-sm" style="margin-top:14px; color: var(--on-surface-variant);">Never <code style="font-size:0.9em;background:var(--surface-container-highest);padding:1px 6px;border-radius:4px">#000000</code>. Always Gris Carbón or warmer.</p>
+</body></html>
