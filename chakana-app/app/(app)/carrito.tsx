@@ -9,6 +9,8 @@ import { useCartStore, useCartItems, useCartCount, useCartTotal } from '../../st
 import CartItemCard from '../../components/cart/CartItemCard';
 import CartSummaryCard from '../../components/cart/CartSummaryCard';
 import { AURIOS_BALANCE } from '../../data/checkout';
+import PageNav from '../../components/core/PageNav';
+import PageHeader from '../../components/core/PageHeader';
 
 export default function Carrito() {
   const router = useRouter();
@@ -21,22 +23,10 @@ export default function Carrito() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.nav}>
-        <Pressable
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.navBack, pressed && styles.pressed]}
-        >
-          <Ionicons name="arrow-back" size={20} color="#3D3D3D" />
-        </Pressable>
-        <Text style={styles.navLabel}>01 · CARRITO</Text>
-        <View style={{ width: 44 }} />
-      </View>
+      <PageNav label="01 · CARRITO" onBack={() => router.back()} />
 
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>· INVENTARIO CIRCULAR ·</Text>
-        <Text style={styles.displayTitle}>
-          Tu{'\n'}<Text style={styles.displayAccent}>selección.</Text>
-        </Text>
+        <PageHeader eyebrow="· INVENTARIO CIRCULAR ·" title="Tu" accent="selección." />
       </View>
 
       <ScrollView
@@ -93,20 +83,7 @@ export default function Carrito() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F0EB' },
-  nav: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 18, paddingTop: 6, paddingBottom: 4,
-  },
-  navBack: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#F8F3EE', alignItems: 'center', justifyContent: 'center',
-  },
-  navLabel: { fontWeight: '600', fontSize: 11, color: '#6B645C', letterSpacing: 2, textTransform: 'uppercase' },
-  pressed: { opacity: 0.75, transform: [{ translateY: 1 }] },
   header: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 10 },
-  eyebrow: { fontWeight: '600', fontSize: 10, color: '#A63A2F', letterSpacing: 2.2, textTransform: 'uppercase' },
-  displayTitle: { fontWeight: '700', fontSize: 34, lineHeight: 38, color: '#2E2A26', letterSpacing: -0.8, marginTop: 10 },
-  displayAccent: { color: '#A63A2F' },
   scrollContent: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 24, gap: 10 },
   emptyState: { alignItems: 'center', paddingVertical: 64, gap: 18 },
   emptyTitle: { fontWeight: '700', fontSize: 26, color: '#C4BDB6', letterSpacing: -0.5 },

@@ -6,6 +6,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import PageNav from '../../components/core/PageNav';
+import PageHeader from '../../components/core/PageHeader';
 
 const STAR_COUNT = 5;
 
@@ -37,16 +39,17 @@ export default function Resena() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.nav}>
-        <View style={{ width: 44 }} />
-        <Text style={styles.navLabel}>04 · RESEÑA</Text>
-        <Pressable
-          onPress={() => router.replace('/home')}
-          style={({ pressed }) => [styles.navSkip, pressed && styles.pressed]}
-        >
-          <Text style={styles.navSkipText}>Omitir</Text>
-        </Pressable>
-      </View>
+      <PageNav
+        label="04 · RESEÑA"
+        rightSlot={
+          <Pressable
+            onPress={() => router.replace('/home')}
+            style={({ pressed }) => [styles.navSkip, pressed && styles.pressed]}
+          >
+            <Text style={styles.navSkipText}>Omitir</Text>
+          </Pressable>
+        }
+      />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -55,13 +58,12 @@ export default function Resena() {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>· TAMBU SAN SEBASTIÁN ·</Text>
-          <Text style={styles.displayTitle}>
-            ¿Cómo fue{'\n'}<Text style={styles.displayAccent}>tu experiencia?</Text>
-          </Text>
-          <Text style={styles.subtitle}>
-            Tu reseña completa el ciclo y te suma Aurios.
-          </Text>
+          <PageHeader
+            eyebrow="· TAMBU SAN SEBASTIÁN ·"
+            title="¿Cómo fue"
+            accent="tu experiencia?"
+            subtitle="Tu reseña completa el ciclo y te suma Aurios."
+          />
         </View>
 
         <View style={styles.starsRow}>
@@ -152,20 +154,11 @@ export default function Resena() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F0EB' },
-  nav: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 18, paddingTop: 6, paddingBottom: 4,
-  },
-  navLabel: { fontWeight: '600', fontSize: 11, color: '#6B645C', letterSpacing: 2, textTransform: 'uppercase' },
   navSkip: { width: 64, alignItems: 'flex-end', justifyContent: 'center', height: 44 },
   navSkipText: { fontSize: 13, color: '#9A938A', fontWeight: '500' },
   pressed: { opacity: 0.7 },
   scrollContent: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 32, gap: 24 },
   header: { gap: 10 },
-  eyebrow: { fontWeight: '600', fontSize: 10, color: '#A63A2F', letterSpacing: 2.2, textTransform: 'uppercase' },
-  displayTitle: { fontWeight: '700', fontSize: 32, lineHeight: 36, color: '#2E2A26', letterSpacing: -0.8 },
-  displayAccent: { color: '#A63A2F' },
-  subtitle: { fontSize: 14, color: '#6B645C', lineHeight: 20 },
   starsRow: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
   starHit: { padding: 6 },
   starsLabel: {

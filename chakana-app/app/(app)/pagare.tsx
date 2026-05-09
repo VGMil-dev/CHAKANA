@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Pressable, Image, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useCartTotal } from '../../store/cart';
 import { CHECKOUT_CONFIG } from '../../data/checkout';
+import PageNav from '../../components/core/PageNav';
+import PageHeader from '../../components/core/PageHeader';
 
 export default function Pagare() {
   const router = useRouter();
@@ -26,23 +28,11 @@ export default function Pagare() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.nav}>
-        <Pressable
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.navBack, pressed && styles.pressed]}
-        >
-          <Ionicons name="arrow-back" size={20} color="#3D3D3D" />
-        </Pressable>
-        <Text style={styles.navLabel}>03 · PAGO</Text>
-        <View style={{ width: 44 }} />
-      </View>
+      <PageNav label="03 · PAGO" onBack={() => router.back()} />
 
       <View style={styles.body}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>· PAGO SEGURO ·</Text>
-          <Text style={styles.displayTitle}>
-            Confirma{'\n'}<Text style={styles.displayAccent}>tu pago.</Text>
-          </Text>
+          <PageHeader eyebrow="· PAGO SEGURO ·" title="Confirma" accent="tu pago." />
         </View>
 
         <View style={styles.summaryCard}>
@@ -124,21 +114,8 @@ export default function Pagare() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F0EB' },
-  nav: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 18, paddingTop: 6, paddingBottom: 4,
-  },
-  navBack: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#F0EAE3', alignItems: 'center', justifyContent: 'center',
-  },
-  navLabel: { fontWeight: '600', fontSize: 11, color: '#6B645C', letterSpacing: 2, textTransform: 'uppercase' },
-  pressed: { opacity: 0.75, transform: [{ translateY: 1 }] },
   body: { flex: 1, paddingHorizontal: 22, paddingTop: 20, gap: 20 },
   header: { marginBottom: 4 },
-  eyebrow: { fontWeight: '600', fontSize: 10, color: '#A63A2F', letterSpacing: 2.2, textTransform: 'uppercase' },
-  displayTitle: { fontWeight: '700', fontSize: 32, lineHeight: 36, color: '#2E2A26', letterSpacing: -0.8, marginTop: 10 },
-  displayAccent: { color: '#A63A2F' },
   summaryCard: {
     backgroundColor: '#1E1A17', borderRadius: 12,
     paddingVertical: 18, paddingHorizontal: 20,
