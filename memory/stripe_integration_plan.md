@@ -18,6 +18,7 @@
 - El webhook vive en `stripe-webhook` y valida `stripe-signature`.
 - El frontend solo llama la Edge Function y recibe `checkout_url`/`checkout_session_id`.
 - No debe importar secretos, SDK backend ni tocar `useCheckout` de Aurio.
+- Requiere sesion Supabase activa; si falta `access_token`, la UI debe pedir iniciar sesion antes de llamar `commerce-api`.
 
 ## Checkout hibrido Aurio + Stripe
 
@@ -25,6 +26,7 @@
 - Stripe cobra el total final.
 - El usuario puede pagar sin usar Aurios.
 - Si usa Aurios, primero se redimen.
+- La redencion guarda `redeemedAurios` y bloquea el descuento aplicado para que el balance refrescado no recalculе el descuento hacia abajo.
 - Despues Stripe cobra `subtotal - descuentoAurio`.
 - Para MVP, la redencion Aurio usa `buildAurioTransferTx` hacia payout wallet QA.
 - En futuro, la redencion puede usar `payToTambu` con NFT Tambu metadata.

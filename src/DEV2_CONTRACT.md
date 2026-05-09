@@ -24,7 +24,7 @@ Dev 1 NUNCA importa desde:
 | `useWallet` | `walletPubKey`, `aurioBalance`, `isConnected`, `isConnectingWallet`, `walletError` | `connectWallet`, `disconnectWallet`, `refreshAurioBalance` |
 | `useBusinesses` | `listaTambus`, `tambuActivo`, `isLoadingBusinesses`, `businessError` | `fetchBusinesses`, `selectTambu`, `clearSelection` |
 | `useReviewSubmit` | `currentReviewText`, `isTextValid`, `wordsCount`, `wordsRemaining`, `isSubmittingReview`, `reviewError`, `reviewSuccess` | `onTextChange`, `submitReview`, `resetForm` |
-| `useCheckout` | `checkoutTotal`, `discountResult`, `sliderMax`, `isProcessing`, `checkoutError` | `setTotal`, `onSliderChange`, `confirmCheckout` |
+| `useCheckout` | `checkoutTotal`, `discountResult`, `sliderMax`, `redeemedAurios`, `isProcessing`, `checkoutError` | `setTotal`, `onSliderChange`, `confirmCheckout` |
 | `useHybridCheckout` | `isHybridProcessing`, `hybridError` | `confirmHybridCheckout` |
 | `useDiscount` | `result`, `sliderMax` | `onSliderChange`, `resetDiscount` |
 
@@ -57,7 +57,9 @@ Dev 1 NUNCA importa desde:
 - Stripe es pago final.
 - Usuario puede pagar sin usar Aurios.
 - Si usa Aurios, primero se redimen y se obtiene `aurioSignature`.
+- La redencion guarda `redeemedAurios` para mantener estable el descuento aunque el balance real baje.
 - Despues Stripe cobra el total final.
+- Stripe requiere sesion Supabase activa; si no hay `access_token`, la UI debe pedir iniciar sesion antes de llamar `commerce-api`.
 - Para MVP, la redencion Aurio usa `buildAurioTransferTx` hacia payout wallet QA.
 - En futuro, la redencion puede usar `payToTambu` con NFT Tambu metadata.
 - Backend debe verificar `aurioSignature` antes de aplicar descuento en produccion.
