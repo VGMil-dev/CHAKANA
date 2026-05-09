@@ -3,11 +3,15 @@ import { Platform } from 'react-native';
 import { getAurioBalance } from 'aurio-sdk';
 import { useAppStore } from '../store';
 
+type SolanaPublicKeyLike = {
+  toString: () => string;
+};
+
 type SolanaWebProvider = {
   isPhantom?: boolean;
   isSolflare?: boolean;
-  publicKey?: { toString: () => string };
-  connect: () => Promise<{ publicKey: { toString: () => string } }>;
+  publicKey?: SolanaPublicKeyLike;
+  connect: () => Promise<{ publicKey: SolanaPublicKeyLike }>;
   disconnect?: () => Promise<void>;
 };
 
@@ -70,7 +74,7 @@ async function connectMobileWallet(): Promise<string> {
     wallet.authorize({
       chain: 'solana:devnet',
       identity: APP_IDENTITY,
-    })
+    }),
   );
   const account = authorization.accounts[0];
 
