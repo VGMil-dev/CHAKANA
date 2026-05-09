@@ -5,9 +5,12 @@ import { Image } from 'expo-image';
 
 interface BalancePillProps {
   amount: number;
+  isConnected: boolean;
 }
 
-export default function BalancePill({ amount }: BalancePillProps) {
+export default function BalancePill({ amount, isConnected }: BalancePillProps) {
+  const balanceLabel = isConnected ? `${Math.floor(amount).toLocaleString('es')} AUR` : 'Conectar';
+
   return (
     <LinearGradient
       colors={['#FFF8EE', '#F2E2C6']}
@@ -17,14 +20,14 @@ export default function BalancePill({ amount }: BalancePillProps) {
     >
       <View style={styles.iconContainer}>
         <Image 
-          source={require('../../assets/Logo.svg')} 
+          source={require('../../assets/images/splash-icon.png')} 
           style={styles.logoIcon}
           contentFit="contain"
         />
       </View>
       <View style={{ flexDirection: 'column' }}>
         <Text style={styles.balanceLabel}>AURIOS</Text>
-        <Text style={styles.balanceAmount}>{amount.toLocaleString('es')}</Text>
+        <Text style={styles.balanceAmount}>{balanceLabel}</Text>
       </View>
     </LinearGradient>
   );

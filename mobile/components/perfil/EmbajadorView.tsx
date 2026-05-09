@@ -2,14 +2,24 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import CycleIndicator from './CycleIndicator';
 
-export default function EmbajadorView() {
+type EmbajadorViewProps = {
+  aurioBalance: number;
+  isWalletConnected: boolean;
+};
+
+export default function EmbajadorView({ aurioBalance, isWalletConnected }: EmbajadorViewProps) {
+  const displayBalance = isWalletConnected ? Math.floor(aurioBalance).toLocaleString('es') : 'Conectar';
+  const displayConversion = isWalletConnected
+    ? `= $${(Math.floor(aurioBalance) * 0.01).toFixed(2)} en descuentos disponibles`
+    : 'Conecta tu wallet para ver tus Aurios.';
+
   return (
     <>
       <View style={styles.sectionSurface}>
         <Text style={styles.eyebrow}>BALANCE · AURIOS</Text>
-        <Text style={styles.displayNumber}>2,840</Text>
-        <Text style={styles.displaySub}>circulan en el ecosistema.</Text>
-        <Text style={styles.displayConversion}>= $28.40 en descuentos disponibles</Text>
+        <Text style={styles.displayNumber}>{displayBalance}</Text>
+        <Text style={styles.displaySub}>{isWalletConnected ? 'AUR disponibles.' : 'Wallet no conectada.'}</Text>
+        <Text style={styles.displayConversion}>{displayConversion}</Text>
       </View>
 
       <View style={styles.sectionBase}>

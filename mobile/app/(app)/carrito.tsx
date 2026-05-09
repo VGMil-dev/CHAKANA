@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCartStore, useCartItems, useCartCount, useCartTotal } from '../../store/cart';
 import CartItemCard from '../../components/cart/CartItemCard';
 import CartSummaryCard from '../../components/cart/CartSummaryCard';
-import { useAurioBalance } from '../../../src/store/selectors';
+import { useWallet } from '../../../src/hooks/useWallet';
 
 export default function Carrito() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function Carrito() {
   const items = useCartItems();
   const count = useCartCount();
   const total = useCartTotal();
-  const aurioBalance = useAurioBalance();
+  const { aurioBalance, walletPubKey } = useWallet();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -64,7 +64,12 @@ export default function Carrito() {
         )}
 
         {items.length > 0 && (
-          <CartSummaryCard count={count} total={total} auriosBalance={aurioBalance} />
+          <CartSummaryCard
+            count={count}
+            total={total}
+            auriosBalance={aurioBalance}
+            isWalletConnected={Boolean(walletPubKey)}
+          />
         )}
       </ScrollView>
 

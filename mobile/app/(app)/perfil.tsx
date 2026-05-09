@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,7 +15,7 @@ function initials(name: string) {
 }
 
 function truncateWallet(address?: string) {
-  if (!address || address === 'phantom_placeholder') return null;
+  if (!address) return null;
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
@@ -23,7 +23,15 @@ export default function Perfil() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { authEmail, signOut } = useAuth();
-  const { walletPubKey } = useWallet();
+  const {
+    walletPubKey,
+    aurioBalance,
+    isConnectingWallet,
+    walletError,
+    connectWallet,
+    disconnectWallet,
+    refreshAurioBalance,
+  } = useWallet();
 
   const role = 'embajador';
   const isEmbajador = role === 'embajador';
@@ -63,6 +71,23 @@ export default function Perfil() {
                 <Text style={styles.walletText}>{wallet}</Text>
               </View>
             )}
+            {wallet ? (
+              <View style={styles.walletActions}>
+                <Pressable style={styles.walletAction} onPress={() => void refreshAurioBalance()} disabled={isConnectingWallet}>
+                  <Text style={styles.walletActionText}>Actualizar balance</Text>
+                </Pressable>
+                <Pressable style={styles.walletAction} onPress={() => void disconnectWallet()} disabled={isConnectingWallet}>
+                  <Text style={styles.walletActionText}>Desconectar</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable style={styles.connectWalletButton} onPress={() => void connectWallet()} disabled={isConnectingWallet}>
+                <Text style={styles.connectWalletText}>
+                  {isConnectingWallet ? 'Conectando wallet...' : 'Conectar wallet'}
+                </Text>
+              </Pressable>
+            )}
+            {walletError ? <Text style={styles.walletError}>{walletError}</Text> : null}
             {authEmail && !wallet && (
               <Text style={styles.emailText}>{authEmail}</Text>
             )}
@@ -72,7 +97,11 @@ export default function Perfil() {
           </View>
         </View>
 
-        {isEmbajador ? <EmbajadorView /> : <TambuView />}
+        {isEmbajador ? (
+          <EmbajadorView aurioBalance={aurioBalance} isWalletConnected={Boolean(walletPubKey)} />
+        ) : (
+          <TambuView />
+        )}
 
         {/* Cuenta */}
         <View style={styles.sectionBase}>
@@ -138,6 +167,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999,
   },
   walletText: { fontSize: 11, color: '#6B645C', fontWeight: '500' },
+  walletActions: { flexDirection: 'row', gap: 8, marginTop: 10, flexWrap: 'wrap' },
+  walletAction: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: '#F0EAE3',
+  },
+  walletActionText: { fontSize: 11, fontWeight: '700', color: '#6B645C' },
+  connectWalletButton: {
+    alignSelf: 'flex-start',
+    marginTop: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 999,
+    backgroundColor: '#A63A2F',
+  },
+  connectWalletText: { color: '#FDFAF7', fontSize: 12, fontWeight: '700' },
+  walletError: { marginTop: 8, fontSize: 11, color: '#A63A2F' },
   emailText: { fontSize: 13, color: '#9A938A' },
   avatar: {
     width: 64, height: 64, borderRadius: 10,

@@ -7,10 +7,12 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
+import { useWallet } from '../../../src/hooks/useWallet';
 
 export default function Register() {
   const router = useRouter();
   const { signUp } = useAuth();
+  const { walletPubKey, isConnectingWallet, walletError, connectWallet } = useWallet();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,10 +20,9 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Placeholder — teammate wires Phantom here
   const handleWalletConnect = () => {
     setError(null);
-    // signUp with wallet once Phantom is integrated
+    void connectWallet();
   };
 
   // role defaults to 'embajador' until the role-selection step is added
@@ -60,8 +61,15 @@ export default function Register() {
 
           <TouchableOpacity style={styles.walletButton} onPress={handleWalletConnect} activeOpacity={0.8}>
             <Ionicons name="wallet-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.walletButtonText}>Registrarse con Phantom</Text>
+            <Text style={styles.walletButtonText}>
+              {walletPubKey
+                ? `Wallet ${walletPubKey.slice(0, 4)}...${walletPubKey.slice(-4)}`
+                : isConnectingWallet
+                  ? 'Conectando wallet...'
+                  : 'Conectar wallet'}
+            </Text>
           </TouchableOpacity>
+          {walletError ? <Text style={styles.errorText}>{walletError}</Text> : null}
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />

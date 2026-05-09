@@ -17,7 +17,15 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [active, setActive] = useState('Café');
-  const { aurioBalance, walletPubKey } = useWallet();
+  const {
+    aurioBalance,
+    walletPubKey,
+    isConnectingWallet,
+    walletError,
+    connectWallet,
+    disconnectWallet,
+    refreshAurioBalance,
+  } = useWallet();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -26,6 +34,12 @@ export default function Home() {
         eyebrow={walletPubKey ? 'WALLET CONECTADA · CUENCA' : 'CONECTA TU WALLET · CUENCA'}
         greeting={walletPubKey ? 'Hola, Valentina.' : 'Hola, conecta para ver Aurios.'}
         amount={aurioBalance}
+        walletPubKey={walletPubKey}
+        isConnectingWallet={isConnectingWallet}
+        walletError={walletError}
+        onConnectWallet={() => void connectWallet()}
+        onDisconnectWallet={() => void disconnectWallet()}
+        onRefreshBalance={() => void refreshAurioBalance()}
       />
 
       <ScrollView stickyHeaderIndices={[1]} showsVerticalScrollIndicator={false} style={{ flex: 1 }}>

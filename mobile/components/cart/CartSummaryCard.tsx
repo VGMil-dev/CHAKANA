@@ -5,9 +5,15 @@ export interface CartSummaryCardProps {
   count: number;
   total: number;
   auriosBalance: number;
+  isWalletConnected: boolean;
 }
 
-export default function CartSummaryCard({ count, total, auriosBalance }: CartSummaryCardProps) {
+export default function CartSummaryCard({
+  count,
+  total,
+  auriosBalance,
+  isWalletConnected,
+}: CartSummaryCardProps) {
   return (
     <View style={styles.card}>
       <View style={styles.row}>
@@ -18,9 +24,13 @@ export default function CartSummaryCard({ count, total, auriosBalance }: CartSum
       <View style={styles.balanceRow}>
         <View style={styles.dot} />
         <Text style={styles.balanceText}>
-          Tenés{' '}
-          <Text style={styles.balanceAmount}>{auriosBalance} Aurios</Text>
-          {' '}disponibles para descuento
+          {isWalletConnected ? (
+            <>
+              Tenés <Text style={styles.balanceAmount}>{Math.floor(auriosBalance)} AUR</Text> disponibles para descuento
+            </>
+          ) : (
+            'Conecta tu wallet para ver tus Aurios disponibles.'
+          )}
         </Text>
       </View>
     </View>

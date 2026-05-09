@@ -9,6 +9,7 @@ import { CHECKOUT_CONFIG } from '../../data/checkout';
 import { useCartTotal } from '../../store/cart';
 import AuriosSlider from '../../components/checkout/AuriosSlider';
 import OrderCard from '../../components/checkout/OrderCard';
+import { useWallet } from '../../../src/hooks/useWallet';
 
 const { initialDiscountPct: INITIAL_PCT } = CHECKOUT_CONFIG;
 
@@ -17,6 +18,7 @@ export default function Checkout() {
   const insets = useSafeAreaInsets();
   const subtotal = useCartTotal();
   const [pct, setPct] = useState(INITIAL_PCT);
+  const { aurioBalance, walletPubKey } = useWallet();
 
   const aurios   = Math.round(subtotal * 100 * (pct / 100));
   const discount = aurios / 100;
@@ -49,7 +51,13 @@ export default function Checkout() {
         </View>
 
         <OrderCard subtotal={subtotal} aurios={aurios} discount={discount} />
-        <AuriosSlider initialPct={INITIAL_PCT} subtotal={subtotal} onPctChange={setPct} />
+        <AuriosSlider
+          initialPct={INITIAL_PCT}
+          subtotal={subtotal}
+          aurioBalance={aurioBalance}
+          isWalletConnected={Boolean(walletPubKey)}
+          onPctChange={setPct}
+        />
       </ScrollView>
 
       <View style={[styles.totalBar, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>

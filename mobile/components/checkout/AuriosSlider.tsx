@@ -9,10 +9,18 @@ const DISC_SIZE = 28;
 interface Props {
   initialPct?: number;
   subtotal: number;
+  aurioBalance: number;
+  isWalletConnected: boolean;
   onPctChange: (pct: number) => void;
 }
 
-export default function AuriosSlider({ initialPct = 18, subtotal, onPctChange }: Props) {
+export default function AuriosSlider({
+  initialPct = 18,
+  subtotal,
+  aurioBalance,
+  isWalletConnected,
+  onPctChange,
+}: Props) {
   const [pct, setPct]     = useState(initialPct);
   const onChangeRef       = useRef(onPctChange);
   onChangeRef.current     = onPctChange;
@@ -81,7 +89,9 @@ export default function AuriosSlider({ initialPct = 18, subtotal, onPctChange }:
           <Text style={styles.eyebrow}>AURIOS</Text>
           <View style={styles.auriosRow}>
             <Text style={styles.auriosValue}>−{aurios}</Text>
-            <Text style={styles.auriosMax}> disponibles según wallet</Text>
+            <Text style={styles.auriosMax}>
+              {isWalletConnected ? ` / ${Math.floor(aurioBalance)} AUR` : ' · conecta wallet'}
+            </Text>
           </View>
         </View>
       </View>
