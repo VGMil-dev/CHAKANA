@@ -26,7 +26,15 @@ export default function CartItemCard({ item, onAdd, onRemove }: CartItemCardProp
 
   return (
     <View style={styles.card}>
-      <Image source={item.image} style={styles.image} resizeMode="cover" />
+      {item.image ? (
+        <Image
+          source={typeof item.image === 'string' ? { uri: item.image } : item.image}
+          style={styles.image}
+          resizeMode="cover"
+        />
+      ) : (
+        <View style={styles.image} />
+      )}
       <View style={styles.info}>
         <Text style={styles.type}>{item.type}</Text>
         <Text style={styles.title} numberOfLines={2}>{item.title}</Text>

@@ -8,7 +8,6 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { useCartCount } from '../../store/cart';
-import { useAuthStore } from '../../store/auth';
 import { haptic } from '../../utils/haptics';
 
 export type DialTab = 'carrito' | 'pedidos' | 'yo';
@@ -56,7 +55,7 @@ const PILL_WIDTH = 148;
 export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, centerLabel, compact, cartPill }: ChakanadialProps) {
   const insets    = useSafeAreaInsets();
   const cartCount = useCartCount();
-  const role      = useAuthStore((s) => s.user?.role ?? 'embajador');
+  const role      = 'embajador' as 'embajador' | 'tambu';
   const handleTab = (tab: DialTab) => onTabPress?.(tab);
 
   // Center bounce on press

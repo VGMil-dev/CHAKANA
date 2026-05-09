@@ -27,6 +27,7 @@ import { formatUSD } from '../../../src/utils/sliderConfig';
 const qaTambuMint = process.env.EXPO_PUBLIC_QA_TAMBU_MINT;
 const qaPayoutWallet = process.env.EXPO_PUBLIC_QA_PAYOUT_WALLET;
 const qaBusinessId = process.env.EXPO_PUBLIC_QA_BUSINESS_ID ?? 'raiz-cafe';
+const qaStripePaymentLink = process.env.EXPO_PUBLIC_QA_STRIPE_PAYMENT_LINK;
 type CheckoutStep = 'discount' | 'payment' | 'postPurchaseReview';
 // TODO: reemplazar env QA por destino real del negocio seleccionado cuando Businesses este conectado.
 const destination: CheckoutDestination | null =
@@ -102,6 +103,7 @@ export default function Checkout() {
     !isSupabaseConnected ||
     isProcessing ||
     isHybridProcessing ||
+    !qaStripePaymentLink ||
     (hasAurioDiscount && !hasAppliedAurioDiscount);
 
   useEffect(() => {
@@ -162,6 +164,7 @@ export default function Checkout() {
       signTransaction,
       businessId: qaBusinessId,
       cartItems: cartPayload,
+      paymentLinkUrl: qaStripePaymentLink,
     }).then((result) => {
       if (result?.stripeSessionId) {
         setStripeSessionId(result.stripeSessionId);
@@ -195,7 +198,7 @@ export default function Checkout() {
             Tu pedido{'\n'}<Text style={styles.displayAccent}>de hoy.</Text>
           </Text>
           <Text style={styles.headerCopy}>
-            Aurio reduce el precio como cupon opcional. Stripe cobra el total final con tarjeta.
+            Aurio registra tu descuento en Chakana. El cobro final se abre con el Payment Link del emprendimiento.
           </Text>
         </View>
 
@@ -291,17 +294,25 @@ export default function Checkout() {
         ) : null}
 
         {checkoutStep === 'payment' ? (
-          <StripePaymentCard
-            subtotal={subtotal}
-            auriosApplied={displayedAurios}
-            aurioDiscount={discountResult.discountUSD}
-            total={discountResult.finalTotal}
-            isProcessing={isHybridProcessing}
-            isDisabled={isCardDisabled}
-            requiresLogin={!isSupabaseConnected}
-            onPay={handleCardPayment}
-            onLogin={() => router.push('/login')}
-          />
+          <>
+            <StripePaymentCard
+              subtotal={subtotal}
+              auriosApplied={displayedAurios}
+              aurioDiscount={discountResult.discountUSD}
+              total={discountResult.finalTotal}
+              isProcessing={isHybridProcessing}
+              isDisabled={isCardDisabled}
+              requiresLogin={!isSupabaseConnected}
+              onPay={handleCardPayment}
+              onLogin={() => router.push('/login')}
+            />
+            {!qaStripePaymentLink ? (
+              <Text style={styles.error}>
+                Falta configurar EXPO_PUBLIC_QA_STRIPE_PAYMENT_LINK.
+              </Text>
+            ) : null}
+            {hybridError ? <Text style={styles.error}>{hybridError}</Text> : null}
+          </>
         ) : null}
 
         {checkoutStep === 'postPurchaseReview' && stripeSessionId ? (
@@ -466,6 +477,23 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: '#A63A2F',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  discountActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  skipButton: {
+    alignItems: 'center',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  skipButtonText: {
+    color: '#6B645C',
     fontSize: 13,
     fontWeight: '700',
   },

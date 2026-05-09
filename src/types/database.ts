@@ -48,6 +48,8 @@ export type Database = {
           id: string
           name: string
           owner_id: string | null
+          stripe_payment_link_url: string | null
+          updated_at: string
           wallet_pubkey: string | null
         }
         Insert: {
@@ -56,6 +58,8 @@ export type Database = {
           id?: string
           name: string
           owner_id?: string | null
+          stripe_payment_link_url?: string | null
+          updated_at?: string
           wallet_pubkey?: string | null
         }
         Update: {
@@ -64,6 +68,8 @@ export type Database = {
           id?: string
           name?: string
           owner_id?: string | null
+          stripe_payment_link_url?: string | null
+          updated_at?: string
           wallet_pubkey?: string | null
         }
         Relationships: [

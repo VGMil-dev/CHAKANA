@@ -4,8 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useAuthStore } from '../../store/auth';
 import { useAuth } from '../../hooks/useAuth';
+import { useWallet } from '../../src/hooks/useWallet';
 import EmbajadorView from '../../components/perfil/EmbajadorView';
 import TambuView from '../../components/perfil/TambuView';
 
@@ -21,13 +21,13 @@ function truncateWallet(address?: string) {
 export default function Perfil() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const user = useAuthStore((s) => s.user);
-  const { signOut } = useAuth();
+  const { authEmail, signOut } = useAuth();
+  const { walletPubKey, aurioBalance } = useWallet();
 
-  const role = user?.role ?? 'embajador';
+  const role = 'embajador';
   const isEmbajador = role === 'embajador';
-  const displayName = user?.name ?? 'Embajador';
-  const wallet = truncateWallet(user?.walletAddress);
+  const displayName = authEmail?.split('@')[0] ?? 'Embajador';
+  const wallet = truncateWallet(walletPubKey ?? undefined);
 
   const handleLogout = () => {
     signOut();
@@ -62,8 +62,8 @@ export default function Perfil() {
                 <Text style={styles.walletText}>{wallet}</Text>
               </View>
             )}
-            {user?.email && !wallet && (
-              <Text style={styles.emailText}>{user.email}</Text>
+            {authEmail && !wallet && (
+              <Text style={styles.emailText}>{authEmail}</Text>
             )}
           </View>
           <View style={[styles.avatar, isEmbajador ? styles.avatarRed : styles.avatarTeal]}>
@@ -71,15 +71,15 @@ export default function Perfil() {
           </View>
         </View>
 
-        {isEmbajador ? <EmbajadorView /> : <TambuView />}
+        {isEmbajador ? <EmbajadorView aurioBalance={aurioBalance} /> : <TambuView />}
 
         {/* Cuenta */}
         <View style={styles.sectionBase}>
           <Text style={styles.eyebrow}>CUENTA</Text>
-          {user?.email && (
+          {authEmail && (
             <View style={styles.accountRow}>
               <Ionicons name="mail-outline" size={15} color="#9A938A" />
-              <Text style={styles.accountText}>{user.email}</Text>
+              <Text style={styles.accountText}>{authEmail}</Text>
             </View>
           )}
           <View style={styles.accountRow}>

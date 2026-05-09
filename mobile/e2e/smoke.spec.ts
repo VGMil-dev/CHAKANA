@@ -76,7 +76,7 @@ test.describe('Chakana web smoke', () => {
       await skipDiscountButton.first().click();
     }
 
-    await expect(page.getByText(/Confirma tu pago|Pagar con tarjeta/i).first()).toBeVisible();
+    await expect(page.getByText(/Abre el pago|Abrir pago Stripe|Pagar con tarjeta/i).first()).toBeVisible();
     await expect(page.getByText(/Total a cobrar/i).first()).toBeVisible();
     await expect(page.getByText(/Pago cifrado · Stripe/i).first()).toBeVisible();
     await expect(page.getByText(aurioPaymentCopyPattern)).toHaveCount(0);

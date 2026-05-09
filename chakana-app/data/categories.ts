@@ -1,7 +1,10 @@
+import type { ComponentProps } from 'react';
+import type { Ionicons } from '@expo/vector-icons';
+
 export interface MarketCategory {
   label: string;
   /** Ionicons icon name */
-  iconName: string;
+  iconName: ComponentProps<typeof Ionicons>['name'];
 }
 
 export const MARKET_CATEGORIES: MarketCategory[] = [

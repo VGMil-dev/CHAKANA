@@ -6,7 +6,7 @@ export default defineConfig({
   retries: 1,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:8081',
+    baseURL: 'http://localhost:8082',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     trace: 'retain-on-failure',
@@ -18,8 +18,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run web',
-    port: 8081,
+    command: 'npx expo start --web --port 8082',
+    port: 8082,
     reuseExistingServer: true,
     timeout: 60_000,
   },

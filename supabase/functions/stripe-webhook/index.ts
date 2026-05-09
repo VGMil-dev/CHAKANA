@@ -1,193 +1,182 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-type StripeEvent = {
-  id: string;
-  type: string;
-  data: { object: Record<string, unknown> };
-};
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-function getSupabaseAdmin() {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  return createClient(supabaseUrl, serviceRoleKey);
-}
+type StripeEvent = {
+  id: string;
+  type: string;
+  data: {
+    object: Record<string, unknown>;
+  };
+};
 
-function secureCompare(a: string, b: string) {
-  if (a.length !== b.length) return false;
-  let mismatch = 0;
-  for (let i = 0; i < a.length; i++) {
-    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
-  }
-  return mismatch === 0;
-}
-
-function getStringField(source: Record<string, unknown>, key: string) {
-  const value = source[key];
-  if (typeof value !== 'string' || value.length === 0) {
-    throw new Error(`Missing Stripe field: ${key}`);
-  }
+function getEnv(name: string) {
+  const value = Deno.env.get(name);
+  if (!value) throw new Error(`Missing environment variable: ${name}`);
   return value;
 }
 
-function getNullableStringField(source: Record<string, unknown>, key: string) {
-  const value = source[key];
-  return typeof value === 'string' ? value : null;
+function getSupabaseAdmin() {
+  return createClient(getEnv('SUPABASE_URL'), getEnv('SUPABASE_SERVICE_ROLE_KEY'));
 }
 
-function getNullableNumberField(source: Record<string, unknown>, key: string) {
-  const value = source[key];
-  return typeof value === 'number' ? value : null;
+function sendJson(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 }
 
-async function computeSignature(payload: string, timestamp: string, secret: string) {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(`${timestamp}.${payload}`));
-  return Array.from(new Uint8Array(signature))
-    .map((b) => b.toString(16).padStart(2, '0'))
+function toHex(buffer: ArrayBuffer) {
+  return [...new Uint8Array(buffer)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('');
 }
 
-async function verifyStripeEvent(rawBody: string, signatureHeader: string, secret: string): Promise<StripeEvent> {
-  const chunks = signatureHeader.split(',').reduce<Record<string, string>>((acc, part) => {
-    const [key, value] = part.split('=');
-    if (key && value) acc[key] = value;
-    return acc;
-  }, {});
-
-  if (!chunks.t || !chunks.v1) {
-    throw new Error('Missing Stripe signature components');
+function timingSafeEqual(a: string, b: string) {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i += 1) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
-
-  const expected = await computeSignature(rawBody, chunks.t, secret);
-  if (!secureCompare(expected, chunks.v1)) {
-    throw new Error('Stripe signature validation failed');
-  }
-
-  return JSON.parse(rawBody) as StripeEvent;
+  return result === 0;
 }
 
-async function markOrderPaid(session: Record<string, unknown>, eventId: string) {
+async function verifyStripeSignature(rawBody: string, signatureHeader: string | null) {
+  if (!signatureHeader) throw new Error('Missing Stripe-Signature header');
+
+  const parts = Object.fromEntries(
+    signatureHeader.split(',').map((part) => {
+      const [key, value] = part.split('=');
+      return [key, value];
+    }),
+  );
+  const timestamp = parts.t;
+  const signature = parts.v1;
+
+  if (!timestamp || !signature) throw new Error('Invalid Stripe-Signature header');
+
+  const ageSeconds = Math.abs(Date.now() / 1000 - Number(timestamp));
+  if (!Number.isFinite(ageSeconds) || ageSeconds > 300) {
+    throw new Error('Stripe signature timestamp is outside tolerance');
+  }
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(getEnv('STRIPE_WEBHOOK_SECRET')),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const digest = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    new TextEncoder().encode(`${timestamp}.${rawBody}`),
+  );
+
+  if (!timingSafeEqual(toHex(digest), signature)) {
+    throw new Error('Stripe signature verification failed');
+  }
+}
+
+function readString(value: unknown) {
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+async function markOrderFromCheckoutSession(
+  event: StripeEvent,
+  status: 'paid' | 'failed' | 'canceled',
+) {
+  const session = event.data.object;
+  const sessionId = readString(session.id);
+  const paymentIntentId = readString(session.payment_intent);
+  const metadata = session.metadata as Record<string, unknown> | undefined;
+  const orderId = readString(metadata?.order_id);
+
+  if (!sessionId && !orderId) return;
+
   const supabase = getSupabaseAdmin();
-  const checkoutSessionId = getStringField(session, 'id');
-  const paymentIntentId = getNullableStringField(session, 'payment_intent');
+  const matchColumn = orderId ? 'id' : 'stripe_checkout_session_id';
+  const matchValue = orderId ?? sessionId;
 
   const { data: order, error: orderError } = await supabase
     .from('orders')
-    .select('id, total_cents')
-    .eq('stripe_checkout_session_id', checkoutSessionId)
-    .single();
+    .update({
+      status,
+      stripe_checkout_session_id: sessionId,
+      stripe_payment_intent_id: paymentIntentId,
+    })
+    .eq(matchColumn, matchValue)
+    .select('id, final_total_cents')
+    .maybeSingle();
 
-  if (orderError || !order) {
-    throw new Error(`Order not found for checkout session ${checkoutSessionId}`);
-  }
+  if (orderError) throw new Error(orderError.message);
+  if (!order) return;
 
-  const amountCents = getNullableNumberField(session, 'amount_total') ?? order.total_cents;
+  const amountTotal = typeof session.amount_total === 'number'
+    ? session.amount_total
+    : order.final_total_cents;
 
-  const { error: paymentError } = await supabase.from('payments').upsert({
-    order_id: order.id,
-    stripe_event_id: eventId,
-    stripe_payment_id: paymentIntentId,
-    amount_cents: amountCents,
-    status: 'paid',
-  });
-
-  if (paymentError) throw new Error(paymentError.message);
-
-  const { error: orderUpdateError } = await supabase
-    .from('orders')
-    .update({ status: 'paid', stripe_payment_id: paymentIntentId })
-    .eq('id', order.id);
-
-  if (orderUpdateError) throw new Error(orderUpdateError.message);
-}
-
-async function markOrderFailed(paymentIntent: Record<string, unknown>, eventId: string) {
-  const supabase = getSupabaseAdmin();
-  const paymentIntentId = getStringField(paymentIntent, 'id');
-
-  const { data: order, error: orderError } = await supabase
-    .from('orders')
-    .select('id, total_cents')
-    .eq('stripe_payment_id', paymentIntentId)
-    .single();
-
-  if (orderError || !order) {
-    return;
-  }
-
-  const { error: paymentError } = await supabase.from('payments').upsert({
-    order_id: order.id,
-    stripe_event_id: eventId,
-    stripe_payment_id: paymentIntentId,
-    amount_cents: getNullableNumberField(paymentIntent, 'amount') ?? order.total_cents,
-    status: 'failed',
-  });
-
-  if (paymentError) throw new Error(paymentError.message);
-
-  const { error: orderUpdateError } = await supabase
-    .from('orders')
-    .update({ status: 'failed' })
-    .eq('id', order.id);
-
-  if (orderUpdateError) throw new Error(orderUpdateError.message);
+  await supabase
+    .from('payments')
+    .upsert({
+      order_id: order.id,
+      status,
+      amount_cents: amountTotal,
+      stripe_checkout_session_id: sessionId,
+      stripe_payment_intent_id: paymentIntentId,
+      stripe_event_id: event.id,
+    }, { onConflict: 'stripe_checkout_session_id' });
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
-
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  const signature = req.headers.get('stripe-signature');
-  const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
-
-  if (!signature || !webhookSecret) {
-    return new Response(JSON.stringify({ error: 'Missing Stripe signature or webhook secret' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
+  if (req.method === 'OPTIONS') return new Response('ok', { status: 200, headers: corsHeaders });
+  if (req.method !== 'POST') return sendJson({ error: 'Method not allowed' }, 405);
 
   try {
     const rawBody = await req.text();
-    const event = await verifyStripeEvent(rawBody, signature, webhookSecret);
+    await verifyStripeSignature(rawBody, req.headers.get('Stripe-Signature'));
+    const event = JSON.parse(rawBody) as StripeEvent;
 
-    if (event.type === 'checkout.session.completed') {
-      await markOrderPaid(event.data.object, event.id);
-    } else if (event.type === 'payment_intent.payment_failed') {
-      await markOrderFailed(event.data.object, event.id);
+    const supabase = getSupabaseAdmin();
+    const { error: eventInsertError } = await supabase
+      .from('stripe_events')
+      .insert({ event_id: event.id, event_type: event.type, payload: event });
+
+    if (eventInsertError) {
+      if (eventInsertError.code === '23505') return sendJson({ received: true, duplicate: true });
+      throw new Error(eventInsertError.message);
     }
 
-    return new Response(JSON.stringify({ received: true, type: event.type }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (event.type === 'checkout.session.completed') {
+      await markOrderFromCheckoutSession(event, 'paid');
+    }
+
+    if (event.type === 'checkout.session.expired') {
+      await markOrderFromCheckoutSession(event, 'canceled');
+    }
+
+    if (event.type === 'payment_intent.payment_failed') {
+      const paymentIntent = event.data.object;
+      const paymentIntentId = readString(paymentIntent.id);
+      if (paymentIntentId) {
+        await supabase
+          .from('orders')
+          .update({ status: 'failed', stripe_payment_intent_id: paymentIntentId })
+          .eq('stripe_payment_intent_id', paymentIntentId);
+        await supabase
+          .from('payments')
+          .update({ status: 'failed', stripe_event_id: event.id })
+          .eq('stripe_payment_intent_id', paymentIntentId);
       }
-    );
+    }
+
+    return sendJson({ received: true });
+  } catch (error) {
+    return sendJson({ error: error instanceof Error ? error.message : 'Unhandled error' }, 400);
   }
 });

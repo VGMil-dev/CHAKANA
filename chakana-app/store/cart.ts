@@ -2,11 +2,12 @@ import { create } from 'zustand';
 
 export interface CartEntry {
   id: string;
+  businessId: string;
   title: string;
   type: string;
   price: number; // in USD
   qty: number;
-  image: ReturnType<typeof require>;
+  image?: string | ReturnType<typeof require> | null;
 }
 
 interface CartState {

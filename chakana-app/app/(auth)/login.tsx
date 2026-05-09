@@ -1,28 +1,27 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity,
+  View, Text, TextInput, TouchableOpacity,
   StyleSheet, SafeAreaView, KeyboardAvoidingView,
   Platform, ScrollView, Image, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
-import FormInput from '../../components/auth/FormInput';
-import AuthDivider from '../../components/auth/AuthDivider';
-import ErrorAlert from '../../components/auth/ErrorAlert';
+import { useWallet } from '../../src/hooks/useWallet';
 
 export default function Login() {
   const router = useRouter();
-  const { signIn, signOut } = useAuth();
+  const { signIn } = useAuth();
+  const { walletPubKey, isConnectingWallet, walletError, connectWallet } = useWallet();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Placeholder — teammate wires Phantom here
   const handleWalletConnect = () => {
     setError(null);
-    // signIn with wallet address once Phantom is integrated
+    void connectWallet();
   };
 
   const handleEmailLogin = async () => {
@@ -52,39 +51,83 @@ export default function Login() {
           <View style={styles.header}>
             <Image
               source={require('../../assets/images/splash-icon.png')}
+              resizeMode="contain"
               style={styles.logo}
             />
             <Text style={styles.title}>Bienvenido de vuelta</Text>
             <Text style={styles.subtitle}>Conecta tu identidad al ecosistema</Text>
           </View>
 
-          <TouchableOpacity style={styles.walletButton} onPress={handleWalletConnect} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.walletButton}
+            onPress={handleWalletConnect}
+            activeOpacity={0.8}
+            testID="connect-wallet-button"
+          >
             <Ionicons name="wallet-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.walletButtonText}>Conectar con Phantom</Text>
+            <Text style={styles.walletButtonText}>
+              {walletPubKey
+                ? `Wallet ${walletPubKey.slice(0, 4)}...${walletPubKey.slice(-4)}`
+                : isConnectingWallet
+                  ? 'Conectando wallet...'
+                  : 'Conectar wallet'}
+            </Text>
           </TouchableOpacity>
+          {walletError ? <Text style={styles.errorText}>{walletError}</Text> : null}
 
-          <AuthDivider label="o continúa con correo" />
-
-          <View style={styles.form}>
-            <FormInput
-              label="Correo electrónico"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="tu@correo.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            <FormInput
-              label="Contraseña"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="••••••••"
-              secureTextEntry
-            />
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerLabel}>o continúa con correo</Text>
+            <View style={styles.dividerLine} />
           </View>
 
-          <ErrorAlert error={error} />
+          <View style={styles.form}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Correo electrónico</Text>
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="tu@correo.com"
+                placeholderTextColor="#C4BFB9"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Contraseña</Text>
+              <View>
+                <TextInput
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="••••••••"
+                  placeholderTextColor="#C4BFB9"
+                  secureTextEntry={!showPassword}
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={20}
+                    color="#A09C96"
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {error && (
+            <View style={styles.errorBox}>
+              <Ionicons name="alert-circle-outline" size={16} color="#9E392D" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
 
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitButtonDisabled]}
@@ -140,7 +183,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 56,
     height: 56,
-    resizeMode: 'contain',
     marginBottom: 16,
   },
   title: {
@@ -169,9 +211,67 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 28,
+    gap: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#3D3D3D',
+    opacity: 0.1,
+  },
+  dividerLabel: {
+    fontSize: 12,
+    color: '#A09C96',
+    fontWeight: '500',
+  },
   form: {
     gap: 16,
     marginBottom: 24,
+  },
+  inputGroup: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#8A8580',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  input: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    height: 52,
+    paddingHorizontal: 16,
+    fontSize: 15,
+    color: '#3D3D3D',
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 16,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F7E7E3',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#9E392D',
+    fontWeight: '500',
   },
   submitButton: {
     backgroundColor: '#FCF9F6',

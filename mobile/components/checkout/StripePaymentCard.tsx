@@ -33,7 +33,7 @@ export default function StripePaymentCard({
       <View style={styles.header}>
         <View>
           <Text style={styles.eyebrow}>PAGO SEGURO</Text>
-          <Text style={styles.title}>Confirma tu pago</Text>
+          <Text style={styles.title}>Abre el pago</Text>
         </View>
         <View style={styles.badge}>
           <Ionicons name="lock-closed-outline" size={14} color="#1F7A73" />
@@ -63,7 +63,7 @@ export default function StripePaymentCard({
 
       <View style={styles.sandboxBox}>
         <Text style={styles.sandboxLabel}>Sandbox</Text>
-        <Text style={styles.sandboxText}>El cobro real se completa con Stripe Checkout.</Text>
+          <Text style={styles.sandboxText}>El cobro se completa en el Payment Link del emprendimiento.</Text>
       </View>
 
       {requiresLogin ? (
@@ -88,7 +88,7 @@ export default function StripePaymentCard({
           end={{ x: 0, y: 1 }}>
           <Ionicons name="card-outline" size={18} color="#FDFAF7" />
           <Text style={styles.payButtonText}>
-            {isProcessing ? 'Procesando...' : 'Pagar con tarjeta'}
+            {isProcessing ? 'Abriendo...' : 'Abrir pago Stripe'}
           </Text>
         </LinearGradient>
       </Pressable>

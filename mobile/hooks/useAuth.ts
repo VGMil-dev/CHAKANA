@@ -17,8 +17,9 @@ export function useAuth() {
     email: string,
     password: string,
     _role: 'embajador' | 'tambu',
+    walletPubKey: string,
   ): Promise<AuthResult> {
-    await auth.register(email, password, name);
+    await auth.register(email, password, name, walletPubKey);
     return { error: auth.authError };
   }
 

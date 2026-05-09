@@ -15,6 +15,7 @@ type HybridCheckoutParams = {
   destination: CheckoutDestination | null;
   businessId: string;
   cartItems: HybridCartItem[];
+  paymentLinkUrl?: string;
 };
 
 export type HybridCheckoutResult = {
@@ -98,6 +99,7 @@ export function useHybridCheckout(): UseHybridCheckoutResult {
         finalTotal: discountResult.finalTotal,
         aurioSignature,
         walletPubKey: walletPubKey ?? undefined,
+        paymentLinkUrl: params.paymentLinkUrl,
       });
 
       return {

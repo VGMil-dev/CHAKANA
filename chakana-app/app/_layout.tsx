@@ -1,3 +1,5 @@
+import '../polyfills';
+
 import { Stack } from "expo-router";
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
@@ -5,6 +7,7 @@ import { View, StyleSheet, Platform } from 'react-native';
 import AnimatedSplashScreen from '../components/core/splashscreen';
 import { StatusBar } from 'expo-status-bar';
 import * as NavigationBar from 'expo-navigation-bar';
+import { useAuth } from '../src/hooks/useAuth';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -13,6 +16,7 @@ export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
   // Skip splash animation on web (native-only UX, breaks Playwright)
   const [splashAnimationFinished, setSplashAnimationFinished] = useState(Platform.OS === 'web');
+  const { initAuth } = useAuth();
 
   useEffect(() => {
     async function prepare() {
@@ -32,6 +36,10 @@ export default function RootLayout() {
 
     prepare();
   }, []);
+
+  useEffect(() => {
+    void initAuth();
+  }, [initAuth]);
 
   return (
     <View style={styles.container}>

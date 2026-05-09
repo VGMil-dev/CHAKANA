@@ -1,13 +1,13 @@
 # Project State -- Chakana
 
-**Fase actual:** Fase 1 - Setup inicial en progreso
+**Fase actual:** Integracion real en `chakana-app/`
 
 ---
 
 ## Foco Actual
 
-- **Objetivo:** Conectar la app Expo con Supabase, Zustand y los modulos Web3/Backend ya preparados.
-- **Next Step:** Dev 2 implementa hooks de negocio sobre `src/store` y `src/services/supabase`.
+- **Objetivo:** Usar `chakana-app/` como app canonica con Supabase, Aurio y Stripe Connect reales.
+- **Next Step:** Aplicar migracion `004_real_commerce_stripe_connect.sql`, desplegar Edge Functions y configurar secrets de Stripe/Aurio en Supabase.
 - **Contexto critico:** Es un hackathon de 48h. Priorizar que funcione sobre que sea elegante.
 
 ---
@@ -31,21 +31,24 @@
 - Fix web: SplashScreen desactiva layout animations de Reanimated en web para evitar crash `Cannot read properties of undefined (reading 'top')`.
 - Fix web Solana: `mobile/polyfills.ts` define `globalThis.Buffer` y `crypto.getRandomValues` antes de cargar Expo Router.
 - Checkout MVP: mientras no exista NFT Tambu real, QA usa `EXPO_PUBLIC_QA_PAYOUT_WALLET` y `buildAurioTransferTx`; `EXPO_PUBLIC_QA_TAMBU_MINT` queda reservado para `payToTambu`.
-- Stripe/commerce: se extrajeron Edge Functions y migracion commerce desde `origin/copilot/complete-integration-workflow` sin mergear la rama; el frontend Stripe queda aislado en `src/services/commerce/stripe.service.ts` y no toca el checkout Aurio.
-- Checkout hibrido: Aurio queda como descuento opcional/redencion previa y Stripe como pago final con tarjeta; `useHybridCheckout` orquesta crear la sesion Stripe despues de redimir Aurios o directo si `auriosToSpend` es 0.
+- Stripe/commerce MVP: se descarta Stripe Connect API para demo y se usa Stripe Payment Links (`EXPO_PUBLIC_QA_STRIPE_PAYMENT_LINK`) abiertos desde la app; no hay backend Stripe obligatorio para cobrar.
+- Checkout hibrido: Aurio queda como descuento opcional/redencion previa y Stripe Payment Link como pago final del emprendimiento; `useHybridCheckout` abre el link despues de redimir Aurios o directo si `auriosToSpend` es 0.
 - Checkout UI: tras redimir Aurios se guarda `redeemedAurios`, se muestra balance disponible separado de Aurios aplicados y Stripe pide sesion Supabase activa antes de crear checkout.
 - Checkout visual por pasos: si `aurioBalance <= 0`, se salta descuento y se muestra pago Stripe; si hay Aurios, el usuario puede aplicar u omitir descuento antes de pagar con tarjeta.
 - Comentarios post-compra: `ReviewForm` de Dev 1 usa `useReviewSubmit`, exige minimo 50 palabras y recompensa 1 Aurio ($0.01 USD de descuento futuro) tras compra Stripe.
+- `chakana-app/` ahora contiene `src/` con hooks/store/services reales migrados desde la raiz.
+- Se eliminaron mocks usados por la UI final: auth fake, tambuses/inventory/checkout/dashboard/pedidos mock.
+- Home carga `businesses` desde Supabase; inventario carga `products`; carrito usa productos reales.
+- Checkout usa `businesses.wallet_adress` para redimir Aurios y `commerce-api` para crear Checkout Sessions Stripe Connect.
+- Backend commerce real agregado: `products`, `orders`, `order_items`, `payments`, `stripe_events` y campos Stripe Connect en `businesses`.
+- Edge Functions reales: `commerce-api`, `stripe-webhook` y `mint-aurio-on-review`.
 
 ---
 
 ## En Progreso
 
-- App Expo / React Native inicializada en `mobile/` con pantalla minima de integracion
-- Integracion UI Dev 1 con hooks Dev 2 pendiente
-- Falta conectar Businesses para reemplazar env QA por `tambuMint` o `payoutWallet` del negocio seleccionado.
-- Falta validar/aplicar schema commerce y desplegar Edge Functions Stripe antes de conectar el boton "Pagar con tarjeta".
-- Falta verificar `aurioSignature` on-chain en backend antes de aplicar descuento en produccion.
+- Validar Golden Path con datos reales en Supabase y credenciales `E2E_EMAIL`/`E2E_PASSWORD`.
+- Completar onboarding operativo de Tambu owner para crear `stripe_account_id` en negocios reales.
 
 ---
 
@@ -62,8 +65,8 @@
 
 ## Bloqueado
 
-- (ninguno)
+- Playwright requiere browser instalado localmente (`npx playwright install chromium`); la descarga quedo colgada en esta sesion y se detuvo.
 
 ---
 
-**Ultima actualizacion:** 2026-05-08
+**Ultima actualizacion:** 2026-05-09

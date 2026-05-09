@@ -16,6 +16,16 @@
 - **Decision:** Dev 2 solo llama `POST /functions/v1/mint-aurio-on-review` con `userWallet`, `reviewText` y `businessId`, y refresca el balance real con `getAurioBalance(walletPubKey)`.
 - **Impacto:** El frontend no mintea, no usa mint authority y no suma Aurios manualmente. 1 comentario post-compra valido recompensa 1 Aurio, equivalente a $0.01 USD de descuento futuro.
 
+### [2026-05-09] - Stripe MVP via Payment Links
+- **Contexto:** Para Expo Go y velocidad MVP, Stripe Connect API/direct charges queda fuera del flujo de demo.
+- **Decision:** El pago final abre un Stripe Payment Link del emprendimiento (`https://buy.stripe.com/...`) configurado por env o por negocio; Chakana no crea Checkout Sessions ni transfiere fondos.
+- **Impacto:** El cobro funciona sin backend Stripe. Aurios se redimen antes de abrir el link; el ajuste dinamico del monto queda pendiente para una fase con cupones/links por monto/backend.
+
+### [2026-05-09] - `chakana-app` canonica + Stripe Connect real
+- **Contexto:** La UI correcta vive en `chakana-app/`, pero la logica real estaba dividida entre `mobile/` y `src/`.
+- **Decision:** `chakana-app/` pasa a ser el runtime canonico. La logica real se migra a `chakana-app/src/`, los mocks visuales se eliminan y Stripe Payment Links queda reemplazado por Stripe Connect via Supabase Edge Functions.
+- **Impacto:** Home, inventario, carrito, checkout y reseñas consumen Supabase. Aurio redime contra `businesses.wallet_adress`. Stripe cobra con Checkout Sessions y destination charges hacia `businesses.stripe_account_id`. Los secretos viven solo en Edge Functions.
+
 ---
 
 ## Contratos y Protocolos

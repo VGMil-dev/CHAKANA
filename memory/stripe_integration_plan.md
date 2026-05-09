@@ -1,62 +1,23 @@
 # Stripe Integration Plan
 
+## Decision vigente: Stripe Connect real
+
+- `chakana-app/` no usa Stripe Payment Links.
+- El frontend llama `supabase/functions/v1/commerce-api`.
+- `POST /connect/onboarding-link` crea/reusa una cuenta Stripe Express por Tambu y devuelve Account Link.
+- `POST /checkout` valida sesion Supabase, recomputa productos/precios desde Supabase, crea `orders`/`order_items`/`payments` y crea una Stripe Checkout Session.
+- La Checkout Session usa destination charge hacia `businesses.stripe_account_id`.
+- `stripe-webhook` verifica `Stripe-Signature` con raw body, guarda eventos idempotentes en `stripe_events` y actualiza orden/pago.
+
 ## Separacion Aurio vs Stripe
 
-### Descuento Aurio
+- Aurio es descuento opcional previo al cobro de tarjeta.
+- El destino Aurio es `businesses.wallet_adress`.
+- El frontend usa `aurio-sdk` para balance, firma y transferencia SPL, pero nunca usa mint authority.
+- La recompensa por reseña se ejecuta en `mint-aurio-on-review` con mint authority como Supabase secret.
+- Stripe cobra `subtotal - aurio_discount_cents`; el backend recomputa y limita el descuento a 25%.
 
-- Usa el token AUR para descuentos opcionales.
-- En MVP usa `buildAurioTransferTx` con wallet destino QA del negocio.
-- A futuro puede volver a `payToTambu` cuando exista NFT Tambu real con metadata.
-- Usa wallet Phantom/signer del usuario.
-- Ya funciona como redencion y no debe mezclarse con el cobro Stripe.
+## Secrets
 
-### Checkout Stripe
-
-- Usa tarjeta/fiat y es el pago final.
-- Debe pasar por Supabase Edge Function, empezando por `commerce-api`.
-- La secret key de Stripe vive solo en Supabase Secrets.
-- El webhook vive en `stripe-webhook` y valida `stripe-signature`.
-- El frontend solo llama la Edge Function y recibe `checkout_url`/`checkout_session_id`.
-- No debe importar secretos, SDK backend ni tocar `useCheckout` de Aurio.
-- Requiere sesion Supabase activa; si falta `access_token`, la UI debe pedir iniciar sesion antes de llamar `commerce-api`.
-
-## Checkout hibrido Aurio + Stripe
-
-- Aurio es descuento opcional.
-- Stripe cobra el total final.
-- El usuario puede pagar sin usar Aurios.
-- Si `aurioBalance <= 0`, la UI salta directo al paso de pago Stripe.
-- Si hay Aurios, la UI muestra un paso opcional para aplicar u omitir descuento.
-- Si usa Aurios, primero se redimen.
-- La redencion guarda `redeemedAurios` y bloquea el descuento aplicado para que el balance refrescado no recalculе el descuento hacia abajo.
-- Despues Stripe cobra `subtotal - descuentoAurio`.
-- Para MVP, la redencion Aurio usa `buildAurioTransferTx` hacia payout wallet QA.
-- En futuro, la redencion puede usar `payToTambu` con NFT Tambu metadata.
-- Backend debe verificar `aurioSignature` antes de aplicar descuento en produccion.
-
-## Comentario post-compra
-
-- Despues de una compra Stripe completada, el usuario puede publicar un comentario.
-- La UI existente `ReviewForm` usa `useReviewSubmit`.
-- El comentario debe tener minimo 50 palabras.
-- 1 comentario valido recompensa 1 Aurio.
-- 1 Aurio = $0.01 USD de descuento futuro.
-
-## Archivos extraidos
-
-- `supabase/functions/commerce-api/index.ts`
-- `supabase/functions/stripe-webhook/index.ts`
-- `supabase/migrations/003_commerce_auth_stripe.sql`
-- `qa/08-commerce-flow.ts`
-
-## Frontend aislado
-
-Se creo `src/services/commerce/stripe.service.ts` como cliente minimo para crear una sesion de Stripe Checkout usando la Edge Function. El servicio requiere sesion Supabase activa, acepta metadata de descuento Aurio y no importa `aurio-sdk`.
-
-## Pendientes antes de activar en UI
-
-- Revisar y aplicar migracion commerce contra el schema real.
-- Configurar Supabase Secrets: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`.
-- Desplegar `commerce-api` y `stripe-webhook`.
-- Crear boton separado "Pagar con tarjeta" en UI, sin reemplazar el checkout Aurio.
-- Agregar smoke test que no llame Stripe real.
+- Expo solo usa `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY` y `EXPO_PUBLIC_AURIO_MINT`.
+- Supabase Edge Functions requieren `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `AURIO_MINT_ADDRESS`, `AURIO_MINT_AUTHORITY_KEYPAIR` y opcionalmente `APP_BASE_URL`, `SOLANA_RPC_URL`, `STRIPE_CONNECT_COUNTRY`, `STRIPE_PLATFORM_FEE_CENTS`.

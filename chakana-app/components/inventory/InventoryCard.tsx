@@ -11,7 +11,7 @@ export interface InventoryCardProps {
   title: string;
   type: string;
   price: number;
-  image?: ReturnType<typeof require>;
+  image?: string | ReturnType<typeof require> | null;
   qty: number;
   onPress?: () => void;
   onAdd: () => void;
@@ -42,7 +42,13 @@ export default function InventoryCard({ title, type, price, image, qty, onPress,
     >
       <View style={styles.imageContainer}>
         {image
-          ? <Image source={image} style={StyleSheet.absoluteFill} resizeMode="cover" />
+          ? (
+            <Image
+              source={typeof image === 'string' ? { uri: image } : image}
+              style={StyleSheet.absoluteFill}
+              resizeMode="cover"
+            />
+          )
           : <View style={[StyleSheet.absoluteFill, styles.imagePlaceholder]} />
         }
         <LinearGradient
@@ -98,10 +104,10 @@ export default function InventoryCard({ title, type, price, image, qty, onPress,
         <View style={styles.priceRow}>
           <View style={[styles.priceDot, qty > 0 && styles.priceDotActive]} />
           <Text style={[styles.priceText, qty > 0 && styles.priceTextActive]}>
-            {price} Aurios
+            $ {price.toFixed(2)}
           </Text>
           {qty > 0 && (
-            <Text style={styles.priceSubtotal}>· {price * qty} total</Text>
+            <Text style={styles.priceSubtotal}>· $ {(price * qty).toFixed(2)} total</Text>
           )}
         </View>
       </View>

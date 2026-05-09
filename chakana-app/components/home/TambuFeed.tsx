@@ -5,12 +5,12 @@ import TambuCard from './TambuCard';
 export interface TambuItem {
   id: string;
   name: string;
-  barrio: string;
-  cat: string;
-  tone: string;
-  rating: number;
-  n: number;
-  aurios: number;
+  barrio?: string;
+  cat?: string;
+  tone?: string;
+  rating?: number | null;
+  n?: number | null;
+  aurios?: number | null;
 }
 
 export interface TambuFeedProps {

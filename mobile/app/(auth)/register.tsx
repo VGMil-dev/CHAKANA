@@ -28,8 +28,12 @@ export default function Register() {
   // role defaults to 'embajador' until the role-selection step is added
   const handleRegister = async () => {
     setError(null);
+    if (!walletPubKey) {
+      setError('Conecta tu wallet Solana para crear tu cuenta y recibir Aurios.');
+      return;
+    }
     setLoading(true);
-    const { error } = await signUp(name, email, password, 'embajador')
+    const { error } = await signUp(name, email, password, 'embajador', walletPubKey)
     if (error) { setError(error); setLoading(false); return; }
     router.replace('/home');
   };
@@ -144,7 +148,7 @@ export default function Register() {
           )}
 
           <TouchableOpacity
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            style={[styles.submitButton, (loading || !walletPubKey) && styles.submitButtonDisabled]}
             onPress={handleRegister}
             activeOpacity={0.8}
             disabled={loading}

@@ -1,27 +1,31 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-type UserContext = {
-  userId: string;
-  email: string | null;
-  role: 'client' | 'merchant' | 'admin';
-  merchantId: string | null;
-  fullName: string | null;
-  stripeCustomerId: string | null;
-};
-
-type CartItemInput = {
-  productId: string;
-  quantity: number;
-};
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
-const STRIPE_API_BASE = 'https://api.stripe.com/v1';
-const STRIPE_API_VERSION = '2024-06-20';
+type CartItemInput = {
+  product_id?: string;
+  quantity?: number;
+};
+
+type ProductRow = {
+  id: string;
+  business_id: string;
+  name: string;
+  price_cents: number;
+  active: boolean;
+};
+
+type BusinessRow = {
+  id: string;
+  name: string;
+  owner_id: string | null;
+  wallet_adress: string | null;
+  stripe_account_id: string | null;
+};
 
 function getEnv(name: string) {
   const value = Deno.env.get(name);
@@ -29,70 +33,19 @@ function getEnv(name: string) {
   return value;
 }
 
+function getOptionalEnv(name: string) {
+  return Deno.env.get(name) ?? null;
+}
+
 function getSupabaseAdmin() {
   return createClient(getEnv('SUPABASE_URL'), getEnv('SUPABASE_SERVICE_ROLE_KEY'));
 }
 
-function getBearerToken(req: Request) {
-  const authHeader = req.headers.get('authorization') ?? '';
-  const [scheme, token] = authHeader.split(' ');
-  if (scheme?.toLowerCase() !== 'bearer' || !token) {
-    throw new Error('Missing Bearer token');
-  }
-  return token;
-}
-
-async function stripePost(path: string, body: URLSearchParams) {
-  const stripeSecret = Deno.env.get('STRIPE_SECRET') || Deno.env.get('STRIPE_SECRET_KEY');
-  if (!stripeSecret) {
-    throw new Error('Missing STRIPE_SECRET or STRIPE_SECRET_KEY');
-  }
-
-  const response = await fetch(`${STRIPE_API_BASE}${path}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${stripeSecret}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Stripe-Version': STRIPE_API_VERSION,
-    },
-    body,
+function getSupabaseForUser(req: Request) {
+  const authorization = req.headers.get('Authorization') ?? '';
+  return createClient(getEnv('SUPABASE_URL'), getEnv('SUPABASE_ANON_KEY'), {
+    global: { headers: { Authorization: authorization } },
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Stripe request failed (${response.status}): ${text}`);
-  }
-
-  return response.json();
-}
-
-async function getUserContext(req: Request): Promise<UserContext> {
-  const token = getBearerToken(req);
-  const supabase = getSupabaseAdmin();
-
-  const { data: authData, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !authData.user) {
-    throw new Error('Unauthorized');
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from('users')
-    .select('id, email, full_name, role, merchant_id, stripe_customer_id')
-    .eq('id', authData.user.id)
-    .single();
-
-  if (profileError || !profile) {
-    throw new Error('User profile not found');
-  }
-
-  return {
-    userId: profile.id,
-    email: profile.email,
-    role: profile.role,
-    merchantId: profile.merchant_id,
-    fullName: profile.full_name,
-    stripeCustomerId: profile.stripe_customer_id,
-  };
 }
 
 function sendJson(body: Record<string, unknown>, status = 200) {
@@ -102,539 +55,270 @@ function sendJson(body: Record<string, unknown>, status = 200) {
   });
 }
 
-function sendCorsPreflight() {
-  return new Response('ok', {
-    status: 200,
-    headers: corsHeaders,
-  });
-}
-
 function readStringField(payload: Record<string, unknown>, key: string): string | null {
   const value = payload[key];
-  return typeof value === 'string' && value.length > 0 ? value : null;
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
-function readNumberField(payload: Record<string, unknown>, key: string): number {
+function readIntField(payload: Record<string, unknown>, key: string): number {
   const value = payload[key];
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string') {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
+  return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
 }
 
-function centsFromUsd(amount: number): number {
-  if (!Number.isFinite(amount) || amount <= 0) return 0;
-  return Math.round(amount * 100);
+async function getUser(req: Request) {
+  const supabase = getSupabaseForUser(req);
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) throw new Error('Unauthorized');
+  return data.user;
 }
 
-function calculateAurioDiscountCents(subtotalCents: number, requestedAurios: number) {
-  const safeAurios = Number.isFinite(requestedAurios) && requestedAurios > 0
-    ? Math.floor(requestedAurios)
-    : 0;
-  const requestedDiscountCents = safeAurios;
-  const maxDiscountCents = Math.floor(subtotalCents * 0.25);
-  const discountCents = Math.min(requestedDiscountCents, maxDiscountCents);
-
-  return {
-    auriosToSpend: discountCents,
-    discountCents,
-    finalTotalCents: Math.max(subtotalCents - discountCents, 0),
-  };
-}
-
-function assertMerchant(user: UserContext) {
-  if (user.role !== 'merchant' && user.role !== 'admin') {
-    throw new Error('Only merchant/admin can perform this action');
-  }
-}
-
-async function ensureMerchant(user: UserContext, nameHint?: string) {
-  const supabase = getSupabaseAdmin();
-
-  if (user.merchantId) {
-    const { data: merchant } = await supabase
-      .from('merchants')
-      .select('id, user_id, name')
-      .eq('id', user.merchantId)
-      .single();
-    if (merchant) return merchant;
+async function stripeRequest<T>(
+  path: string,
+  params: Record<string, string | number | boolean | null | undefined>,
+): Promise<T> {
+  const body = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== null && value !== undefined) body.set(key, String(value));
   }
 
-  const merchantName = nameHint ?? user.fullName ?? 'Nuevo Tambú';
-  const { data: merchant, error } = await supabase
-    .from('merchants')
-    .insert({ user_id: user.userId, name: merchantName })
-    .select('id, user_id, name')
-    .single();
-
-  if (error || !merchant) {
-    throw new Error(error?.message ?? 'Unable to create merchant profile');
-  }
-
-  const { error: updateUserError } = await supabase
-    .from('users')
-    .update({ merchant_id: merchant.id, role: user.role === 'admin' ? 'admin' : 'merchant' })
-    .eq('id', user.userId);
-
-  if (updateUserError) throw new Error(updateUserError.message);
-  return merchant;
-}
-
-async function readProductsAndTotal(items: CartItemInput[]) {
-  const supabase = getSupabaseAdmin();
-  const productIds = items.map((item) => item.productId);
-
-  const { data: products, error } = await supabase
-    .from('products')
-    .select('id, title, price_cents, currency, merchant_id, active')
-    .in('id', productIds);
-
-  if (error) throw new Error(error.message);
-
-  const map = new Map((products ?? []).map((product) => [product.id, product]));
-  const priced = items.map((item) => {
-    const product = map.get(item.productId);
-    if (!product || !product.active) {
-      throw new Error(`Product not available: ${item.productId}`);
-    }
-    return {
-      product,
-      quantity: item.quantity,
-      subtotalCents: item.quantity * product.price_cents,
-    };
+  const response = await fetch(`https://api.stripe.com/v1${path}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${getEnv('STRIPE_SECRET_KEY')}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body,
   });
 
-  const totalCents = priced.reduce((sum, current) => sum + current.subtotalCents, 0);
-  return { priced, totalCents };
-}
-
-async function upsertCart(user: UserContext, items: CartItemInput[]) {
-  const supabase = getSupabaseAdmin();
-
-  const { data: existingCart } = await supabase
-    .from('carts')
-    .select('id')
-    .eq('user_id', user.userId)
-    .eq('status', 'active')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  let cartId = existingCart?.id;
-  if (!cartId) {
-    const { data: cart, error: cartError } = await supabase
-      .from('carts')
-      .insert({ user_id: user.userId, status: 'active' })
-      .select('id')
-      .single();
-
-    if (cartError || !cart) throw new Error(cartError?.message ?? 'Unable to create cart');
-    cartId = cart.id;
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = typeof data?.error?.message === 'string'
+      ? data.error.message
+      : 'Stripe request failed';
+    throw new Error(message);
   }
 
-  await supabase.from('cart_items').delete().eq('cart_id', cartId);
-
-  if (items.length > 0) {
-    const { priced } = await readProductsAndTotal(items);
-    const rows = priced.map((entry) => ({
-      cart_id: cartId,
-      product_id: entry.product.id,
-      quantity: entry.quantity,
-      unit_price_cents: entry.product.price_cents,
-    }));
-
-    const { error: insertError } = await supabase.from('cart_items').insert(rows);
-    if (insertError) throw new Error(insertError.message);
-  }
-
-  return cartId;
+  return data as T;
 }
 
-async function ensureStripeCustomer(user: UserContext) {
-  if (user.stripeCustomerId) return user.stripeCustomerId;
+async function handleConnectOnboarding(req: Request) {
+  const user = await getUser(req);
+  const payload = await req.json().catch(() => ({})) as Record<string, unknown>;
+  const businessId = readStringField(payload, 'business_id');
+  const returnUrl = readStringField(payload, 'return_url');
+  const refreshUrl = readStringField(payload, 'refresh_url');
 
-  const body = new URLSearchParams({
-    email: user.email ?? `${user.userId}@chakana.local`,
-    name: user.fullName ?? 'Chakana user',
-  });
+  if (!businessId || !returnUrl || !refreshUrl) {
+    return sendJson({ error: 'business_id, return_url and refresh_url are required' }, 400);
+  }
 
-  const customer = await stripePost('/customers', body) as { id: string };
   const supabase = getSupabaseAdmin();
-
-  const { error } = await supabase
-    .from('users')
-    .update({ stripe_customer_id: customer.id })
-    .eq('id', user.userId);
+  const { data: business, error } = await supabase
+    .from('businesses')
+    .select('id, name, owner_id, wallet_adress, stripe_account_id')
+    .eq('id', businessId)
+    .maybeSingle<BusinessRow>();
 
   if (error) throw new Error(error.message);
-  return customer.id;
-}
+  if (!business) return sendJson({ error: 'Business not found' }, 404);
+  if (business.owner_id !== user.id) return sendJson({ error: 'Only the owner can onboard this business' }, 403);
 
-async function handleCreateTambu(req: Request) {
-  const user = await getUserContext(req);
-  assertMerchant(user);
-
-  const payload = await req.json();
-  const title = String(payload.title ?? '').trim();
-  if (!title) return sendJson({ error: 'title is required' }, 400);
-
-  const merchant = await ensureMerchant(user, String(payload.merchant_name ?? title));
-  const supabase = getSupabaseAdmin();
-
-  const { data, error } = await supabase
-    .from('tambus')
-    .insert({
-      merchant_id: merchant.id,
-      title,
-      description: payload.description ?? null,
-      location: payload.location ?? null,
-      metadata: payload.metadata ?? {},
-    })
-    .select('*')
-    .single();
-
-  if (error) return sendJson({ error: error.message }, 400);
-  return sendJson({ tambu: data }, 201);
-}
-
-async function handleGetTambu(tambuId: string) {
-  const supabase = getSupabaseAdmin();
-  const { data: tambu, error } = await supabase
-    .from('tambus')
-    .select('*, products(*, product_images(*))')
-    .eq('id', tambuId)
-    .single();
-
-  if (error) return sendJson({ error: error.message }, 404);
-  return sendJson({ tambu });
-}
-
-async function handleCreateProduct(req: Request, tambuId: string) {
-  const user = await getUserContext(req);
-  assertMerchant(user);
-
-  const payload = await req.json();
-  const title = String(payload.title ?? '').trim();
-  const priceCents = Number(payload.price_cents);
-
-  if (!title || !Number.isFinite(priceCents) || priceCents <= 0) {
-    return sendJson({ error: 'title and price_cents are required' }, 400);
-  }
-
-  const supabase = getSupabaseAdmin();
-
-  const merchant = await ensureMerchant(user);
-  const { data: tambu, error: tambuError } = await supabase
-    .from('tambus')
-    .select('id, merchant_id')
-    .eq('id', tambuId)
-    .single();
-
-  if (tambuError || !tambu) return sendJson({ error: 'Tambu not found' }, 404);
-  if (tambu.merchant_id !== merchant.id && user.role !== 'admin') {
-    return sendJson({ error: 'Forbidden' }, 403);
-  }
-
-  const currency = String(payload.currency ?? 'usd').toLowerCase();
-
-  let stripeProductId: string | null = null;
-  let stripePriceId: string | null = null;
-
-  if (Deno.env.get('STRIPE_SECRET') || Deno.env.get('STRIPE_SECRET_KEY')) {
-    const stripeProduct = await stripePost('/products', new URLSearchParams({ name: title })) as { id: string };
-    stripeProductId = stripeProduct.id;
-
-    const stripePrice = await stripePost('/prices', new URLSearchParams({
-      product: stripeProduct.id,
-      currency,
-      unit_amount: String(priceCents),
-    })) as { id: string };
-
-    stripePriceId = stripePrice.id;
-  }
-
-  const { data: product, error: productError } = await supabase
-    .from('products')
-    .insert({
-      tambu_id: tambu.id,
-      merchant_id: merchant.id,
-      title,
-      description: payload.description ?? null,
-      price_cents: priceCents,
-      currency,
-      stripe_product_id: stripeProductId,
-      stripe_price_id: stripePriceId,
-      active: payload.active ?? true,
-    })
-    .select('*')
-    .single();
-
-  if (productError || !product) {
-    return sendJson({ error: productError?.message ?? 'Unable to create product' }, 400);
-  }
-
-  if (payload.image_path) {
-    await supabase.from('product_images').insert({
-      product_id: product.id,
-      storage_path: payload.image_path,
-      url: payload.image_url ?? null,
+  let accountId = business.stripe_account_id;
+  if (!accountId) {
+    const account = await stripeRequest<{ id: string }>('/accounts', {
+      type: 'express',
+      country: getOptionalEnv('STRIPE_CONNECT_COUNTRY') ?? 'US',
+      email: user.email ?? undefined,
+      'business_profile[name]': business.name,
+      'capabilities[card_payments][requested]': true,
+      'capabilities[transfers][requested]': true,
     });
+    accountId = account.id;
+
+    const { error: updateError } = await supabase
+      .from('businesses')
+      .update({ stripe_account_id: accountId })
+      .eq('id', businessId);
+    if (updateError) throw new Error(updateError.message);
   }
 
-  return sendJson({ product }, 201);
-}
-
-async function handlePatchProduct(req: Request, productId: string) {
-  const user = await getUserContext(req);
-  assertMerchant(user);
-
-  const payload = await req.json();
-  const supabase = getSupabaseAdmin();
-
-  const { data: product, error: productError } = await supabase
-    .from('products')
-    .select('id, merchant_id')
-    .eq('id', productId)
-    .single();
-
-  if (productError || !product) return sendJson({ error: 'Product not found' }, 404);
-  if (product.merchant_id !== user.merchantId && user.role !== 'admin') {
-    return sendJson({ error: 'Forbidden' }, 403);
-  }
-
-  const patch: Record<string, unknown> = {};
-  if (payload.title !== undefined) patch.title = String(payload.title);
-  if (payload.description !== undefined) patch.description = payload.description;
-  if (payload.price_cents !== undefined) patch.price_cents = Number(payload.price_cents);
-  if (payload.currency !== undefined) patch.currency = String(payload.currency).toLowerCase();
-  if (payload.active !== undefined) patch.active = Boolean(payload.active);
-
-  const { data: updated, error: updateError } = await supabase
-    .from('products')
-    .update(patch)
-    .eq('id', product.id)
-    .select('*')
-    .single();
-
-  if (updateError) return sendJson({ error: updateError.message }, 400);
-  return sendJson({ product: updated });
-}
-
-async function handleCart(req: Request) {
-  const user = await getUserContext(req);
-  const payload = await req.json();
-  const items = Array.isArray(payload.items) ? payload.items : [];
-
-  const normalized: CartItemInput[] = items.map((item: Record<string, unknown>) => ({
-    productId: String(item.product_id ?? item.productId ?? ''),
-    quantity: Number(item.quantity ?? 1),
-  })).filter((item) => !!item.productId && item.quantity > 0);
-
-  const cartId = await upsertCart(user, normalized);
-  const { priced, totalCents } = await readProductsAndTotal(normalized);
-
-  return sendJson({
-    cart_id: cartId,
-    total_cents: totalCents,
-    items: priced.map((item) => ({
-      product_id: item.product.id,
-      title: item.product.title,
-      unit_price_cents: item.product.price_cents,
-      quantity: item.quantity,
-      subtotal_cents: item.subtotalCents,
-    })),
+  const link = await stripeRequest<{ url: string }>('/account_links', {
+    account: accountId,
+    refresh_url: refreshUrl,
+    return_url: returnUrl,
+    type: 'account_onboarding',
   });
+
+  return sendJson({ url: link.url, account_id: accountId });
+}
+
+function normalizeCartItems(payload: Record<string, unknown>): CartItemInput[] {
+  const rawItems = payload.cart_items;
+  if (!Array.isArray(rawItems)) return [];
+  return rawItems
+    .map((item) => item as CartItemInput)
+    .filter((item) => typeof item.product_id === 'string' && Number(item.quantity) > 0)
+    .map((item) => ({
+      product_id: item.product_id,
+      quantity: Math.max(1, Math.floor(Number(item.quantity))),
+    }));
 }
 
 async function handleCheckout(req: Request) {
-  const user = await getUserContext(req);
-  const payload = await req.json() as Record<string, unknown>;
-
-  const items = Array.isArray(payload.items)
-    ? payload.items.map((item: Record<string, unknown>) => ({
-        productId: String(item.product_id ?? item.productId ?? ''),
-        quantity: Number(item.quantity ?? 1),
-      })).filter((item: CartItemInput) => !!item.productId && item.quantity > 0)
-    : [];
-
-  if (items.length === 0) {
-    return sendJson({ error: 'At least one item is required' }, 400);
-  }
-
-  const { priced, totalCents } = await readProductsAndTotal(items);
-  const requestedAuriosToSpend = readNumberField(payload, 'aurios_to_spend');
-  const clientAurioDiscountCents = centsFromUsd(readNumberField(payload, 'aurio_discount_usd'));
-  const clientFinalTotalCents = centsFromUsd(readNumberField(payload, 'final_total'));
-  const aurioSignature = readStringField(payload, 'aurio_signature');
-  const walletPubKey = readStringField(payload, 'wallet_pubkey');
+  const user = await getUser(req);
+  const payload = await req.json().catch(() => ({})) as Record<string, unknown>;
   const businessId = readStringField(payload, 'business_id');
-  const discount = calculateAurioDiscountCents(totalCents, requestedAuriosToSpend);
+  const cartItems = normalizeCartItems(payload);
+  const auriosToSpend = readIntField(payload, 'aurios_to_spend');
+  const aurioSignature = readStringField(payload, 'aurio_signature');
+  const walletPubkey = readStringField(payload, 'wallet_pubkey');
 
-  if (discount.auriosToSpend > 0 && !aurioSignature) {
-    return sendJson({ error: 'aurio_signature is required when applying Aurio discount' }, 400);
-  }
-
-  // TODO: verify aurioSignature before applying discount in production.
-  const merchantId = priced[0]?.product.merchant_id ?? null;
+  if (!businessId) return sendJson({ error: 'business_id is required' }, 400);
+  if (cartItems.length === 0) return sendJson({ error: 'Cart is empty' }, 400);
 
   const supabase = getSupabaseAdmin();
-  const orderInsert = await supabase
-    .from('orders')
-    .insert({
-      user_id: user.userId,
-      merchant_id: merchantId,
-      total_cents: discount.finalTotalCents,
-      currency: priced[0]?.product.currency ?? 'usd',
-      status: 'pending',
-    })
-    .select('*')
-    .single();
+  const { data: business, error: businessError } = await supabase
+    .from('businesses')
+    .select('id, name, owner_id, wallet_adress, stripe_account_id')
+    .eq('id', businessId)
+    .maybeSingle<BusinessRow>();
 
-  if (orderInsert.error || !orderInsert.data) {
-    return sendJson({ error: orderInsert.error?.message ?? 'Unable to create order' }, 400);
+  if (businessError) throw new Error(businessError.message);
+  if (!business) return sendJson({ error: 'Business not found' }, 404);
+  if (!business.wallet_adress) return sendJson({ error: 'Business wallet_adress is required' }, 400);
+  if (!business.stripe_account_id) return sendJson({ error: 'Stripe Connect account is required' }, 400);
+
+  const productIds = [...new Set(cartItems.map((item) => item.product_id as string))];
+  const { data: products, error: productsError } = await supabase
+    .from('products')
+    .select('id, business_id, name, price_cents, active')
+    .in('id', productIds)
+    .eq('business_id', businessId)
+    .eq('active', true)
+    .returns<ProductRow[]>();
+
+  if (productsError) throw new Error(productsError.message);
+  if (!products || products.length !== productIds.length) {
+    return sendJson({ error: 'Some products are unavailable' }, 400);
   }
 
-  const order = orderInsert.data;
-
-  const orderItems = priced.map((entry) => ({
-    order_id: order.id,
-    product_id: entry.product.id,
-    quantity: entry.quantity,
-    unit_price_cents: entry.product.price_cents,
-    title_snapshot: entry.product.title,
-  }));
-  const { error: orderItemsError } = await supabase.from('order_items').insert(orderItems);
-  if (orderItemsError) return sendJson({ error: orderItemsError.message }, 400);
-
-  const customerId = await ensureStripeCustomer(user);
-  const appBaseUrl = Deno.env.get('APP_BASE_URL') ?? 'https://example.com';
-  const stripeMetadata: Record<string, string> = {
-    order_id: order.id,
-    user_id: user.userId,
-    business_id: businessId ?? '',
-    subtotal_cents: String(totalCents),
-    aurios_to_spend: String(discount.auriosToSpend),
-    aurio_discount_cents: String(discount.discountCents),
-    aurio_discount_usd_client: String(clientAurioDiscountCents),
-    final_total_cents: String(discount.finalTotalCents),
-    final_total_cents_client: String(clientFinalTotalCents),
-    aurio_signature: aurioSignature ?? '',
-    wallet_pubkey: walletPubKey ?? '',
-  };
-
-  const stripeSession = await stripePost('/checkout/sessions', new URLSearchParams({
-    mode: 'payment',
-    customer: customerId,
-    success_url: String(payload.success_url ?? `${appBaseUrl}/checkout/success?order_id=${order.id}`),
-    cancel_url: String(payload.cancel_url ?? `${appBaseUrl}/checkout/cancel?order_id=${order.id}`),
-    'line_items[0][price_data][currency]': priced[0]?.product.currency ?? 'usd',
-    'line_items[0][price_data][unit_amount]': String(discount.finalTotalCents),
-    'line_items[0][price_data][product_data][name]': discount.discountCents > 0
-      ? 'Chakana order with Aurio discount'
-      : 'Chakana order',
-    'line_items[0][quantity]': '1',
-    ...Object.entries(stripeMetadata).reduce<Record<string, string>>((acc, [key, value]) => {
-      acc[`metadata[${key}]`] = value;
-      return acc;
-    }, {}),
-  })) as { id: string; url: string | null; payment_intent: string | null };
-
-  const { error: orderUpdateError } = await supabase
-    .from('orders')
-    .update({
-      stripe_checkout_session_id: stripeSession.id,
-      stripe_payment_id: stripeSession.payment_intent,
-    })
-    .eq('id', order.id);
-
-  if (orderUpdateError) return sendJson({ error: orderUpdateError.message }, 400);
-
-  await supabase.from('payments').upsert({
-    order_id: order.id,
-    stripe_payment_id: stripeSession.payment_intent,
-    amount_cents: discount.finalTotalCents,
-    status: 'pending',
+  const productsById = new Map(products.map((product) => [product.id, product]));
+  let subtotalCents = 0;
+  const orderItems = cartItems.map((item) => {
+    const product = productsById.get(item.product_id as string);
+    if (!product) throw new Error('Product not found');
+    const quantity = item.quantity as number;
+    const totalCents = product.price_cents * quantity;
+    subtotalCents += totalCents;
+    return {
+      product_id: product.id,
+      quantity,
+      unit_amount_cents: product.price_cents,
+      total_cents: totalCents,
+      product_name: product.name,
+    };
   });
 
-  await upsertCart(user, []);
+  const maxAurioDiscountCents = Math.floor(subtotalCents * 0.25);
+  const aurioDiscountCents = Math.min(auriosToSpend, maxAurioDiscountCents);
+  const finalTotalCents = Math.max(0, subtotalCents - aurioDiscountCents);
+  if (finalTotalCents <= 0) return sendJson({ error: 'Checkout total must be greater than zero' }, 400);
+
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .insert({
+      user_id: user.id,
+      business_id: businessId,
+      status: 'pending',
+      subtotal_cents: subtotalCents,
+      aurios_spent: aurioDiscountCents,
+      aurio_discount_cents: aurioDiscountCents,
+      final_total_cents: finalTotalCents,
+      aurio_signature: aurioSignature,
+      wallet_pubkey: walletPubkey,
+    })
+    .select('id')
+    .single();
+
+  if (orderError) throw new Error(orderError.message);
+
+  const { error: itemsError } = await supabase.from('order_items').insert(
+    orderItems.map((item) => ({
+      order_id: order.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_amount_cents: item.unit_amount_cents,
+      total_cents: item.total_cents,
+    })),
+  );
+  if (itemsError) throw new Error(itemsError.message);
+
+  const appBaseUrl = getOptionalEnv('APP_BASE_URL') ?? 'chakana://checkout';
+  const platformFeeCents = Math.max(0, Number(getOptionalEnv('STRIPE_PLATFORM_FEE_CENTS') ?? '0'));
+  const session = await stripeRequest<{
+    id: string;
+    url: string;
+    payment_intent?: string;
+  }>('/checkout/sessions', {
+    mode: 'payment',
+    success_url: `${appBaseUrl}?checkout=success&order_id=${order.id}`,
+    cancel_url: `${appBaseUrl}?checkout=cancel&order_id=${order.id}`,
+    'line_items[0][quantity]': 1,
+    'line_items[0][price_data][currency]': 'usd',
+    'line_items[0][price_data][unit_amount]': finalTotalCents,
+    'line_items[0][price_data][product_data][name]': `Pedido ${business.name}`,
+    'payment_intent_data[transfer_data][destination]': business.stripe_account_id,
+    'payment_intent_data[application_fee_amount]': platformFeeCents > 0 ? platformFeeCents : undefined,
+    'metadata[order_id]': order.id,
+    'metadata[business_id]': businessId,
+    'metadata[aurios_spent]': aurioDiscountCents,
+    'metadata[aurio_signature]': aurioSignature,
+  });
+
+  const { error: updateOrderError } = await supabase
+    .from('orders')
+    .update({
+      status: 'checkout_created',
+      stripe_checkout_session_id: session.id,
+      stripe_payment_intent_id: session.payment_intent ?? null,
+    })
+    .eq('id', order.id);
+  if (updateOrderError) throw new Error(updateOrderError.message);
+
+  const { error: paymentError } = await supabase.from('payments').insert({
+    order_id: order.id,
+    status: 'pending',
+    amount_cents: finalTotalCents,
+    stripe_checkout_session_id: session.id,
+    stripe_payment_intent_id: session.payment_intent ?? null,
+  });
+  if (paymentError) throw new Error(paymentError.message);
 
   return sendJson({
+    checkout_url: session.url,
+    checkout_session_id: session.id,
     order_id: order.id,
-    checkout_url: stripeSession.url,
-    checkout_session_id: stripeSession.id,
-    subtotal_cents: totalCents,
-    aurio_discount_cents: discount.discountCents,
-    total_cents: discount.finalTotalCents,
   }, 201);
 }
 
-async function handleGetOrder(req: Request, orderId: string) {
-  const user = await getUserContext(req);
-  const supabase = getSupabaseAdmin();
-
-  const { data: order, error } = await supabase
-    .from('orders')
-    .select('*, order_items(*), payments(*)')
-    .eq('id', orderId)
-    .single();
-
-  if (error || !order) return sendJson({ error: 'Order not found' }, 404);
-
-  if (order.user_id !== user.userId && order.merchant_id !== user.merchantId && user.role !== 'admin') {
-    return sendJson({ error: 'Forbidden' }, 403);
-  }
-
-  return sendJson({ order });
-}
-
-function getRoutePath(url: URL) {
-  const marker = '/commerce-api';
-  const index = url.pathname.indexOf(marker);
-  if (index === -1) return '/';
-  const path = url.pathname.slice(index + marker.length);
-  return path || '/';
-}
-
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return sendCorsPreflight();
+  if (req.method === 'OPTIONS') return new Response('ok', { status: 200, headers: corsHeaders });
 
   try {
     const url = new URL(req.url);
-    const path = getRoutePath(url);
-    const segments = path.split('/').filter(Boolean);
+    const path = url.pathname.slice(url.pathname.indexOf('/commerce-api') + '/commerce-api'.length) || '/';
 
-    if (req.method === 'POST' && path === '/api/tambus') {
-      return await handleCreateTambu(req);
+    if (req.method === 'POST' && path === '/connect/onboarding-link') {
+      return await handleConnectOnboarding(req);
     }
 
-    if (req.method === 'GET' && segments[0] === 'api' && segments[1] === 'tambus' && segments[2]) {
-      return await handleGetTambu(segments[2]);
-    }
-
-    if (req.method === 'POST' && segments[0] === 'api' && segments[1] === 'tambus' && segments[2] && segments[3] === 'products') {
-      return await handleCreateProduct(req, segments[2]);
-    }
-
-    if (req.method === 'PATCH' && segments[0] === 'api' && segments[1] === 'products' && segments[2]) {
-      return await handlePatchProduct(req, segments[2]);
-    }
-
-    if (req.method === 'POST' && path === '/api/cart') {
-      return await handleCart(req);
-    }
-
-    if (req.method === 'POST' && path === '/api/checkout') {
+    if (req.method === 'POST' && path === '/checkout') {
       return await handleCheckout(req);
-    }
-
-    if (req.method === 'GET' && segments[0] === 'api' && segments[1] === 'orders' && segments[2]) {
-      return await handleGetOrder(req, segments[2]);
     }
 
     return sendJson({ error: 'Not found' }, 404);
   } catch (error) {
-    return sendJson({ error: error instanceof Error ? error.message : 'Unhandled error' }, 400);
+    const message = error instanceof Error ? error.message : 'Unhandled error';
+    return sendJson({ error: message }, message === 'Unauthorized' ? 401 : 400);
   }
 });

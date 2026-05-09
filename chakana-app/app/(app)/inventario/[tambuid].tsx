@@ -1,6 +1,6 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import {
-  StyleSheet, View, Text, ScrollView, ImageBackground,
+  StyleSheet, View, Text, ImageBackground,
   Pressable, Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,8 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import InventoryCard from '../../../components/inventory/InventoryCard';
 import SkeletonBox from '../../../components/core/SkeletonBox';
 import { useCartStore } from '../../../store/cart';
-import { getTambu } from '../../../data/tambuses';
-import { getProducts } from '../../../data/inventory';
+import { useBusinesses } from '../../../src/hooks/useBusinesses';
+import { useProducts } from '../../../src/hooks/useProducts';
 
 function ProductGridSkeleton() {
   return (
@@ -44,16 +44,16 @@ export default function InventoryScreen() {
     extrapolate: 'clamp',
   });
 
-  const id = typeof tambuid === 'string' ? tambuid : tambuid[0];
-  const tambu = getTambu(id);
-  const tambuName = tambu?.name ?? 'Tambu Desconocido';
-  const products = getProducts(id);
+  const id = typeof tambuid === 'string' ? tambuid : tambuid?.[0] ?? null;
+  const { listaTambus, fetchBusinesses } = useBusinesses();
+  const tambu = useMemo(() => listaTambus.find((item) => item.id === id) ?? null, [id, listaTambus]);
+  const businessId = tambu?.id ?? null;
+  const { products, isLoadingProducts, productsError } = useProducts(businessId);
+  const tambuName = tambu?.name ?? 'Tambú';
 
-  const [loading, setLoading] = useState(true);
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 650);
-    return () => clearTimeout(t);
-  }, []);
+    if (listaTambus.length === 0) void fetchBusinesses();
+  }, [fetchBusinesses, listaTambus.length]);
 
   return (
     <View style={styles.container}>
@@ -99,23 +99,27 @@ export default function InventoryScreen() {
             <Text style={styles.eyebrow}>· CUENCA, ECUADOR ·</Text>
             <Text style={styles.tambuTitle}>{tambuName}</Text>
             <Text style={styles.tambuDesc}>
-              Un espacio de economía circular en tu barrio. Aquí cada objeto tiene una segunda historia.
+              {tambu?.description ?? 'Inventario circular disponible para compra local.'}
             </Text>
             <View style={styles.statsRow}>
-              <View style={styles.statChip}>
-                <Ionicons name="star" size={14} color="#A63A2F" />
-                <Text style={styles.statValue}>{tambu?.rating ?? '—'}</Text>
-              </View>
-              <View style={styles.statChip}>
-                <Ionicons name="location-outline" size={14} color="#6B645C" />
-                <Text style={styles.statValue}>{tambu?.barrio ?? '—'}</Text>
-              </View>
+              {tambu?.wallet_adress ? (
+                <View style={styles.statChip}>
+                  <Ionicons name="wallet-outline" size={14} color="#6B645C" />
+                  <Text style={styles.statValue}>
+                    {tambu.wallet_adress.slice(0, 4)}...{tambu.wallet_adress.slice(-4)}
+                  </Text>
+                </View>
+              ) : null}
             </View>
           </View>
 
           <Text style={styles.sectionEyebrow}>INVENTARIO DISPONIBLE</Text>
-          {loading ? (
+          {isLoadingProducts ? (
             <ProductGridSkeleton />
+          ) : productsError ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyTitle}>{productsError}</Text>
+            </View>
           ) : products.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyTitle}>Sin inventario hoy.</Text>
@@ -129,12 +133,19 @@ export default function InventoryScreen() {
                 <InventoryCard
                   key={item.id}
                   id={item.id}
-                  title={item.title}
-                  type={item.type}
-                  price={item.price}
-                  image={item.image}
+                  title={item.name}
+                  type={item.type ?? 'Producto'}
+                  price={item.price_cents / 100}
+                  image={item.image_url}
                   qty={cartItems.find(i => i.id === item.id)?.qty ?? 0}
-                  onAdd={() => add({ id: item.id, title: item.title, type: item.type, price: item.price, image: item.image })}
+                  onAdd={() => add({
+                    id: item.id,
+                    businessId: item.business_id,
+                    title: item.name,
+                    type: item.type ?? 'Producto',
+                    price: item.price_cents / 100,
+                    image: item.image_url,
+                  })}
                   onRemove={() => remove(item.id)}
                 />
               ))}
