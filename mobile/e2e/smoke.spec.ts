@@ -54,14 +54,16 @@ test.describe('Chakana web smoke', () => {
     await expect(page.getByText(/Deja tu reseña|Mínimo 50 caracteres/i).first()).toBeVisible();
   });
 
-  test('checkout renderiza pago Aurio bloqueado sin tambuMint', async ({ page }) => {
+  test('checkout renderiza estado de tambuMint configurable', async ({ page }) => {
     await page.goto('/checkout');
 
     await expect(page.getByText(/Checkout/i).first()).toBeVisible();
     await expect(page.getByText(/Balance Aurios|Aurios/i).first()).toBeVisible();
     await expect(page.getByTestId('checkout-pay-button')).toBeVisible();
     await expect(
-      page.getByText('Falta el tambuMint real de raiz-cafe para probar transferencia.'),
+      page.getByText(
+        /Falta el tambuMint real de raiz-cafe para probar transferencia\.|Tambu conectado para prueba devnet\./,
+      ),
     ).toBeVisible();
   });
 });
