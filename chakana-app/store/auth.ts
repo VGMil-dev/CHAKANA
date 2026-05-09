@@ -4,6 +4,7 @@ interface AuthUser {
   name: string
   email?: string
   walletAddress?: string
+  role?: 'embajador' | 'tambu'
 }
 
 interface AuthState {

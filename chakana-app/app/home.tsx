@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 import HomeHeader from '../components/home/HomeHeader';
 import DisplaySection from '../components/home/DisplaySection';
@@ -13,6 +14,7 @@ import { TAMBUSES } from '../data/tambuses';
 
 export default function Home() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [active, setActive] = useState('Café');
 
   return (
@@ -39,7 +41,10 @@ export default function Home() {
         />
       </ScrollView>
 
-      <ChakanaDial activeTab="home" />
+      <ChakanaDial
+        activeTab="home"
+        onTabPress={(tab) => { if (tab === 'yo') router.push('/perfil'); }}
+      />
     </View>
   );
 }
