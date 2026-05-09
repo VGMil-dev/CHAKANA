@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCartStore, useCartItems, useCartCount, useCartTotal } from '../../store/cart';
 import CartItemCard from '../../components/cart/CartItemCard';
 import CartSummaryCard from '../../components/cart/CartSummaryCard';
+import ChakanaDial from '../../components/core/ChakanaDial';
 import { AURIOS_BALANCE } from '../../data/checkout';
 import PageNav from '../../components/core/PageNav';
 import PageHeader from '../../components/core/PageHeader';
@@ -53,30 +54,36 @@ export default function Carrito() {
         )}
 
         {items.length > 0 && (
-          <CartSummaryCard count={count} total={total} auriosBalance={AURIOS_BALANCE} />
+          <>
+            <CartSummaryCard count={count} total={total} auriosBalance={AURIOS_BALANCE} />
+            <Pressable
+              onPress={() => router.push('/checkout' as any)}
+              style={({ pressed }) => [pressed && { opacity: 0.9 }]}
+            >
+              <LinearGradient
+                colors={['#86231A', '#A63A2F']}
+                style={styles.ctaBtn}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+              >
+                <Text style={styles.ctaLabel}>Ir al checkout</Text>
+                <View style={styles.ctaDivider} />
+                <Text style={styles.ctaTotal}>$ {total.toFixed(2)}</Text>
+                <Ionicons name="arrow-forward" size={16} color="#FDFAF7" style={{ marginLeft: 4 }} />
+              </LinearGradient>
+            </Pressable>
+          </>
         )}
       </ScrollView>
 
-      {items.length > 0 && (
-        <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
-          <Pressable
-            onPress={() => router.push('/checkout' as any)}
-            style={({ pressed }) => [pressed && { opacity: 0.9 }]}
-          >
-            <LinearGradient
-              colors={['#86231A', '#A63A2F']}
-              style={styles.ctaBtn}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-            >
-              <Text style={styles.ctaLabel}>Ir al checkout</Text>
-              <View style={styles.ctaDivider} />
-              <Text style={styles.ctaTotal}>$ {total.toFixed(2)}</Text>
-              <Ionicons name="arrow-forward" size={16} color="#FDFAF7" style={{ marginLeft: 4 }} />
-            </LinearGradient>
-          </Pressable>
-        </View>
-      )}
+      <ChakanaDial
+        activeTab="carrito"
+        onTabPress={(tab) => {
+          if (tab === 'yo')      router.push('/perfil');
+          if (tab === 'pedidos') router.push('/pedidos');
+        }}
+        onCenterPress={() => router.replace('/home')}
+      />
     </View>
   );
 }
@@ -84,11 +91,10 @@ export default function Carrito() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F0EB' },
   header: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 10 },
-  scrollContent: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 24, gap: 10 },
+  scrollContent: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 120, gap: 10 },
   emptyState: { alignItems: 'center', paddingVertical: 64, gap: 18 },
   emptyTitle: { fontWeight: '700', fontSize: 26, color: '#C4BDB6', letterSpacing: -0.5 },
   emptyLink: { fontSize: 14, color: '#A63A2F', textDecorationLine: 'underline', fontWeight: '500' },
-  bottomBar: { paddingHorizontal: 22, paddingTop: 12 },
   ctaBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     paddingVertical: 17, paddingHorizontal: 24, borderRadius: 10, gap: 4,

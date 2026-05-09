@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   StyleSheet, View, Text, ScrollView, ImageBackground,
   Pressable, Animated,
@@ -9,9 +9,26 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import InventoryCard from '../../../components/inventory/InventoryCard';
+import SkeletonBox from '../../../components/core/SkeletonBox';
 import { useCartStore, useCartCount, useCartTotal } from '../../../store/cart';
 import { getTambu } from '../../../data/tambuses';
 import { getProducts } from '../../../data/inventory';
+
+function ProductGridSkeleton() {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 }}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <View key={i} style={{ width: '47%', backgroundColor: '#FFFFFF', borderRadius: 10, overflow: 'hidden', marginBottom: 8 }}>
+          <SkeletonBox width="100%" height={160} borderRadius={0} />
+          <View style={{ padding: 12, gap: 8 }}>
+            <SkeletonBox width="80%" height={14} />
+            <SkeletonBox width="50%" height={12} />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
 
 export default function InventoryScreen() {
   const { tambuid } = useLocalSearchParams();
@@ -44,6 +61,12 @@ export default function InventoryScreen() {
   const tambu = getTambu(id);
   const tambuName = tambu?.name ?? 'Tambu Desconocido';
   const products = getProducts(id);
+
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 650);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -104,21 +127,32 @@ export default function InventoryScreen() {
           </View>
 
           <Text style={styles.sectionEyebrow}>INVENTARIO DISPONIBLE</Text>
-          <View style={styles.grid}>
-            {products.map(item => (
-              <InventoryCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                type={item.type}
-                price={item.price}
-                image={item.image}
-                qty={cartItems.find(i => i.id === item.id)?.qty ?? 0}
-                onAdd={() => add({ id: item.id, title: item.title, type: item.type, price: item.price, image: item.image })}
-                onRemove={() => remove(item.id)}
-              />
-            ))}
-          </View>
+          {loading ? (
+            <ProductGridSkeleton />
+          ) : products.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyTitle}>Sin inventario hoy.</Text>
+              <Pressable onPress={() => router.back()}>
+                <Text style={styles.emptyLink}>Volver al mercado</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={styles.grid}>
+              {products.map(item => (
+                <InventoryCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  type={item.type}
+                  price={item.price}
+                  image={item.image}
+                  qty={cartItems.find(i => i.id === item.id)?.qty ?? 0}
+                  onAdd={() => add({ id: item.id, title: item.title, type: item.type, price: item.price, image: item.image })}
+                  onRemove={() => remove(item.id)}
+                />
+              ))}
+            </View>
+          )}
         </View>
       </Animated.ScrollView>
 
@@ -192,6 +226,9 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 13, fontWeight: '600', color: '#3D3D3D' },
   sectionEyebrow: { fontSize: 10, fontWeight: '600', color: '#6B645C', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 24 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 },
+  emptyState: { alignItems: 'center', paddingVertical: 64, gap: 18 },
+  emptyTitle: { fontWeight: '700', fontSize: 26, color: '#C4BDB6', letterSpacing: -0.5 },
+  emptyLink: { fontSize: 14, color: '#A63A2F', textDecorationLine: 'underline', fontWeight: '500' },
   cartBarWrapper: {
     position: 'absolute', alignSelf: 'center', zIndex: 50,
     shadowColor: '#86231A', shadowOffset: { width: 0, height: 14 },
