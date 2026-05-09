@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
-  StyleSheet, View, Text, ScrollView, Pressable,
+  StyleSheet, View, Text, ScrollView, Pressable, Alert,
   Animated, PanResponder,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,6 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { CHECKOUT_CONFIG, AURIOS_BALANCE } from '../data/checkout';
 import { useCartStore, useCartItems, useCartTotal } from '../store/cart';
+import * as Linking from 'expo-linking';
+import { checkout as createCheckout } from '../services/commerce';
 
 const { maxDiscountPct: MAX_PCT, railRange: RAIL_RANGE, initialDiscountPct: INITIAL_PCT } = CHECKOUT_CONFIG;
 const DISC_SIZE = 28;
@@ -275,9 +277,12 @@ export default function Checkout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const items = useCartItems();
+  const { clear } = useCartStore();
   const subtotal = useCartTotal();
 
   const [pct, setPct] = useState(INITIAL_PCT);
+  const [payLoading, setPayLoading] = useState(false);
 
   const aurios   = Math.round(subtotal * 100 * (pct / 100));
   const discount = aurios / 100;
@@ -300,7 +305,27 @@ export default function Checkout() {
 
       <TotalBar
         total={total}
-        onPay={() => router.replace('/pagare' as any)}
+        onPay={async () => {
+          if (items.length === 0 || payLoading) return;
+
+          try {
+            setPayLoading(true);
+            const response = await createCheckout(
+              items.map((item) => ({ product_id: item.id, quantity: item.qty }))
+            );
+
+            if (response.checkout_url) {
+              await Linking.openURL(response.checkout_url as string);
+            }
+
+            clear();
+            router.replace('/orders');
+          } catch (error) {
+            Alert.alert('Checkout error', error instanceof Error ? error.message : 'No se pudo iniciar el pago.');
+          } finally {
+            setPayLoading(false);
+          }
+        }}
         bottomInset={insets.bottom}
       />
 

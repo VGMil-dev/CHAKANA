@@ -10,7 +10,8 @@
     "test:reviews": "ts-node 04-reviews-service.ts",
     "test:businesses": "ts-node 05-businesses-service.ts",
     "test:oracle": "ts-node 06-oracle-edge-function.ts",
-    "test:report": "ts-node 07-generate-report-edge-function.ts"
+    "test:report": "ts-node 07-generate-report-edge-function.ts",
+    "test:commerce": "ts-node 08-commerce-flow.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",

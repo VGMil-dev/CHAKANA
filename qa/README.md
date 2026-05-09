@@ -27,6 +27,7 @@ npx ts-node qa/04-reviews-service.ts
 npx ts-node qa/05-businesses-service.ts
 npx ts-node qa/06-oracle-edge-function.ts
 npx ts-node qa/07-generate-report-edge-function.ts
+npx ts-node qa/08-commerce-flow.ts
 ```
 
 ## Criterios de aceptación por Task
@@ -40,3 +41,4 @@ npx ts-node qa/07-generate-report-edge-function.ts
 | `05-businesses-service` | Task 7 | getAllBusinesses retorna datos, seed de Raíz Café existe |
 | `06-oracle-edge-function` | Task 9 | Webhook actualiza aurios_rewarded tras insert |
 | `07-generate-report` | Task 10 | Edge function retorna audio_url válida |
+| `08-commerce-flow` | Integración completa | Tablas commerce + bucket + lectura de órdenes del usuario |

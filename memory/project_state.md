@@ -1,14 +1,14 @@
 # Project State -- Chakana
 
-**Fase actual:** Pre-desarrollo (solo docs y setup de flujo IA)
+**Fase actual:** Integración commerce/auth/stripe en implementación
 
 ---
 
 ## Foco Actual
 
-- **Objetivo:** Configurar entorno de desarrollo y comenzar Fase 1 (Setup Inicial, Horas 0-4).
-- **Next Step:** Cada dev inicializa su parte segun `chakana-48h-team-plan.md` Fase 1.
-- **Contexto critico:** Es un hackathon de 48h. Priorizar que funcione sobre que sea elegante.
+- **Objetivo:** Integración end-to-end de auth, tambús/productos, checkout Stripe y órdenes.
+- **Decisiones activas:** `email+password`, Stripe Checkout (no Elements), sin Stripe Connect en esta iteración.
+- **Contexto critico:** Mantener MVP funcional completo y seguro (RLS + webhooks + variables de entorno).
 
 ---
 
@@ -21,18 +21,17 @@
 
 ## En Progreso
 
-- (ninguno)
+- Migración `003_commerce_auth_stripe.sql` con nuevas tablas y políticas RLS.
+- Edge Functions `commerce-api` y `stripe-webhook`.
+- Pantallas Expo para auth/merchant/productos/órdenes + conexión a API.
 
 ---
 
 ## Pendiente (Backlog)
 
-- **Fase 1 (H0-4):** Setup Expo, Zustand, Solana MWA, Supabase
-- **Fase 2 (H4-12):** Core loop de resenas (texto a Supabase, hash a Solana, mint Aurios)
-- **Fase 3 (H12-24):** Descuentos (SPL transfer), propinas (LI.FI)
-- **Fase 4 (H24-32):** Reporte de voz IA (ElevenLabs)
-- **Fase 5 (H32-40):** Ensamblaje narrativo, copy final
-- **Fase 6 (H40-48):** Testing, pitch, video, submit
+- Ejecutar migraciones en proyecto Supabase real + deploy de funciones edge.
+- Configurar secretos de Stripe y validar webhook con Stripe CLI.
+- QA en entorno real (registro → tambú/producto → checkout → webhook paid → historial órdenes).
 
 ---
 
@@ -42,4 +41,4 @@
 
 ---
 
-**Ultima actualizacion:** 2026-05-08
+**Ultima actualizacion:** 2026-05-09

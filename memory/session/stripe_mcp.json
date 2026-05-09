@@ -1,0 +1,37 @@
+{
+  "source": "manual_mapping",
+  "note": "Stripe MCP tool was not available in this environment, so the operational mapping was prepared from Stripe API conventions used in implementation.",
+  "operations": [
+    {
+      "name": "create_customer",
+      "method": "POST",
+      "endpoint": "/v1/customers",
+      "required": ["email"]
+    },
+    {
+      "name": "create_product",
+      "method": "POST",
+      "endpoint": "/v1/products",
+      "required": ["name"]
+    },
+    {
+      "name": "create_price",
+      "method": "POST",
+      "endpoint": "/v1/prices",
+      "required": ["product", "currency", "unit_amount"]
+    },
+    {
+      "name": "create_checkout_session",
+      "method": "POST",
+      "endpoint": "/v1/checkout/sessions",
+      "required": ["mode", "line_items", "success_url", "cancel_url"]
+    },
+    {
+      "name": "verify_webhook_signature",
+      "header": "stripe-signature",
+      "algorithm": "HMAC SHA-256",
+      "input": "{timestamp}.{raw_body}",
+      "secret_env": "STRIPE_WEBHOOK_SECRET"
+    }
+  ]
+}

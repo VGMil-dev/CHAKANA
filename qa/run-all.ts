@@ -13,6 +13,7 @@ const tests = [
   { file: '05-businesses-service.ts',              name: 'Businesses Service',   critical: false },
   { file: '06-oracle-edge-function.ts',            name: 'Oracle Edge Function', critical: false },
   { file: '07-generate-report-edge-function.ts',   name: 'Generate Report',      critical: false },
+  { file: '08-commerce-flow.ts',                   name: 'Commerce + Checkout',  critical: false },
 ];
 
 console.log('\n🚀 CHAKANA — QA Smoke Tests\n');

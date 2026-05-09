@@ -6,6 +6,11 @@
 
 ## Log de Decisiones
 
+### [2026-05-09] - Integración Auth + Commerce + Stripe (MVP)
+- **Contexto:** `INTEGRATION_PLAN.md` exige flujo end-to-end de autenticación, tambús/productos y pagos.
+- **Decision:** Se adopta `email+password`, Stripe Checkout (no Elements), y sin Stripe Connect en esta iteración.
+- **Impacto:** Se agregan tablas `users/merchants/tambus/products/carts/orders/payments`, RLS por rol, función `commerce-api` y `stripe-webhook`.
+
 ### [2026-05-08] - Sistema de Memoria e Instrucciones (Karpathy)
 - **Contexto:** Necesitamos maxima velocidad y minima friccion entre 4 IAs.
 - **Decision:** Implementar protocolos de "Think Before Coding", "Simplicity First" y "Surgical Changes" inspirados en el repo `andrej-karpathy-skills`.
