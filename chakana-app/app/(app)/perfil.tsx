@@ -95,10 +95,10 @@ export default function Perfil() {
       </ScrollView>
 
       <ChakanaDial
-        role={isEmbajador ? 'embajador' : 'tambu'}
         activeTab="yo"
         onTabPress={(tab) => {
           if (tab === 'carrito') router.push('/carrito');
+          if (tab === 'pedidos') router.push('/pedidos');
         }}
         onCenterPress={() => router.replace(isEmbajador ? '/home' : '/dashboard')}
       />

@@ -5,11 +5,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useCartCount } from '../../store/cart';
+import { useAuthStore } from '../../store/auth';
 
 export type DialTab = 'carrito' | 'pedidos' | 'yo';
 
 export interface ChakanadialProps {
-  role?: 'embajador' | 'tambu';
   activeTab?: DialTab;
   onTabPress?: (tab: DialTab) => void;
   onCenterPress?: () => void;
@@ -45,9 +45,10 @@ function DialIcon({
   );
 }
 
-export default function ChakanaDial({ role = 'embajador', activeTab, onTabPress, onCenterPress }: ChakanadialProps) {
+export default function ChakanaDial({ activeTab, onTabPress, onCenterPress }: ChakanadialProps) {
   const insets = useSafeAreaInsets();
   const cartCount = useCartCount();
+  const role = useAuthStore((s) => s.user?.role ?? 'embajador');
   const handleTab = (tab: DialTab) => onTabPress?.(tab);
 
   const leftTab = role === 'tambu'

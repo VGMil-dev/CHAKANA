@@ -163,7 +163,6 @@ export default function Pedidos() {
       </ScrollView>
 
       <ChakanaDial
-        role="tambu"
         activeTab="pedidos"
         onCenterPress={() => router.replace('/dashboard')}
         onTabPress={(tab) => {
