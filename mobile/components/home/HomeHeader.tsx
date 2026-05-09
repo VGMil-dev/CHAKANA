@@ -66,7 +66,12 @@ export default function HomeHeader({
             </Pressable>
           </View>
         ) : (
-          <Pressable style={styles.connectButton} onPress={onConnectWallet} disabled={isConnectingWallet}>
+          <Pressable
+            style={styles.connectButton}
+            onPress={onConnectWallet}
+            disabled={isConnectingWallet}
+            testID="connect-wallet-button"
+          >
             <Text style={styles.connectButtonText}>
               {isConnectingWallet ? 'Conectando...' : 'Conectar wallet'}
             </Text>

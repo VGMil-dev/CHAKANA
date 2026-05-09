@@ -97,7 +97,7 @@ export default function Index() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} testID="dev-test-screen">
       <View style={styles.header}>
         <Text style={styles.title}>Chakana</Text>
         <Text style={styles.subtitle}>Prueba de lógica Aurio</Text>

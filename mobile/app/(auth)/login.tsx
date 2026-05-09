@@ -57,7 +57,12 @@ export default function Login() {
             <Text style={styles.subtitle}>Conecta tu identidad al ecosistema</Text>
           </View>
 
-          <TouchableOpacity style={styles.walletButton} onPress={handleWalletConnect} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.walletButton}
+            onPress={handleWalletConnect}
+            activeOpacity={0.8}
+            testID="connect-wallet-button"
+          >
             <Ionicons name="wallet-outline" size={20} color="#FFFFFF" />
             <Text style={styles.walletButtonText}>
               {walletPubKey

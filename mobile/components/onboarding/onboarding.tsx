@@ -9,7 +9,7 @@ export default function Onboarding() {
   const router = useRouter();
   const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="home-screen">
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
         {/* Header / Logo */}
