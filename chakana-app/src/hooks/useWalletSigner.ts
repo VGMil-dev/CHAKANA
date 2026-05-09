@@ -1,5 +1,8 @@
-import { Platform } from 'react-native';
+import { Platform, TurboModuleRegistry } from 'react-native';
 import type { Transaction } from '@solana/web3.js';
+
+const mobileWalletAvailable =
+  Platform.OS !== 'web' && TurboModuleRegistry.get('SolanaMobileWalletAdapter') != null;
 
 type SolanaPublicKeyLike = {
   toString: () => string;
@@ -37,9 +40,18 @@ function getWebProvider(): SolanaProvider | null {
 
 export function useWalletSigner(): UseWalletSignerResult {
   if (Platform.OS !== 'web') {
+    if (!mobileWalletAvailable) {
+      return {
+        signTransaction: null,
+        canSignTransactions: false,
+        signerError:
+          'Solana Mobile Wallet no disponible. Instala un development build.',
+      };
+    }
     return {
       signTransaction: async (tx) => {
-        const { transact } = await import('@solana-mobile/mobile-wallet-adapter-protocol-web3js');
+        const { transact } = require('@solana-mobile/mobile-wallet-adapter-protocol-web3js') as
+          typeof import('@solana-mobile/mobile-wallet-adapter-protocol-web3js');
         return transact(async (wallet) => {
           await wallet.authorize({
             chain: 'solana:devnet',

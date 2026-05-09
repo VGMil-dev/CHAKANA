@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Database } from '../../types/database';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
@@ -13,7 +12,7 @@ type SupabaseStorage = {
 
 const memoryStore = new Map<string, string>();
 
-const ssrSafeMemoryStorage: SupabaseStorage = {
+const memoryStorage: SupabaseStorage = {
   getItem: (key) => memoryStore.get(key) ?? null,
   setItem: (key, value) => {
     memoryStore.set(key, value);
@@ -29,10 +28,18 @@ const webStorage: SupabaseStorage = {
   removeItem: (key) => window.localStorage.removeItem(key),
 };
 
+let asyncStorage: SupabaseStorage | null = null;
+try {
+  const { default: AsyncStorageImpl } = require('@react-native-async-storage/async-storage');
+  if (AsyncStorageImpl?.getItem) {
+    asyncStorage = AsyncStorageImpl as unknown as SupabaseStorage;
+  }
+} catch {}
+
 function getSupabaseStorage(): SupabaseStorage {
-  if (typeof window === 'undefined') return ssrSafeMemoryStorage;
+  if (typeof window === 'undefined') return memoryStorage;
   if ('localStorage' in window && window.localStorage) return webStorage;
-  return AsyncStorage;
+  return asyncStorage ?? memoryStorage;
 }
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
