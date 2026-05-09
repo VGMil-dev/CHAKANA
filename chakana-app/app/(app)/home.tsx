@@ -44,6 +44,7 @@ export default function Home() {
       <ChakanaDial
         activeTab="home"
         onTabPress={(tab) => { if (tab === 'yo') router.push('/perfil'); }}
+        onCenterPress={() => router.replace('/home')}
       />
     </View>
   );
