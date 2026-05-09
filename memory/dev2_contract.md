@@ -27,3 +27,5 @@
 
 - Dev 3 debe entregar firma mobile via Mobile Wallet Adapter.
 - Dev 3/negocio debe entregar un `tambuMint` real para probar transferencia completa.
+- La UI temporal debe mantener el checkout bloqueado si falta el `tambuMint` real del negocio.
+- `EXPO_PUBLIC_AURIO_MINT` identifica el token AURIO; no debe usarse como destino del pago.

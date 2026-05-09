@@ -25,3 +25,5 @@
 - Falta definir un `tambuMint` real del negocio para probar transferencia end-to-end en la pantalla temporal.
 - No usar el mint address de AURIO como destino del negocio.
 - `tambuMint` identifica el NFT/negocio para resolver la wallet destino.
+- Mientras `DEMO_TAMBU_MINT` este vacio, el boton de checkout real queda deshabilitado.
+- Para `raiz-cafe`, Dev 2 necesita que Dev 3/negocio entregue el `tambuMint` real antes de probar transferencia.
