@@ -1,0 +1,218 @@
+/* ============================================================
+   CHAKANA — ANCESTRAL MODERNISM DESIGN SYSTEM
+   Foundational tokens: color, type, spacing, elevation, motion
+   ------------------------------------------------------------
+   Naming: tokens use the "material-mapping" vocabulary from the
+   brand brief (primary, surface, surface-container-low, etc.)
+   plus a parallel "Spanish-language poetic" alias for marketing
+   surfaces (rojo-tierra, crema, turquesa-andino).
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  /* ---------- COLOR · MATERIAL ROLES ---------- */
+
+  /* Primary — Rojo Tierra. Used for vital actions and brand presence. */
+  --primary:               #A63A2F;
+  --primary-deep:          #86231A;          /* gradient stop / pressed */
+  --primary-container:     #F2D9D5;          /* tonal fill bg */
+  --on-primary:            #FFFFFF;
+  --on-primary-container:  #5A1812;
+
+  /* Secondary — Turquesa Andino. Accent of life and water; sparingly. */
+  --secondary:             #3AAFA9;
+  --secondary-deep:        #277B77;
+  --secondary-container:   #D5EEEC;
+  --on-secondary:          #FFFFFF;
+  --on-secondary-container: #0F3A38;
+
+  /* Surface stack — Tonal Layering replaces drop shadows. */
+  --background:            #F5F0EB;          /* Crema — page canvas */
+  --surface:               #FDFAF7;          /* Blanco Cálido — elevated content */
+  --surface-container-lowest: #FFFFFF;
+  --surface-container-low:   #F8F3EE;
+  --surface-container:       #F0EAE3;
+  --surface-container-high:  #ECE5DE;
+  --surface-container-highest: #E6E2DD;       /* input fills */
+
+  /* Text — Gris Carbón family. Never pure black. */
+  --on-background:         #3D3D3D;          /* Gris Carbón */
+  --on-surface:            #2E2A26;
+  --on-surface-variant:    #6B645C;          /* secondary copy / metadata */
+  --on-surface-muted:      #9A938A;          /* tertiary copy / placeholder */
+
+  /* Outlines — felt, not seen. Use at 15% opacity for "ghost borders". */
+  --outline:               #8C857B;
+  --outline-variant:       rgba(140, 133, 123, 0.15);
+
+  /* Status — palette-harmonious, no saturated greens. */
+  --positive:              #3AAFA9;          /* uses Secondary */
+  --warning:               #C97A3A;          /* dried-clay amber */
+  --critical:              #A63A2F;          /* uses Primary */
+
+  /* ---------- COLOR · POETIC ALIASES (marketing copy) ---------- */
+  --rojo-tierra:           var(--primary);
+  --rojo-tierra-deep:      var(--primary-deep);
+  --turquesa-andino:       var(--secondary);
+  --crema:                 var(--background);
+  --blanco-calido:         var(--surface);
+  --gris-carbon:           var(--on-background);
+
+  /* ---------- TYPE · FAMILIES ---------- */
+  --font-display: "Raleway", "Helvetica Neue", system-ui, sans-serif;
+  --font-body:    "Inter", "Helvetica Neue", system-ui, sans-serif;
+  --font-mono:    ui-monospace, "SFMono-Regular", "Menlo", monospace;
+
+  /* ---------- TYPE · SCALE ----------
+     Display & headlines → Raleway (geometric, monolithic).
+     Body & UI titles    → Inter (functional, neutral).      */
+
+  --display-lg-size: 3.5rem;     --display-lg-lh: 1.05;   --display-lg-tracking: -0.02em;   --display-lg-weight: 700;
+  --display-md-size: 2.5rem;     --display-md-lh: 1.10;   --display-md-tracking: -0.02em;   --display-md-weight: 700;
+  --display-sm-size: 2rem;       --display-sm-lh: 1.15;   --display-sm-tracking: -0.015em;  --display-sm-weight: 600;
+
+  --headline-lg-size: 1.75rem;   --headline-lg-lh: 1.20;  --headline-lg-tracking: -0.01em;  --headline-lg-weight: 600;
+  --headline-md-size: 1.375rem;  --headline-md-lh: 1.25;  --headline-md-tracking: -0.005em; --headline-md-weight: 600;
+
+  --title-lg-size:   1.125rem;   --title-lg-lh: 1.40;     --title-lg-tracking: 0;            --title-lg-weight: 500;
+  --title-md-size:   1rem;       --title-md-lh: 1.45;     --title-md-tracking: 0;            --title-md-weight: 500;
+
+  --body-lg-size:    1.0625rem;  --body-lg-lh: 1.65;      --body-lg-tracking: 0;             --body-lg-weight: 400;
+  --body-md-size:    0.9375rem;  --body-md-lh: 1.6;       --body-md-tracking: 0;             --body-md-weight: 400;
+  --body-sm-size:    0.8125rem;  --body-sm-lh: 1.55;      --body-sm-tracking: 0;             --body-sm-weight: 400;
+
+  --label-lg-size:   0.8125rem;  --label-lg-lh: 1.20;     --label-lg-tracking: 0.14em;       --label-lg-weight: 500;  /* ALL CAPS metadata */
+  --label-md-size:   0.6875rem;  --label-md-lh: 1.20;     --label-md-tracking: 0.18em;       --label-md-weight: 600;  /* tag / category */
+  --label-sm-size:   0.625rem;   --label-sm-lh: 1.20;     --label-sm-tracking: 0.20em;       --label-sm-weight: 600;
+
+  /* ---------- SPACING · 4 PT GRID ---------- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* ---------- RADIUS · "weathered stone" ---------- */
+  --radius-xs:  4px;
+  --radius-sm:  6px;
+  --radius-md:  10px;          /* canonical — every component */
+  --radius-lg:  14px;
+  --radius-xl:  20px;
+  --radius-pill: 999px;
+
+  /* ---------- ELEVATION · TONAL LAYERING + SOIL SHADOWS ---------- */
+  --shadow-soil-sm: 0 6px 14px rgba(134, 35, 26, 0.04);
+  --shadow-soil:    0 20px 40px rgba(134, 35, 26, 0.05);
+  --shadow-soil-lg: 0 28px 60px rgba(134, 35, 26, 0.08);
+  --shadow-glass:   0 12px 32px rgba(38, 26, 22, 0.08);
+
+  /* Glass / frosted overlays */
+  --glass-bg:     rgba(253, 250, 247, 0.80);  /* surface @ 80% */
+  --glass-blur:   12px;
+
+  /* ---------- GRADIENTS · primary CTA, hero accents ---------- */
+  --gradient-primary: linear-gradient(180deg, var(--primary-deep) 0%, var(--primary) 100%);
+  --gradient-primary-hover: linear-gradient(180deg, #6E1C13 0%, #8E2C22 100%);
+  --gradient-soil:    linear-gradient(160deg, #C5836F 0%, #A63A2F 60%, #6E1C13 100%);
+
+  /* ---------- MOTION ---------- */
+  --ease-out:     cubic-bezier(0.22, 0.61, 0.36, 1);     /* primary easing */
+  --ease-in-out:  cubic-bezier(0.65, 0.05, 0.36, 1);
+  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);     /* used sparingly */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 360ms;
+}
+
+/* ============================================================
+   SEMANTIC ELEMENT STYLES
+   Apply to plain HTML so unstyled markup still looks editorial.
+   ============================================================ */
+html, body {
+  background: var(--background);
+  color: var(--on-background);
+  font-family: var(--font-body);
+  font-size: var(--body-md-size);
+  line-height: var(--body-md-lh);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, .display-lg {
+  font-family: var(--font-display); font-weight: var(--display-lg-weight);
+  font-size: var(--display-lg-size); line-height: var(--display-lg-lh);
+  letter-spacing: var(--display-lg-tracking); color: var(--on-surface);
+  margin: 0 0 var(--space-6);
+}
+h2, .display-md {
+  font-family: var(--font-display); font-weight: var(--display-md-weight);
+  font-size: var(--display-md-size); line-height: var(--display-md-lh);
+  letter-spacing: var(--display-md-tracking); color: var(--on-surface);
+  margin: 0 0 var(--space-5);
+}
+h3, .headline-lg {
+  font-family: var(--font-display); font-weight: var(--headline-lg-weight);
+  font-size: var(--headline-lg-size); line-height: var(--headline-lg-lh);
+  letter-spacing: var(--headline-lg-tracking); color: var(--on-surface);
+  margin: 0 0 var(--space-4);
+}
+h4, .headline-md {
+  font-family: var(--font-display); font-weight: var(--headline-md-weight);
+  font-size: var(--headline-md-size); line-height: var(--headline-md-lh);
+  letter-spacing: var(--headline-md-tracking); color: var(--on-surface);
+  margin: 0 0 var(--space-3);
+}
+h5, .title-lg {
+  font-family: var(--font-body); font-weight: var(--title-lg-weight);
+  font-size: var(--title-lg-size); line-height: var(--title-lg-lh);
+  color: var(--on-surface); margin: 0 0 var(--space-3);
+}
+h6, .title-md {
+  font-family: var(--font-body); font-weight: var(--title-md-weight);
+  font-size: var(--title-md-size); line-height: var(--title-md-lh);
+  color: var(--on-surface); margin: 0 0 var(--space-2);
+}
+p, .body-md {
+  font-family: var(--font-body); font-weight: var(--body-md-weight);
+  font-size: var(--body-md-size); line-height: var(--body-md-lh);
+  color: var(--on-background); text-wrap: pretty;
+  margin: 0 0 var(--space-4);
+}
+.body-lg { font-size: var(--body-lg-size); line-height: var(--body-lg-lh); }
+.body-sm { font-size: var(--body-sm-size); line-height: var(--body-sm-lh); color: var(--on-surface-variant); }
+
+/* Editorial "tag" — primary-colored, all-caps, wide tracked */
+.label-md, .eyebrow {
+  font-family: var(--font-body); font-weight: var(--label-md-weight);
+  font-size: var(--label-md-size); line-height: var(--label-md-lh);
+  letter-spacing: var(--label-md-tracking); text-transform: uppercase;
+  color: var(--primary);
+}
+.label-lg {
+  font-family: var(--font-body); font-weight: var(--label-lg-weight);
+  font-size: var(--label-lg-size); letter-spacing: var(--label-lg-tracking);
+  text-transform: uppercase; color: var(--on-surface-variant);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 100% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: color var(--duration-base) var(--ease-out);
+}
+a:hover { color: var(--primary-deep); }
+
+code, pre, .mono { font-family: var(--font-mono); }
+
+::selection { background: var(--primary-container); color: var(--on-primary-container); }

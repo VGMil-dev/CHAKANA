@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Cards</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin:0; padding:24px; background: var(--surface-container-low); }
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .card {
+    background: var(--surface-container-lowest);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    display:flex; flex-direction:column; gap: 10px;
+    transition: box-shadow 240ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    position: relative;
+  }
+  .card:hover { box-shadow: 0 20px 40px rgba(134, 35, 26, 0.05); }
+  .card.featured::before {
+    content: ""; position: absolute; top: 0; right: 0; width: 28px; height: 28px;
+    background: var(--secondary);
+    clip-path: polygon(100% 0, 100% 100%, 0 0);
+    border-top-right-radius: var(--radius-md);
+  }
+  .eyebrow { font-family: var(--font-body); font-weight: 600; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--primary); }
+  .title { font-family: var(--font-display); font-weight: 600; font-size: 18px; line-height: 1.25; color: var(--on-surface); margin: 0; }
+  .body { font-family: var(--font-body); font-size: 13px; line-height: 1.55; color: var(--on-background); margin: 0; }
+  .meta { font-family: var(--font-mono); font-size: 11px; color: var(--on-surface-muted); margin-top: 4px; }
+</style></head>
+<body>
+  <div class="grid">
+    <div class="card">
+      <div class="eyebrow">01 · MERCADO</div>
+      <h3 class="title">Bicicleta urbana, marco rojo</h3>
+      <p class="body">Donada por la familia Andrade en El Vado. Disponible para retiro este sábado.</p>
+      <div class="meta">3 km · hace 2 días</div>
+    </div>
+    <div class="card featured">
+      <div class="eyebrow" style="color:var(--secondary-deep)">02 · DESTACADO</div>
+      <h3 class="title">Taller de restauración</h3>
+      <p class="body">Aprende a devolverle vida a muebles de madera con el maestro Pedro Quizhpi.</p>
+      <div class="meta">San Sebastián · 12 cupos</div>
+    </div>
+  </div>
+  <p style="font-family:var(--font-body);font-size:12px;color:var(--on-surface-variant);margin:14px 0 0;">No dividers, no borders. The right-hand card uses the <em>Andean Edge</em> — a 45° turquesa accent in the corner.</p>
+</body></html>
