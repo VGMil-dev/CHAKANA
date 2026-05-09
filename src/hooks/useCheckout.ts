@@ -62,6 +62,8 @@ export function useCheckout(): UseCheckoutResult {
       aurioBalance,
     });
     setAuriosToSpend(nextResult.auriosToSpend);
+    setCheckoutError(null);
+    setCheckoutSignature(null);
   };
 
   const confirmCheckout = async (

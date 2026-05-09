@@ -60,7 +60,12 @@ export const createUiSlice: StateCreator<AppStore, [], [], UiSlice> = (set) => (
   setIsProcessingCheckout: (isProcessingCheckout) => set({ isProcessingCheckout }),
   setCheckoutError: (checkoutError) => set({ checkoutError }),
   setCheckoutSignature: (checkoutSignature) => set({ checkoutSignature }),
-  resetCheckout: () => set(initialCheckoutState),
+  resetCheckout: () =>
+    set((state) => ({
+      ...initialCheckoutState,
+      checkoutTotal: state.checkoutTotal,
+      activeModal: state.activeModal === 'propina' ? null : state.activeModal,
+    })),
   setAudioReportUrl: (audioReportUrl) => set({ audioReportUrl }),
   setIsLoadingReport: (isLoadingReport) => set({ isLoadingReport }),
   closeModal: () => set({ activeModal: null, errorMessage: null, checkoutError: null }),

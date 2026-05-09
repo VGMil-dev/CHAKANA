@@ -6,7 +6,7 @@ import { useReviewSubmit } from '../../src/hooks/useReviewSubmit';
 import { useWallet } from '../../src/hooks/useWallet';
 import { useWalletSigner } from '../../src/hooks/useWalletSigner';
 import { useAppStore } from '../../src/store';
-import { formatAurios, formatUSD } from '../../src/utils/sliderConfig';
+import { formatAurios, formatUSD, usdToAurios } from '../../src/utils/sliderConfig';
 
 const DEMO_BUSINESS_ID = 'raiz-cafe';
 const DEMO_TOTAL = 10;
@@ -59,6 +59,16 @@ export default function Index() {
   const hasTambuMint = DEMO_TAMBU_MINT.trim().length > 0;
   const canConfirmCheckout =
     hasTambuMint && canSignTransactions && Boolean(signTransaction) && !isProcessing;
+  const auriosFor5Percent = usdToAurios(checkoutTotal * 0.05);
+  const auriosFor10Percent = usdToAurios(checkoutTotal * 0.1);
+  const chosenDiscountPercent =
+    checkoutTotal > 0 ? (discountResult.discountUSD / checkoutTotal) * 100 : 0;
+  const chosenDiscountLabel =
+    auriosToSpend === 0
+      ? 'No has elegido descuento todavía.'
+      : Number.isInteger(chosenDiscountPercent)
+        ? `${chosenDiscountPercent}% de descuento`
+        : `Descuento personalizado: ${chosenDiscountPercent.toFixed(1)}%`;
 
   const handleSubmitReview = (): void => {
     void submitReview({ businessId: DEMO_BUSINESS_ID });
@@ -67,6 +77,15 @@ export default function Index() {
   const handleAuriosInput = (text: string): void => {
     const parsedValue = Number.parseInt(text.replace(/\D/g, ''), 10);
     onSliderChange(Number.isNaN(parsedValue) ? 0 : parsedValue);
+  };
+
+  const handlePreset = (aurios: number): void => {
+    onSliderChange(Math.min(aurios, sliderMax));
+  };
+
+  const handleClearDiscount = (): void => {
+    resetCheckout();
+    setTotal(DEMO_TOTAL);
   };
 
   const handleConfirmCheckout = (): void => {
@@ -147,7 +166,7 @@ export default function Index() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Checkout con Aurios</Text>
-        <Text style={styles.text}>Total demo: {formatUSD(checkoutTotal)}</Text>
+        <Text style={styles.text}>Total: {formatUSD(checkoutTotal)}</Text>
         <Text style={styles.text}>Aurios disponibles: {formatAurios(aurioBalance)}</Text>
         <Text style={styles.text}>Máximo permitido: {formatAurios(sliderMax)}</Text>
         <TextInput
@@ -159,21 +178,31 @@ export default function Index() {
           placeholderTextColor="#8A8F98"
         />
         <View style={styles.actions}>
-          <Pressable style={styles.smallButton} onPress={() => onSliderChange(50)}>
-            <Text style={styles.buttonText}>50 Aurios</Text>
+          <Pressable style={styles.presetButton} onPress={() => handlePreset(auriosFor5Percent)}>
+            <Text style={styles.buttonText}>5% de descuento</Text>
+            <Text style={styles.buttonSubtext}>
+              {Math.min(auriosFor5Percent, sliderMax)} Aurios
+            </Text>
           </Pressable>
-          <Pressable style={styles.smallButton} onPress={() => onSliderChange(100)}>
-            <Text style={styles.buttonText}>100 Aurios</Text>
+          <Pressable style={styles.presetButton} onPress={() => handlePreset(auriosFor10Percent)}>
+            <Text style={styles.buttonText}>10% de descuento</Text>
+            <Text style={styles.buttonSubtext}>
+              {Math.min(auriosFor10Percent, sliderMax)} Aurios
+            </Text>
           </Pressable>
-          <Pressable style={styles.smallButton} onPress={() => onSliderChange(sliderMax)}>
-            <Text style={styles.buttonText}>Máximo</Text>
+          <Pressable style={styles.presetButton} onPress={() => handlePreset(sliderMax)}>
+            <Text style={styles.buttonText}>Máximo permitido</Text>
+            <Text style={styles.buttonSubtext}>{sliderMax} Aurios</Text>
           </Pressable>
-          <Pressable style={[styles.smallButton, styles.secondaryButton]} onPress={resetCheckout}>
+          <Pressable style={[styles.presetButton, styles.secondaryButton]} onPress={handleClearDiscount}>
             <Text style={styles.buttonText}>Limpiar</Text>
+            <Text style={styles.buttonSubtext}>0 Aurios</Text>
           </Pressable>
         </View>
         <Text style={styles.helper}>Máximo 25% del total</Text>
-        <Text style={styles.text}>Descuento: {formatUSD(discountResult.discountUSD)}</Text>
+        <Text style={styles.text}>Descuento elegido: {chosenDiscountLabel}</Text>
+        <Text style={styles.text}>Aurios a gastar: {formatAurios(auriosToSpend)}</Text>
+        <Text style={styles.text}>Descuento USD: {formatUSD(discountResult.discountUSD)}</Text>
         <Text style={styles.total}>Total final: {formatUSD(discountResult.finalTotal)}</Text>
         <Pressable
           style={[styles.button, canConfirmCheckout ? null : styles.disabledButton]}
@@ -184,7 +213,14 @@ export default function Index() {
           </Text>
         </Pressable>
         {!hasTambuMint ? (
-          <Text style={styles.helper}>Falta tambuMint real del negocio para probar transferencia.</Text>
+          <View style={styles.notice}>
+            <Text style={styles.helper}>
+              Falta el tambuMint real de raiz-cafe para probar la transferencia.
+            </Text>
+            <Text style={styles.helper}>
+              El AURIO_MINT identifica el token, pero no es el destino del pago.
+            </Text>
+          </View>
         ) : null}
         {hasTambuMint && signerError ? <Text style={styles.helper}>{signerError}</Text> : null}
         {checkoutError ? <Text style={styles.error}>{checkoutError}</Text> : null}
@@ -260,10 +296,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  smallButton: {
+  presetButton: {
     alignItems: 'center',
     backgroundColor: '#2F80ED',
     borderRadius: 8,
+    minWidth: 150,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
@@ -277,6 +314,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '700',
+  },
+  buttonSubtext: {
+    color: '#E6EDF3',
+    fontSize: 12,
+    marginTop: 2,
   },
   reviewInput: {
     minHeight: 120,
@@ -303,5 +345,8 @@ const styles = StyleSheet.create({
     color: '#7EE787',
     fontSize: 14,
     fontWeight: '700',
+  },
+  notice: {
+    gap: 4,
   },
 });

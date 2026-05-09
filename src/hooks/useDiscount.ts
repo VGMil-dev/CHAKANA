@@ -14,6 +14,8 @@ export function useDiscount(): UseDiscountResult {
   const aurioBalance = useAppStore((state) => state.aurioBalance);
   const auriosToSpend = useAppStore((state) => state.auriosToSpend);
   const setAuriosToSpend = useAppStore((state) => state.setAuriosToSpend);
+  const setCheckoutError = useAppStore((state) => state.setCheckoutError);
+  const setCheckoutSignature = useAppStore((state) => state.setCheckoutSignature);
 
   const result = calculateDiscount({
     subtotal: checkoutTotal,
@@ -32,7 +34,13 @@ export function useDiscount(): UseDiscountResult {
         aurioBalance,
       });
       setAuriosToSpend(nextResult.auriosToSpend);
+      setCheckoutError(null);
+      setCheckoutSignature(null);
     },
-    resetDiscount: () => setAuriosToSpend(0),
+    resetDiscount: () => {
+      setAuriosToSpend(0);
+      setCheckoutError(null);
+      setCheckoutSignature(null);
+    },
   };
 }
