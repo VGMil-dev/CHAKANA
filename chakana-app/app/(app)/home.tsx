@@ -7,7 +7,6 @@ import HomeHeader from '../../components/home/HomeHeader';
 import DisplaySection from '../../components/home/DisplaySection';
 import CategoryChipsBar from '../../components/home/CategoryChipsBar';
 import TambuFeed from '../../components/home/TambuFeed';
-import ChakanaDial from '../../components/core/ChakanaDial';
 import SkeletonBox from '../../components/core/SkeletonBox';
 import { useAuthStore } from '../../store/auth';
 
@@ -83,14 +82,6 @@ export default function Home() {
         )}
       </ScrollView>
 
-      <ChakanaDial
-        onTabPress={(tab) => {
-          if (tab === 'yo')      router.push('/perfil');
-          if (tab === 'carrito') router.push('/carrito');
-          if (tab === 'pedidos') router.push('/pedidos');
-        }}
-        onCenterPress={() => router.replace('/home')}
-      />
     </View>
   );
 }

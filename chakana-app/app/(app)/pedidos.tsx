@@ -6,7 +6,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import ChakanaDial from '../../components/core/ChakanaDial';
 import PageNav from '../../components/core/PageNav';
 import PageHeader from '../../components/core/PageHeader';
 import PedidoCard from '../../components/pedidos/PedidoCard';
@@ -115,13 +114,6 @@ export default function Pedidos() {
         </View>
       </ScrollView>
 
-      <ChakanaDial
-        activeTab="pedidos"
-        onCenterPress={() => router.replace('/dashboard')}
-        onTabPress={(tab) => {
-          if (tab === 'yo') router.push('/perfil');
-        }}
-      />
     </View>
   );
 }

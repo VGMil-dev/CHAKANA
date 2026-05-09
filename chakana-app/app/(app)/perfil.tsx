@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuthStore } from '../../store/auth';
 import { useAuth } from '../../hooks/useAuth';
-import ChakanaDial from '../../components/core/ChakanaDial';
 import EmbajadorView from '../../components/perfil/EmbajadorView';
 import TambuView from '../../components/perfil/TambuView';
 
@@ -94,14 +93,6 @@ export default function Perfil() {
         </TouchableOpacity>
       </ScrollView>
 
-      <ChakanaDial
-        activeTab="yo"
-        onTabPress={(tab) => {
-          if (tab === 'carrito') router.push('/carrito');
-          if (tab === 'pedidos') router.push('/pedidos');
-        }}
-        onCenterPress={() => router.replace(isEmbajador ? '/home' : '/dashboard')}
-      />
     </View>
   );
 }

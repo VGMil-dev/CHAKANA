@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, {
+  useSharedValue, useAnimatedStyle, withSpring, withTiming, Easing,
+} from 'react-native-reanimated';
 
 import { useCartCount } from '../../store/cart';
 import { useAuthStore } from '../../store/auth';
@@ -15,15 +17,12 @@ export interface ChakanadialProps {
   activeTab?: DialTab;
   onTabPress?: (tab: DialTab) => void;
   onCenterPress?: () => void;
+  centerLabel?: string;
+  compact?: boolean;
 }
 
 function DialIcon({
-  tab,
-  icon,
-  label,
-  active,
-  badge,
-  onPress,
+  tab, icon, label, active, badge, onPress,
 }: {
   tab: DialTab;
   icon: React.ComponentProps<typeof Ionicons>['name'];
@@ -47,30 +46,69 @@ function DialIcon({
   );
 }
 
-export default function ChakanaDial({ activeTab, onTabPress, onCenterPress }: ChakanadialProps) {
+const EASE_OUT = { duration: 260, easing: Easing.out(Easing.cubic) };
+const EASE_IN  = { duration: 200, easing: Easing.in(Easing.cubic) };
+const SPRING   = { damping: 12, stiffness: 300, mass: 0.8 };
+
+export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, centerLabel, compact }: ChakanadialProps) {
   const insets = useSafeAreaInsets();
   const cartCount = useCartCount();
   const role = useAuthStore((s) => s.user?.role ?? 'embajador');
   const handleTab = (tab: DialTab) => onTabPress?.(tab);
 
+  // Center bounce
   const centerScale = useSharedValue(1);
-  // translateX: -36 must live here — if kept in StyleSheet, the animated transform array would override it
+  // translateX: -36 must live here — if in StyleSheet, the animated transform array would override it
   const centerAnimStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: -36 }, { scale: centerScale.value }],
   }));
-  const SPRING = { damping: 12, stiffness: 300, mass: 0.8 };
+
+  // Glass pill expand / collapse
+  const glassOpacity = useSharedValue(compact ? 0 : 1);
+  const glassScaleX  = useSharedValue(compact ? 0 : 1);
+
+  useEffect(() => {
+    if (compact) {
+      glassOpacity.value = withTiming(0, EASE_IN);
+      glassScaleX.value  = withTiming(0, EASE_IN);
+    } else {
+      glassOpacity.value = withTiming(1, EASE_OUT);
+      glassScaleX.value  = withTiming(1, EASE_OUT);
+    }
+  }, [compact]);
+
+  const glassAnimStyle = useAnimatedStyle(() => ({
+    opacity: glassOpacity.value,
+    transform: [{ scaleX: glassScaleX.value }],
+  }));
+
+  // Label chip fades with glass
+  const labelOpacity = useSharedValue(compact ? 1 : 0);
+  useEffect(() => {
+    labelOpacity.value = withTiming(compact ? 1 : 0, compact ? EASE_OUT : EASE_IN);
+  }, [compact]);
+  const labelAnimStyle = useAnimatedStyle(() => ({ opacity: labelOpacity.value }));
 
   const leftTab = role === 'tambu'
     ? { tab: 'pedidos' as DialTab, icon: 'receipt-outline' as const, label: 'PEDIDOS', badge: undefined }
-    : { tab: 'carrito' as DialTab, icon: 'bag-outline' as const,     label: 'CARRITO', badge: cartCount };
+    : { tab: 'carrito' as DialTab, icon: 'bag-outline'     as const, label: 'CARRITO', badge: cartCount };
 
   return (
     <View style={[styles.dialContainer, { bottom: insets.bottom + 18 }]}>
-      <View style={styles.dialGlass}>
+
+      {centerLabel && (
+        <Animated.View style={[styles.centerLabelContainer, labelAnimStyle]}>
+          <View style={styles.centerLabelPill}>
+            <Text style={styles.centerLabelText}>{centerLabel}</Text>
+          </View>
+        </Animated.View>
+      )}
+
+      <Animated.View style={[styles.dialGlass, glassAnimStyle]}>
         <DialIcon {...leftTab} active={activeTab === leftTab.tab} onPress={handleTab} />
         <View style={{ width: 72 }} />
         <DialIcon tab="yo" icon="person-outline" label="PERFIL" active={activeTab === 'yo'} onPress={handleTab} />
-      </View>
+      </Animated.View>
 
       <Animated.View style={[styles.dialCenterWrapper, centerAnimStyle]}>
         <Pressable
@@ -89,6 +127,7 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress }: Ch
           </LinearGradient>
         </Pressable>
       </Animated.View>
+
     </View>
   );
 }
@@ -174,6 +213,27 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#FDFAF7',
     lineHeight: 11,
+  },
+  centerLabelContainer: {
+    position: 'absolute',
+    top: -30,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 21,
+  },
+  centerLabelPill: {
+    backgroundColor: '#A63A2F',
+    paddingHorizontal: 11,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  centerLabelText: {
+    color: '#FDFAF7',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1.8,
+    textTransform: 'uppercase',
   },
   dialIconLabel: {
     fontSize: 9,

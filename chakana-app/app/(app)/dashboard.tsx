@@ -9,7 +9,6 @@ import MetricCard, { RatingDots, MiniBars } from '../../components/dashboard/Met
 import AuriosCard from '../../components/dashboard/AuriosCard';
 import AiNarratorPlayer from '../../components/dashboard/AiNarratorPlayer';
 import InsightCard from '../../components/dashboard/InsightCard';
-import ChakanaDial from '../../components/core/ChakanaDial';
 import SkeletonBox from '../../components/core/SkeletonBox';
 
 import { useAuthStore } from '../../store/auth';
@@ -117,13 +116,6 @@ export default function Dashboard() {
         )}
       </ScrollView>
 
-      <ChakanaDial
-        onCenterPress={() => router.replace('/dashboard')}
-        onTabPress={(tab) => {
-          if (tab === 'yo')      router.push('/perfil');
-          if (tab === 'pedidos') router.push('/pedidos');
-        }}
-      />
     </View>
   );
 }
