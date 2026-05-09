@@ -51,6 +51,7 @@ export default function Login() {
           <View style={styles.header}>
             <Image
               source={require('../../assets/images/splash-icon.png')}
+              resizeMode="contain"
               style={styles.logo}
             />
             <Text style={styles.title}>Bienvenido de vuelta</Text>
@@ -182,7 +183,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 56,
     height: 56,
-    resizeMode: 'contain',
     marginBottom: 16,
   },
   title: {

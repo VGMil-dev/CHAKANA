@@ -52,6 +52,7 @@ export default function Register() {
           <View style={styles.header}>
             <Image
               source={require('../../assets/images/splash-icon.png')}
+              resizeMode="contain"
               style={styles.logo}
             />
             <Text style={styles.titleBlack}>Únete al</Text>
@@ -196,7 +197,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 56,
     height: 56,
-    resizeMode: 'contain',
     marginBottom: 16,
   },
   titleBlack: {

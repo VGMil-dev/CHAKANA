@@ -21,7 +21,8 @@ function TambuImg({ tone, label, height }: { tone: string, label: string, height
     <ImageBackground
       source={require('../../assets/images/tambu_placeholder.webp')}
       style={[styles.tambuImgContainer, { height }]}
-      imageStyle={{ resizeMode: 'cover', width: "100%", height: "100%" }}
+      imageStyle={styles.tambuImg}
+      resizeMode="cover"
     >
       <View style={styles.tambuImgLabelContainer}>
         <Text style={styles.tambuImgLabel}>{label}</Text>
@@ -88,6 +89,10 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'flex-start',
     padding: 0,
+  },
+  tambuImg: {
+    width: '100%',
+    height: '100%',
   },
   tambuImgLabelContainer: {
     backgroundColor: 'rgba(46, 42, 38, 0.6)',

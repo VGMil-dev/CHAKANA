@@ -67,7 +67,11 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress }: Ch
             end={{ x: 1, y: 1 }}
             style={styles.dialCenterButton}
           >
-            <Image source={require('../../assets/images/splash-icon.png')} style={styles.dialCenterIcon} />
+            <Image
+              source={require('../../assets/images/splash-icon.png')}
+              resizeMode="contain"
+              style={styles.dialCenterIcon}
+            />
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -129,7 +133,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     tintColor: '#FDFAF7',
-    resizeMode: 'contain',
   },
   dialIconContainer: {
     alignItems: 'center',
