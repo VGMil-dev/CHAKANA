@@ -1,9 +1,9 @@
 import React from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView,
-  ScrollView, TouchableOpacity, Image,
+  ScrollView, TouchableOpacity,
 } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/auth';
@@ -20,94 +20,161 @@ function truncateWallet(address?: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-// ─── sub-components ─────────────────────────────────────────────────────────
+// ─── Cycle Indicator ────────────────────────────────────────────────────────
+// Mirrors the 4 arms of the Chakana cross: Compra → Reseña → Gana → Canjea
 
-function StatPill({ value, label }: { value: string; label: string }) {
+function CycleIndicator({ activeStep = 3 }: { activeStep?: number }) {
+  const steps = ['COMPRA', 'RESEÑA', 'GANA', 'CANJEA'];
   return (
-    <View style={styles.statPill}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+    <View style={cycle.container}>
+      {steps.map((label, i) => (
+        <React.Fragment key={label}>
+          <View style={cycle.step}>
+            <View style={[cycle.dot, i < activeStep ? cycle.dotActive : cycle.dotInactive]} />
+            <Text style={[cycle.label, i < activeStep ? cycle.labelActive : cycle.labelInactive]}>
+              {label}
+            </Text>
+          </View>
+          {i < steps.length - 1 && (
+            <View style={[cycle.line, i < activeStep - 1 ? cycle.lineActive : cycle.lineInactive]} />
+          )}
+        </React.Fragment>
+      ))}
     </View>
   );
 }
 
-function InfoRow({ icon, text }: { icon: React.ComponentProps<typeof Ionicons>['name']; text: string }) {
-  return (
-    <View style={styles.infoRow}>
-      <Ionicons name={icon} size={16} color="#A09C96" />
-      <Text style={styles.infoText}>{text}</Text>
-    </View>
-  );
-}
+const cycle = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 16,
+  },
+  step: {
+    alignItems: 'center',
+    gap: 6,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+  },
+  dotActive: {
+    backgroundColor: '#3AAFA9',
+  },
+  dotInactive: {
+    backgroundColor: '#E6E2DD',
+  },
+  line: {
+    flex: 1,
+    height: 2,
+    marginTop: 4,
+    borderRadius: 999,
+  },
+  lineActive: {
+    backgroundColor: '#3AAFA9',
+  },
+  lineInactive: {
+    backgroundColor: '#E6E2DD',
+  },
+  label: {
+    fontSize: 8,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+  },
+  labelActive: {
+    color: '#3AAFA9',
+  },
+  labelInactive: {
+    color: '#9A938A',
+  },
+});
 
-// ─── role views ─────────────────────────────────────────────────────────────
+// ─── Embajador view ──────────────────────────────────────────────────────────
 
-function EmbajadorView({ user }: { user: NonNullable<ReturnType<typeof useAuthStore>['user']> }) {
-  const wallet = truncateWallet(user.walletAddress);
+function EmbajadorView() {
   return (
     <>
-      {/* Aurios balance card */}
-      <View style={styles.auriosCard}>
-        <View style={styles.auriosCardTop}>
-          <MaterialCommunityIcons name="rhombus-outline" size={18} color="#C5836F" />
-          <Text style={styles.auriosEyebrow}>BALANCE AURIOS</Text>
+      {/* Aurios balance — surface shift, editorial display number */}
+      <View style={styles.sectionSurface}>
+        <Text style={styles.eyebrow}>BALANCE · AURIOS</Text>
+        <Text style={styles.displayNumber}>2,840</Text>
+        <Text style={styles.displaySub}>circulan en el ecosistema.</Text>
+        <Text style={styles.displayConversion}>= $28.40 en descuentos disponibles</Text>
+      </View>
+
+      {/* Ciclo activo */}
+      <View style={styles.sectionBase}>
+        <Text style={styles.eyebrow}>CICLO ACTIVO</Text>
+        <CycleIndicator activeStep={3} />
+        <Text style={styles.cycleHint}>
+          Publica una reseña para completar el ciclo y ganar más Aurios.
+        </Text>
+      </View>
+
+      {/* Actividad */}
+      <View style={styles.sectionContained}>
+        <Text style={styles.eyebrow}>ACTIVIDAD</Text>
+        <View style={styles.metricsRow}>
+          <View style={styles.metric}>
+            <Text style={styles.metricNumber}>12</Text>
+            <Text style={styles.metricLabel}>COMPRAS</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.metricNumber}>8</Text>
+            <Text style={styles.metricLabel}>RESEÑAS</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.metricNumber}>3</Text>
+            <Text style={styles.metricLabel}>PROPINAS</Text>
+          </View>
         </View>
-        <Text style={styles.auriosAmount}>2,840</Text>
-        <Text style={styles.auriosConversion}>= $28.40 USD en descuentos</Text>
-        <View style={styles.auriosDivider} />
-        <Text style={styles.auriosNote}>Hasta 25% de descuento por compra</Text>
-      </View>
-
-      {/* Stats */}
-      <View style={styles.statsRow}>
-        <StatPill value="12" label="COMPRAS" />
-        <StatPill value="8" label="RESEÑAS" />
-        <StatPill value="3" label="PROPINAS" />
-      </View>
-
-      {/* Info */}
-      <View style={styles.infoCard}>
-        {user.email && <InfoRow icon="mail-outline" text={user.email} />}
-        {wallet && <InfoRow icon="wallet-outline" text={wallet} />}
-        <InfoRow icon="location-outline" text="Cuenca, Ecuador" />
       </View>
     </>
   );
 }
 
-function TambuView({ user }: { user: NonNullable<ReturnType<typeof useAuthStore>['user']> }) {
+// ─── Tambu view ──────────────────────────────────────────────────────────────
+
+function TambuView() {
   const router = useRouter();
   return (
     <>
-      {/* Metrics */}
-      <View style={styles.statsRow}>
-        <StatPill value="4.9" label="RATING" />
-        <StatPill value="+12" label="RESEÑAS" />
-        <StatPill value="4,218" label="AURIOS" />
-      </View>
-
-      {/* Dashboard CTA */}
-      <TouchableOpacity
-        style={styles.dashboardButton}
-        activeOpacity={0.8}
-        onPress={() => router.push('/dashboard')}
-      >
-        <View style={styles.dashboardButtonLeft}>
-          <View style={styles.dashboardIconBox}>
-            <Ionicons name="bar-chart-outline" size={20} color="#9E392D" />
+      {/* Métricas semanales — surface shift */}
+      <View style={styles.sectionSurface}>
+        <Text style={styles.eyebrow}>SEMANA · 28 ABR — 04 MAY</Text>
+        <View style={styles.metricsRow}>
+          <View style={styles.metric}>
+            <Text style={styles.displayNumberSm}>4.9</Text>
+            <Text style={styles.metricLabel}>RATING</Text>
           </View>
-          <View>
-            <Text style={styles.dashboardButtonTitle}>Dashboard semanal</Text>
-            <Text style={styles.dashboardButtonSub}>Reseñas, métricas e insights IA</Text>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.displayNumberSm}>+12</Text>
+            <Text style={styles.metricLabel}>RESEÑAS</Text>
+          </View>
+          <View style={styles.metricDivider} />
+          <View style={styles.metric}>
+            <Text style={styles.displayNumberSm}>4.2k</Text>
+            <Text style={styles.metricLabel}>AURIOS</Text>
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={18} color="#A09C96" />
-      </TouchableOpacity>
+      </View>
 
-      {/* Info */}
-      <View style={styles.infoCard}>
-        {user.email && <InfoRow icon="mail-outline" text={user.email} />}
-        <InfoRow icon="storefront-outline" text="Café · Cuenca, Ecuador" />
+      {/* Dashboard CTA — editorial block */}
+      <View style={styles.sectionContained}>
+        <Text style={styles.eyebrow}>DASHBOARD SEMANAL</Text>
+        <Text style={styles.dashboardTitle}>El pulso{'\n'}del barrio.</Text>
+        <TouchableOpacity
+          style={styles.dashboardCta}
+          activeOpacity={0.7}
+          onPress={() => router.push('/dashboard')}
+        >
+          <Text style={styles.dashboardCtaText}>Ver análisis completo</Text>
+          <Ionicons name="arrow-forward" size={14} color="#A63A2F" />
+        </TouchableOpacity>
       </View>
     </>
   );
@@ -123,6 +190,7 @@ export default function Perfil() {
   const role = user?.role ?? 'embajador';
   const isEmbajador = role === 'embajador';
   const displayName = user?.name ?? 'Embajador';
+  const wallet = truncateWallet(user?.walletAddress);
 
   const handleLogout = () => {
     logout();
@@ -132,40 +200,60 @@ export default function Perfil() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.back} onPress={() => router.back()} activeOpacity={0.7}>
-            <Ionicons name="arrow-back" size={22} color="#3D3D3D" />
+        {/* Nav bar */}
+        <View style={styles.navBar}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()} activeOpacity={0.7}>
+            <Ionicons name="arrow-back" size={20} color="#6B645C" />
           </TouchableOpacity>
-          <Text style={styles.screenTitle}>Perfil</Text>
-          <View style={{ width: 40 }} />
+          <Text style={styles.navEyebrow}>· PERFIL ·</Text>
+          <View style={{ width: 36 }} />
         </View>
 
-        {/* Identity */}
-        <View style={styles.identitySection}>
-          <View style={[styles.avatar, isEmbajador ? styles.avatarEmbajador : styles.avatarTambu]}>
-            <Text style={styles.avatarText}>{initials(displayName)}</Text>
-          </View>
-          <Text style={styles.name}>{displayName}</Text>
-          <View style={[styles.roleBadge, isEmbajador ? styles.roleBadgeEmbajador : styles.roleBadgeTambu]}>
-            <Text style={[styles.roleLabel, isEmbajador ? styles.roleLabelEmbajador : styles.roleLabelTambu]}>
-              {isEmbajador ? 'EMBAJADOR' : 'TAMBU'}
+        {/* Identity — left-aligned, editorial */}
+        <View style={styles.identityBlock}>
+          <View style={styles.identityLeft}>
+            <Text style={[styles.roleEyebrow, isEmbajador ? styles.roleEyebrowRed : styles.roleEyebrowTeal]}>
+              {isEmbajador ? '· EMBAJADOR · CUENCA ·' : '· TAMBU · CUENCA ·'}
             </Text>
+            <Text style={styles.displayName}>{displayName}</Text>
+            {wallet && (
+              <View style={styles.walletPill}>
+                <Ionicons name="wallet-outline" size={12} color="#9A938A" />
+                <Text style={styles.walletText}>{wallet}</Text>
+              </View>
+            )}
+            {user?.email && !wallet && (
+              <Text style={styles.emailText}>{user.email}</Text>
+            )}
+          </View>
+          <View style={[styles.avatar, isEmbajador ? styles.avatarRed : styles.avatarTeal]}>
+            <Text style={styles.avatarText}>{initials(displayName)}</Text>
           </View>
         </View>
 
         {/* Role-specific content */}
-        {isEmbajador
-          ? <EmbajadorView user={user ?? { name: displayName }} />
-          : <TambuView user={user ?? { name: displayName }} />
-        }
+        {isEmbajador ? <EmbajadorView /> : <TambuView />}
+
+        {/* Cuenta */}
+        <View style={styles.sectionBase}>
+          <Text style={styles.eyebrow}>CUENTA</Text>
+          {user?.email && (
+            <View style={styles.accountRow}>
+              <Ionicons name="mail-outline" size={15} color="#9A938A" />
+              <Text style={styles.accountText}>{user.email}</Text>
+            </View>
+          )}
+          <View style={styles.accountRow}>
+            <Ionicons name="location-outline" size={15} color="#9A938A" />
+            <Text style={styles.accountText}>Cuenca, Ecuador</Text>
+          </View>
+        </View>
 
         {/* Logout */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.7}>
-          <Ionicons name="log-out-outline" size={18} color="#A09C96" />
+        <TouchableOpacity style={styles.logoutRow} onPress={handleLogout} activeOpacity={0.6}>
           <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -185,221 +273,248 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F0EB',
   },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-  },
 
-  // header
-  header: {
+  // nav
+  navBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 32,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 4,
   },
-  back: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FCF9F6',
+  backButton: {
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  screenTitle: {
-    fontSize: 16,
+  navEyebrow: {
+    fontSize: 10,
     fontWeight: '700',
-    color: '#3D3D3D',
-    letterSpacing: 0.5,
+    letterSpacing: 2,
+    color: '#9A938A',
+    textTransform: 'uppercase',
   },
 
-  // identity
-  identitySection: {
-    alignItems: 'center',
-    marginBottom: 28,
+  // identity block (left-aligned, avatar floats right)
+  identityBlock: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 28,
   },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
+  identityLeft: {
+    flex: 1,
+    paddingRight: 16,
   },
-  avatarEmbajador: {
-    backgroundColor: '#9E392D',
+  roleEyebrow: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: 8,
   },
-  avatarTambu: {
-    backgroundColor: '#3D3D3D',
+  roleEyebrowRed: {
+    color: '#A63A2F',
   },
-  avatarText: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#F5F0EB',
+  roleEyebrowTeal: {
+    color: '#3AAFA9',
   },
-  name: {
-    fontSize: 22,
+  displayName: {
+    fontSize: 34,
     fontWeight: '800',
     color: '#3D3D3D',
-    marginBottom: 10,
+    letterSpacing: -0.5,
+    lineHeight: 38,
+    marginBottom: 12,
   },
-  roleBadge: {
-    paddingHorizontal: 14,
+  walletPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F0EAE3',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
   },
-  roleBadgeEmbajador: {
-    backgroundColor: '#F7E7E3',
-  },
-  roleBadgeTambu: {
-    backgroundColor: '#E8EDE8',
-  },
-  roleLabel: {
+  walletText: {
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.6,
+    color: '#6B645C',
+    fontWeight: '500',
+    fontVariant: ['tabular-nums'],
   },
-  roleLabelEmbajador: {
-    color: '#9E392D',
+  emailText: {
+    fontSize: 13,
+    color: '#9A938A',
+    fontWeight: '400',
   },
-  roleLabelTambu: {
-    color: '#3A6B3A',
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    shadowColor: '#86231A',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  avatarRed: {
+    backgroundColor: '#A63A2F',
+  },
+  avatarTeal: {
+    backgroundColor: '#3AAFA9',
+  },
+  avatarText: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#F5F0EB',
+    letterSpacing: 1,
   },
 
-  // aurios card (Embajador)
-  auriosCard: {
+  // section containers — background shifts, no borders
+  sectionBase: {
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+  sectionSurface: {
+    backgroundColor: '#F8F3EE',
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+  sectionContained: {
+    backgroundColor: '#F0EAE3',
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+
+  // eyebrow (section label)
+  eyebrow: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    color: '#A63A2F',
+    marginBottom: 12,
+  },
+
+  // aurios display
+  displayNumber: {
+    fontSize: 60,
+    fontWeight: '800',
+    color: '#3D3D3D',
+    letterSpacing: -1,
+    lineHeight: 64,
+  },
+  displayNumberSm: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#3D3D3D',
+    letterSpacing: -0.5,
+  },
+  displaySub: {
+    fontSize: 14,
+    color: '#6B645C',
+    marginTop: 4,
+    fontWeight: '400',
+  },
+  displayConversion: {
+    fontSize: 12,
+    color: '#9A938A',
+    marginTop: 4,
+  },
+
+  // cycle hint
+  cycleHint: {
+    fontSize: 12,
+    color: '#9A938A',
+    marginTop: 16,
+    lineHeight: 18,
+  },
+
+  // activity / metrics
+  metricsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  metric: {
+    flex: 1,
+    alignItems: 'flex-start',
+    gap: 4,
+  },
+  metricNumber: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#3D3D3D',
+    letterSpacing: -0.5,
+  },
+  metricLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 1.6,
+    color: '#9A938A',
+    textTransform: 'uppercase',
+  },
+  metricDivider: {
+    width: 1,
+    height: 40,
     backgroundColor: '#3D3D3D',
-    borderRadius: 20,
-    padding: 22,
+    opacity: 0.08,
+    marginHorizontal: 16,
+  },
+
+  // dashboard cta (Tambu)
+  dashboardTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#3D3D3D',
+    letterSpacing: -0.5,
+    lineHeight: 34,
+    marginTop: 4,
     marginBottom: 16,
   },
-  auriosCardTop: {
+  dashboardCta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    alignSelf: 'flex-start',
   },
-  auriosEyebrow: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.6,
-    color: '#C5836F',
-  },
-  auriosAmount: {
-    fontSize: 48,
-    fontWeight: '800',
-    color: '#F5F0EB',
-    lineHeight: 54,
-  },
-  auriosConversion: {
-    fontSize: 13,
-    color: '#A09C96',
-    marginTop: 2,
-    marginBottom: 16,
-  },
-  auriosDivider: {
-    height: 1,
-    backgroundColor: '#F5F0EB',
-    opacity: 0.1,
-    marginBottom: 12,
-  },
-  auriosNote: {
-    fontSize: 12,
-    color: '#8A8580',
+  dashboardCtaText: {
+    fontSize: 14,
+    color: '#A63A2F',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 
-  // stats row
-  statsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
-  },
-  statPill: {
-    flex: 1,
-    backgroundColor: '#FCF9F6',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    gap: 4,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#3D3D3D',
-  },
-  statLabel: {
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 1.4,
-    color: '#A09C96',
-  },
-
-  // info card
-  infoCard: {
-    backgroundColor: '#FCF9F6',
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    gap: 2,
-  },
-  infoRow: {
+  // account rows
+  accountRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
-  infoText: {
+  accountText: {
     fontSize: 14,
-    color: '#3D3D3D',
-    fontWeight: '500',
-  },
-
-  // dashboard CTA (Tambu)
-  dashboardButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FCF9F6',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-  },
-  dashboardButtonLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  dashboardIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#F7E7E3',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dashboardButtonTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#3D3D3D',
-    marginBottom: 2,
-  },
-  dashboardButtonSub: {
-    fontSize: 12,
-    color: '#A09C96',
+    color: '#6B645C',
+    fontWeight: '400',
   },
 
   // logout
-  logoutButton: {
-    flexDirection: 'row',
+  logoutRow: {
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 16,
-    marginTop: 8,
+    paddingVertical: 28,
   },
   logoutText: {
-    fontSize: 14,
-    color: '#A09C96',
-    fontWeight: '600',
+    fontSize: 13,
+    color: '#9A938A',
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
 });
