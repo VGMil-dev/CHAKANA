@@ -5,7 +5,7 @@
 Todo viene de dos lugares:
 
 - Tipos: `import { Business, DiscountResult } from '../types'`
-- Hooks: `import { useAuth, useBusinesses, useReviewSubmit, useCheckout } from '../hooks'`
+- Hooks: `import { useAuth, useBusinesses, useReviewSubmit, useCheckout, useHybridCheckout } from '../hooks'`
 - Selectores: `import { useTambuActivo, useAurioBalance } from '../store/selectors'`
 
 ## Regla de oro
@@ -25,6 +25,7 @@ Dev 1 NUNCA importa desde:
 | `useBusinesses` | `listaTambus`, `tambuActivo`, `isLoadingBusinesses`, `businessError` | `fetchBusinesses`, `selectTambu`, `clearSelection` |
 | `useReviewSubmit` | `currentReviewText`, `isTextValid`, `charsRemaining`, `isSubmittingReview`, `reviewError`, `reviewSuccess` | `onTextChange`, `submitReview`, `resetForm` |
 | `useCheckout` | `checkoutTotal`, `discountResult`, `sliderMax`, `isProcessing`, `checkoutError` | `setTotal`, `onSliderChange`, `confirmCheckout` |
+| `useHybridCheckout` | `isHybridProcessing`, `hybridError` | `confirmHybridCheckout` |
 | `useDiscount` | `result`, `sliderMax` | `onSliderChange`, `resetDiscount` |
 
 ## Integracion con Aurio SDK
@@ -49,6 +50,18 @@ Dev 1 NUNCA importa desde:
 - `useAuth.logout()` cierra la sesion en Supabase y limpia solo el estado de autenticacion.
 - `isConnected` de `useAuth` significa sesion Supabase activa; la conexion de wallet sigue viviendo en `useWallet`.
 - Dev 1 consume `useAuth`; no importa `../services/supabase` directamente.
+
+## Checkout hibrido Aurio + Stripe
+
+- Aurio es descuento opcional.
+- Stripe es pago final.
+- Usuario puede pagar sin usar Aurios.
+- Si usa Aurios, primero se redimen y se obtiene `aurioSignature`.
+- Despues Stripe cobra el total final.
+- Para MVP, la redencion Aurio usa `buildAurioTransferTx` hacia payout wallet QA.
+- En futuro, la redencion puede usar `payToTambu` con NFT Tambu metadata.
+- Backend debe verificar `aurioSignature` antes de aplicar descuento en produccion.
+- `useHybridCheckout.confirmHybridCheckout(...)` crea la sesion Stripe despues de la redencion o directamente si `auriosToSpend` es 0.
 
 ## Edge Function de recompensa AURIO
 

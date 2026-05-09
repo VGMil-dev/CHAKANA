@@ -32,6 +32,7 @@
 - Fix web Solana: `mobile/polyfills.ts` define `globalThis.Buffer` y `crypto.getRandomValues` antes de cargar Expo Router.
 - Checkout MVP: mientras no exista NFT Tambu real, QA usa `EXPO_PUBLIC_QA_PAYOUT_WALLET` y `buildAurioTransferTx`; `EXPO_PUBLIC_QA_TAMBU_MINT` queda reservado para `payToTambu`.
 - Stripe/commerce: se extrajeron Edge Functions y migracion commerce desde `origin/copilot/complete-integration-workflow` sin mergear la rama; el frontend Stripe queda aislado en `src/services/commerce/stripe.service.ts` y no toca el checkout Aurio.
+- Checkout hibrido: Aurio queda como descuento opcional/redencion previa y Stripe como pago final con tarjeta; `useHybridCheckout` orquesta crear la sesion Stripe despues de redimir Aurios o directo si `auriosToSpend` es 0.
 
 ---
 
@@ -41,6 +42,7 @@
 - Integracion UI Dev 1 con hooks Dev 2 pendiente
 - Falta conectar Businesses para reemplazar env QA por `tambuMint` o `payoutWallet` del negocio seleccionado.
 - Falta validar/aplicar schema commerce y desplegar Edge Functions Stripe antes de conectar el boton "Pagar con tarjeta".
+- Falta verificar `aurioSignature` on-chain en backend antes de aplicar descuento en produccion.
 
 ---
 

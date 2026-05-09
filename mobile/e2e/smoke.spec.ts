@@ -6,6 +6,10 @@ const dangerousMockTexts = [
   ['28', '40'].join(''),
   ['Edit app', '/index.tsx'].join(''),
 ];
+const aurioPaymentCopyPattern = new RegExp(
+  `${['Pagar con', 'Aurios'].join(' ')}|${['Pago con', 'Aurios'].join(' ')}`,
+  'i',
+);
 
 async function expectDangerousMocksHidden(page: import('@playwright/test').Page): Promise<void> {
   for (const text of dangerousMockTexts) {
@@ -54,15 +58,18 @@ test.describe('Chakana web smoke', () => {
     await expect(page.getByText(/Deja tu reseña|Mínimo 50 caracteres/i).first()).toBeVisible();
   });
 
-  test('checkout renderiza estado de tambuMint configurable', async ({ page }) => {
+  test('checkout separa descuento Aurio y pago con tarjeta', async ({ page }) => {
     await page.goto('/checkout');
 
     await expect(page.getByText(/Checkout/i).first()).toBeVisible();
-    await expect(page.getByText(/Balance Aurios|Aurios/i).first()).toBeVisible();
+    await expect(page.getByText(/Descuento Aurio/i).first()).toBeVisible();
+    await expect(page.getByText(/Pagar con tarjeta/i).first()).toBeVisible();
+    await expect(page.getByText(/Total a pagar con tarjeta/i).first()).toBeVisible();
+    await expect(page.getByText(aurioPaymentCopyPattern)).toHaveCount(0);
     await expect(page.getByTestId('checkout-pay-button')).toBeVisible();
     await expect(
       page.getByText(
-        /Modo QA: pago directo a wallet del negocio\.|Tambu conectado para prueba devnet\.|Falta tambuMint o payout wallet para probar transferencia\./,
+        /Modo QA: redencion directa de Aurios\.|Tambu conectado para prueba devnet\.|Falta tambuMint o payout wallet para probar redencion\./,
       ),
     ).toBeVisible();
   });

@@ -1,9 +1,9 @@
 # Dev 2 Contract
 
-## Checkout Aurio
+## Descuento Aurio
 
-- Dev 2 orquesta checkout con `useCheckout`.
-- Dev 2 usa `payToTambu` de `aurio-sdk` para construir la transaccion cuando existe NFT mint real del Tambu.
+- Dev 2 orquesta redencion de descuento con `useCheckout`.
+- Dev 2 usa `payToTambu` de `aurio-sdk` para construir la transaccion de redencion cuando existe NFT mint real del Tambu.
 - Dev 2 usa `buildAurioTransferTx` para el workaround MVP con wallet destino directa QA.
 - Dev 2 recibe `signTransaction(tx)` desde Dev 3 o wallet web temporal.
 - Dev 2 envia y confirma la transaccion con `getAurioConnection`.
@@ -12,8 +12,9 @@
 - Dev 2 nunca firma con keypair.
 - Dev 2 nunca usa mint authority.
 - Dev 2 nunca envia Aurios al mint address.
+- Aurio no es el pago principal; solo reduce el total que luego cobra Stripe.
 
-## Checkout MVP
+## Redencion MVP
 
 - El flujo ideal usa `payToTambu({ sender, tambuMint, amount })`.
 - Para MVP, mientras no exista NFT Tambu con metadata, se usa `buildAurioTransferTx({ sender, recipient: payoutWallet, amount })`.
@@ -24,7 +25,19 @@
 - `EXPO_PUBLIC_QA_PAYOUT_WALLET` se usa para wallet directa QA.
 - No usar `AURIO_MINT` como destino.
 - No restar balance manualmente.
-- Despues del pago, balance se refresca con `getAurioBalance`.
+- Despues de la redencion, balance se refresca con `getAurioBalance`.
+
+## Checkout hibrido Aurio + Stripe
+
+- Aurio es descuento opcional.
+- Stripe es pago final.
+- Usuario puede pagar sin usar Aurios.
+- Si usa Aurios, primero se redimen y se obtiene `aurioSignature`.
+- Despues Stripe cobra el total final.
+- Para MVP, la redencion Aurio usa `buildAurioTransferTx` hacia payout wallet QA.
+- En futuro, la redencion puede usar `payToTambu` con NFT Tambu metadata.
+- Backend debe verificar `aurioSignature` antes de aplicar descuento en produccion.
+- `useHybridCheckout` orquesta la secuencia sin mezclar `aurio-sdk` con el servicio Stripe.
 
 ## Estado requerido
 
