@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+
 import { useCartItems } from '../../store/cart';
 
 interface Props {
@@ -11,7 +12,7 @@ interface Props {
 function LineItem({ title, detail, price }: { title: string; detail: string; price: string }) {
   return (
     <View style={styles.lineItem}>
-      <View style={{ flex: 1 }}>
+      <View style={styles.lineCopy}>
         <Text style={styles.lineTitle}>{title}</Text>
         <Text style={styles.lineDetail}>{detail}</Text>
       </View>
@@ -31,23 +32,20 @@ function SummaryRow({ label, value, accent }: { label: string; value: string; ac
 
 export default function OrderCard({ subtotal, aurios, discount }: Props) {
   const items = useCartItems();
+
   return (
     <View style={styles.card}>
-      {items.map(item => (
+      {items.map((item) => (
         <LineItem
           key={item.id}
           title={item.title}
-          detail={`${item.type}${item.qty > 1 ? ` · ×${item.qty}` : ''}`}
+          detail={`${item.type}${item.qty > 1 ? ` · x${item.qty}` : ''}`}
           price={(item.price * item.qty).toFixed(2)}
         />
       ))}
       <View style={styles.divider} />
       <SummaryRow label="Subtotal" value={`$ ${subtotal.toFixed(2)}`} />
-      <SummaryRow
-        label={`Aurios aplicados · −${aurios}`}
-        value={`− $ ${discount.toFixed(2)}`}
-        accent
-      />
+      <SummaryRow label={`Aurios aplicados · -${aurios}`} value={`- $ ${discount.toFixed(2)}`} accent />
     </View>
   );
 }
@@ -69,6 +67,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingVertical: 7,
     gap: 12,
+  },
+  lineCopy: {
+    flex: 1,
   },
   lineTitle: {
     fontWeight: '500',

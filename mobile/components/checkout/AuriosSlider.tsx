@@ -1,50 +1,60 @@
-import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, Animated, PanResponder } from 'react-native';
+import React, { useRef } from 'react';
+import { Animated, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { CHECKOUT_CONFIG } from '../../data/checkout';
 
-const { maxDiscountPct: MAX_PCT, railRange: RAIL_RANGE } = CHECKOUT_CONFIG;
+import { formatAurios, usdToAurios } from '../../../src/utils/sliderConfig';
+
 const DISC_SIZE = 28;
 
 interface Props {
-  initialPct?: number;
-  subtotal: number;
+  checkoutTotal: number;
+  auriosToSpend: number;
   aurioBalance: number;
+  sliderMax: number;
   isWalletConnected: boolean;
-  onPctChange: (pct: number) => void;
+  onAuriosChange: (aurios: number) => void;
+  onClear: () => void;
 }
 
 export default function AuriosSlider({
-  initialPct = 18,
-  subtotal,
+  checkoutTotal,
+  auriosToSpend,
   aurioBalance,
+  sliderMax,
   isWalletConnected,
-  onPctChange,
+  onAuriosChange,
+  onClear,
 }: Props) {
-  const [pct, setPct]     = useState(initialPct);
-  const onChangeRef       = useRef(onPctChange);
-  onChangeRef.current     = onPctChange;
+  const onChangeRef = useRef(onAuriosChange);
+  onChangeRef.current = onAuriosChange;
 
-  const railWidth         = useRef(0);
-  const dragStartX        = useRef(0);
-  const overshootAnim     = useRef(new Animated.Value(0)).current;
-  const scaleAnim         = useRef(new Animated.Value(1)).current;
+  const railWidth = useRef(0);
+  const dragStartX = useRef(0);
+  const overshootAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  const aurios = Math.round(subtotal * 100 * (pct / 100));
+  const percentUsed = checkoutTotal > 0 ? (auriosToSpend * 0.01 * 100) / checkoutTotal : 0;
+  const railMax = Math.max(sliderMax, 1);
+  const fillRatio = sliderMax > 0 ? Math.min(1, auriosToSpend / sliderMax) : 0;
+  const auriosFor5Percent = usdToAurios(checkoutTotal * 0.05);
+  const auriosFor10Percent = usdToAurios(checkoutTotal * 0.1);
+
+  const applyAurios = (value: number): void => {
+    onChangeRef.current(Math.min(value, sliderMax));
+  };
 
   const applyX = useRef((x: number) => {
     const w = railWidth.current;
     if (!w) return;
-    const ratio     = Math.max(0, Math.min(1.22, x / w));
-    const requested = ratio * RAIL_RANGE;
-    if (requested > MAX_PCT) {
-      setPct(MAX_PCT);
-      onChangeRef.current(MAX_PCT);
-      overshootAnim.setValue(Math.min(14, (requested - MAX_PCT) * 3.5));
+
+    const ratio = Math.max(0, Math.min(1.22, x / w));
+    const requested = Math.round(ratio * railMax);
+
+    if (requested > sliderMax) {
+      onChangeRef.current(sliderMax);
+      overshootAnim.setValue(Math.min(14, ((requested - sliderMax) / railMax) * 40));
     } else {
-      const newPct = Math.max(0, requested);
-      setPct(newPct);
-      onChangeRef.current(newPct);
+      onChangeRef.current(Math.max(0, requested));
       overshootAnim.setValue(0);
     }
   });
@@ -52,9 +62,14 @@ export default function AuriosSlider({
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder:  () => true,
+      onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (evt) => {
-        Animated.spring(scaleAnim, { toValue: 1.06, useNativeDriver: true, speed: 24, bounciness: 4 }).start();
+        Animated.spring(scaleAnim, {
+          toValue: 1.06,
+          useNativeDriver: true,
+          speed: 24,
+          bounciness: 4,
+        }).start();
         dragStartX.current = evt.nativeEvent.locationX;
         applyX.current(dragStartX.current);
       },
@@ -63,34 +78,45 @@ export default function AuriosSlider({
       },
       onPanResponderRelease: () => {
         Animated.parallel([
-          Animated.spring(overshootAnim, { toValue: 0, useNativeDriver: true, damping: 12, stiffness: 220, mass: 0.8 }),
-          Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 24, bounciness: 4 }),
+          Animated.spring(overshootAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+            damping: 12,
+            stiffness: 220,
+            mass: 0.8,
+          }),
+          Animated.spring(scaleAnim, {
+            toValue: 1,
+            useNativeDriver: true,
+            speed: 24,
+            bounciness: 4,
+          }),
         ]).start();
       },
       onPanResponderTerminate: () => {
         overshootAnim.setValue(0);
         scaleAnim.setValue(1);
       },
-    })
+    }),
   ).current;
 
-  const fillPct  = `${(pct / RAIL_RANGE) * 100}%` as `${number}%`;
-  const discLeft = `${(pct / RAIL_RANGE) * 100}%` as `${number}%`;
-  const maxMarkerLeft = `${(MAX_PCT / RAIL_RANGE) * 100}%` as `${number}%`;
+  const fillPct = `${fillRatio * 100}%` as `${number}%`;
+  const discLeft = `${fillRatio * 100}%` as `${number}%`;
+  const maxMarkerLeft = '100%' as `${number}%`;
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <View>
           <Text style={styles.eyebrow}>DESCUENTO CON AURIOS</Text>
-          <Text style={styles.pct}>{Math.round(pct)}%</Text>
+          <Text style={styles.pct}>{Math.round(percentUsed)}%</Text>
         </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <Text style={styles.eyebrow}>AURIOS</Text>
+        <View style={styles.balanceBlock}>
+          <Text style={styles.eyebrow}>BALANCE</Text>
           <View style={styles.auriosRow}>
-            <Text style={styles.auriosValue}>−{aurios}</Text>
+            <Text style={styles.auriosValue}>-{auriosToSpend}</Text>
             <Text style={styles.auriosMax}>
-              {isWalletConnected ? ` / ${Math.floor(aurioBalance)} AUR` : ' · conecta wallet'}
+              {isWalletConnected ? ` / ${Math.floor(aurioBalance)} Aurios` : ' · conecta wallet'}
             </Text>
           </View>
         </View>
@@ -98,9 +124,10 @@ export default function AuriosSlider({
 
       <View
         style={styles.rail}
-        onLayout={e => { railWidth.current = e.nativeEvent.layout.width; }}
-        {...panResponder.panHandlers}
-      >
+        onLayout={(e) => {
+          railWidth.current = e.nativeEvent.layout.width;
+        }}
+        {...panResponder.panHandlers}>
         <View style={styles.track} />
         <LinearGradient
           colors={['#C5836F', '#A63A2F']}
@@ -109,9 +136,7 @@ export default function AuriosSlider({
           style={[styles.fill, { width: fillPct }]}
         />
         <View style={[styles.maxMarker, { left: maxMarkerLeft }]} />
-        <Text style={[styles.maxLabel, { left: maxMarkerLeft }]}> 
-          MAX 25%
-        </Text>
+        <Text style={[styles.maxLabel, { left: maxMarkerLeft }]}>MAX 25%</Text>
         <Animated.View
           style={[
             styles.disc,
@@ -120,16 +145,38 @@ export default function AuriosSlider({
               marginLeft: -(DISC_SIZE / 2),
               transform: [{ translateX: overshootAnim }, { scale: scaleAnim }],
             },
-          ]}
-        >
+          ]}>
           <View style={styles.discDot} />
         </Animated.View>
       </View>
 
+      <View style={styles.presets}>
+        <Pressable style={styles.presetButton} onPress={() => applyAurios(auriosFor5Percent)}>
+          <Text style={styles.presetLabel}>5% de descuento</Text>
+          <Text style={styles.presetValue}>{Math.min(auriosFor5Percent, sliderMax)} Aurios</Text>
+        </Pressable>
+        <Pressable style={styles.presetButton} onPress={() => applyAurios(auriosFor10Percent)}>
+          <Text style={styles.presetLabel}>10% de descuento</Text>
+          <Text style={styles.presetValue}>{Math.min(auriosFor10Percent, sliderMax)} Aurios</Text>
+        </Pressable>
+        <Pressable style={styles.presetButton} onPress={() => applyAurios(sliderMax)}>
+          <Text style={styles.presetLabel}>Máximo permitido</Text>
+          <Text style={styles.presetValue}>{sliderMax} Aurios</Text>
+        </Pressable>
+        <Pressable style={[styles.presetButton, styles.clearButton]} onPress={onClear}>
+          <Text style={styles.presetLabel}>Limpiar</Text>
+          <Text style={styles.presetValue}>0 Aurios</Text>
+        </Pressable>
+      </View>
+
       <Text style={styles.hint}>
-        {pct >= MAX_PCT
-          ? <Text style={styles.hintMax}>Llegaste al límite del ciclo. Más allá, lo guarda la tierra.</Text>
-          : '1 Auro = 1¢. Arrastrá el disco para aplicar más. Tope del 25%.'}
+        {auriosToSpend >= sliderMax && sliderMax > 0 ? (
+          <Text style={styles.hintMax}>
+            Llegaste al límite del ciclo. Más allá, lo guarda la tierra.
+          </Text>
+        ) : (
+          `1 Aurio = 1 centavo. Puedes usar hasta ${formatAurios(sliderMax)} en este pedido.`
+        )}
       </Text>
     </View>
   );
@@ -152,6 +199,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 20,
   },
+  balanceBlock: {
+    alignItems: 'flex-end',
+  },
   eyebrow: {
     fontWeight: '600',
     fontSize: 9.5,
@@ -164,7 +214,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 42,
     color: '#A63A2F',
-    letterSpacing: -1,
+    letterSpacing: 0,
     lineHeight: 46,
   },
   auriosRow: {
@@ -175,7 +225,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 17,
     color: '#2E2A26',
-    letterSpacing: -0.3,
+    letterSpacing: 0,
   },
   auriosMax: {
     fontSize: 12,
@@ -218,7 +268,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     color: '#86231A',
     textTransform: 'uppercase',
-    transform: [{ translateX: -14 }],
+    transform: [{ translateX: -48 }],
   },
   disc: {
     position: 'absolute',
@@ -240,6 +290,33 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#A63A2F',
+  },
+  presets: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  presetButton: {
+    backgroundColor: '#F8F3EE',
+    borderRadius: 10,
+    minWidth: 132,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  clearButton: {
+    backgroundColor: '#E6E2DD',
+  },
+  presetLabel: {
+    color: '#3D3D3D',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  presetValue: {
+    color: '#A63A2F',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 3,
   },
   hint: {
     marginTop: 12,
