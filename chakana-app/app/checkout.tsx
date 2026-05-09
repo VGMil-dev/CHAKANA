@@ -16,8 +16,34 @@ const DISC_SIZE = 28;
 const RAIL_RANGE = 33;
 
 // ─────────────────────────────────────────────────────────────
-// Sub-components
+// Components
 // ─────────────────────────────────────────────────────────────
+
+function CheckoutNav({ onBack }: { onBack: () => void }) {
+  return (
+    <View style={styles.nav}>
+      <Pressable
+        onPress={onBack}
+        style={({ pressed }) => [styles.navBack, pressed && styles.pressed]}
+      >
+        <Ionicons name="arrow-back" size={20} color="#3D3D3D" />
+      </Pressable>
+      <Text style={styles.navLabel}>02 · CHECKOUT</Text>
+      <View style={{ width: 44 }} />
+    </View>
+  );
+}
+
+function TambuHeader() {
+  return (
+    <View style={styles.tambuHeader}>
+      <Text style={styles.eyebrow}>· TAMBU SAN SEBASTIÁN ·</Text>
+      <Text style={styles.displayTitle}>
+        Tu pedido{'\n'}<Text style={styles.displayAccent}>de hoy.</Text>
+      </Text>
+    </View>
+  );
+}
 
 function LineItem({ title, detail, price }: { title: string; detail: string; price: string }) {
   return (
@@ -40,32 +66,41 @@ function SummaryRow({ label, value, accent }: { label: string; value: string; ac
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Screen
-// ─────────────────────────────────────────────────────────────
+function OrderCard({ aurios, discount }: { aurios: number; discount: number }) {
+  return (
+    <View style={styles.card}>
+      <LineItem title="Café de altura · Saraguro"   detail="237 ml · doble"   price="3.40" />
+      <LineItem title="Bizcocho de panela"           detail="con queso fresco" price="2.50" />
+      <LineItem title="Empanada de viento"           detail="azúcar morena"    price="2.50" />
+      <View style={styles.cardDivider} />
+      <SummaryRow label="Subtotal"               value={`$ ${SUBTOTAL.toFixed(2)}`} />
+      <SummaryRow
+        label={`Aurios aplicados · −${aurios}`}
+        value={`− $ ${discount.toFixed(2)}`}
+        accent
+      />
+    </View>
+  );
+}
 
-export default function Checkout() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
+function AuriosSlider({
+  initialPct = 18,
+  onPctChange,
+}: {
+  initialPct?: number;
+  onPctChange: (pct: number) => void;
+}) {
+  const [pct, setPct]     = useState(initialPct);
+  const onChangeRef       = useRef(onPctChange);
+  onChangeRef.current     = onPctChange;
 
-  const [pct, setPct]             = useState(18);
-  const [activeDrag, setActiveDrag] = useState(false);
+  const railWidth         = useRef(0);
+  const dragStartX        = useRef(0);
+  const overshootAnim     = useRef(new Animated.Value(0)).current;
+  const scaleAnim         = useRef(new Animated.Value(1)).current;
 
-  // Rail measurement
-  const railWidth   = useRef(0);
-  // Drag start: we track where the user first touched on the rail
-  // and add PanResponder's gestureState.dx to derive current x
-  const dragStartX  = useRef(0);
+  const aurios = Math.round(SUBTOTAL * 100 * (pct / 100));
 
-  // Animated values — scale and overshoot use native driver (transform only)
-  const overshootAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim     = useRef(new Animated.Value(1)).current;
-
-  const aurios   = Math.round(SUBTOTAL * 100 * (pct / 100));
-  const discount = aurios / 100;
-  const total    = (SUBTOTAL - discount).toFixed(2);
-
-  // Apply a raw x coordinate (pixels into the rail) to update pct + overshoot
   const applyX = useRef((x: number) => {
     const w = railWidth.current;
     if (!w) return;
@@ -74,9 +109,12 @@ export default function Checkout() {
     const requested = ratio * RAIL_RANGE;
     if (requested > MAX_PCT) {
       setPct(MAX_PCT);
+      onChangeRef.current(MAX_PCT);
       overshootAnim.setValue(Math.min(14, (requested - MAX_PCT) * 3.5));
     } else {
-      setPct(Math.max(0, requested));
+      const newPct = Math.max(0, requested);
+      setPct(newPct);
+      onChangeRef.current(newPct);
       overshootAnim.setValue(0);
     }
   });
@@ -87,7 +125,6 @@ export default function Checkout() {
       onMoveShouldSetPanResponder:  () => true,
 
       onPanResponderGrant: (evt) => {
-        setActiveDrag(true);
         Animated.spring(scaleAnim, {
           toValue: 1.06, useNativeDriver: true, speed: 24, bounciness: 4,
         }).start();
@@ -100,7 +137,6 @@ export default function Checkout() {
       },
 
       onPanResponderRelease: () => {
-        setActiveDrag(false);
         Animated.parallel([
           Animated.spring(overshootAnim, {
             toValue: 0, useNativeDriver: true,
@@ -113,152 +149,144 @@ export default function Checkout() {
       },
 
       onPanResponderTerminate: () => {
-        setActiveDrag(false);
         overshootAnim.setValue(0);
         scaleAnim.setValue(1);
       },
     })
   ).current;
 
-  // Derived positions for the slider visuals (non-animated, update on state change)
-  const fillPct = `${(pct / RAIL_RANGE) * 100}%` as `${number}%`;
+  const fillPct  = `${(pct / RAIL_RANGE) * 100}%` as `${number}%`;
   const discLeft = `${(pct / RAIL_RANGE) * 100}%` as `${number}%`;
+
+  return (
+    <View style={styles.sliderCard}>
+
+      <View style={styles.sliderHeader}>
+        <View>
+          <Text style={styles.sliderEyebrow}>DESCUENTO CON AURIOS</Text>
+          <Text style={styles.sliderPct}>{Math.round(pct)}%</Text>
+        </View>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={styles.sliderEyebrow}>AURIOS</Text>
+          <View style={styles.sliderAuriosRow}>
+            <Text style={styles.sliderAuriosValue}>−{aurios}</Text>
+            <Text style={styles.sliderAuriosMax}> / 2840</Text>
+          </View>
+        </View>
+      </View>
+
+      <View
+        style={styles.rail}
+        onLayout={e => { railWidth.current = e.nativeEvent.layout.width; }}
+        {...panResponder.panHandlers}
+      >
+        <View style={styles.track} />
+        <LinearGradient
+          colors={['#C5836F', '#A63A2F']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[styles.fill, { width: fillPct }]}
+        />
+        <View style={[styles.maxMarker, { left: `${(MAX_PCT / RAIL_RANGE) * 100}%` as any }]} />
+        <Text style={[styles.maxLabel, { left: `${(MAX_PCT / RAIL_RANGE) * 100}%` as any }]}>
+          MAX 25%
+        </Text>
+        <Animated.View
+          style={[
+            styles.disc,
+            {
+              left: discLeft,
+              marginLeft: -(DISC_SIZE / 2),
+              transform: [
+                { translateX: overshootAnim },
+                { scale: scaleAnim },
+              ],
+            },
+          ]}
+        >
+          <View style={styles.discDot} />
+        </Animated.View>
+      </View>
+
+      <Text style={styles.sliderHint}>
+        {pct >= MAX_PCT
+          ? <Text style={styles.sliderHintMax}>Llegaste al límite del ciclo. Más allá, lo guarda la tierra.</Text>
+          : '1 Auro = 1¢. Arrastrá el disco para aplicar más. Tope del 25%.'}
+      </Text>
+
+    </View>
+  );
+}
+
+function TotalBar({
+  total,
+  onPay,
+  bottomInset,
+}: {
+  total: string;
+  onPay: () => void;
+  bottomInset: number;
+}) {
+  return (
+    <View style={[styles.totalBar, { paddingBottom: Math.max(bottomInset, 16) + 8 }]}>
+      <View style={styles.totalCard}>
+        <View>
+          <Text style={styles.totalLabel}>TOTAL A PAGAR</Text>
+          <Text style={styles.totalValue}>$ {total}</Text>
+        </View>
+        <Pressable
+          onPress={onPay}
+          style={({ pressed }) => [pressed && { opacity: 0.9 }]}
+        >
+          <LinearGradient
+            colors={['#86231A', '#A63A2F']}
+            style={styles.payBtn}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+          >
+            <Ionicons name="scan-outline" size={18} color="#FDFAF7" />
+            <Text style={styles.payBtnText}>Pagar</Text>
+          </LinearGradient>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Screen
+// ─────────────────────────────────────────────────────────────
+
+export default function Checkout() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  const [pct, setPct] = useState(18);
+
+  const aurios   = Math.round(SUBTOTAL * 100 * (pct / 100));
+  const discount = aurios / 100;
+  const total    = (SUBTOTAL - discount).toFixed(2);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
 
-      {/* Nav */}
-      <View style={styles.nav}>
-        <Pressable
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.navBack, pressed && styles.pressed]}
-        >
-          <Ionicons name="arrow-back" size={20} color="#3D3D3D" />
-        </Pressable>
-        <Text style={styles.navLabel}>02 · CHECKOUT</Text>
-        <View style={{ width: 44 }} />
-      </View>
+      <CheckoutNav onBack={() => router.back()} />
 
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-
-        {/* Tambu mini-header */}
-        <View style={styles.tambuHeader}>
-          <Text style={styles.eyebrow}>· TAMBU SAN SEBASTIÁN ·</Text>
-          <Text style={styles.displayTitle}>
-            Tu pedido{'\n'}<Text style={styles.displayAccent}>de hoy.</Text>
-          </Text>
-        </View>
-
-        {/* Order summary card */}
-        <View style={styles.card}>
-          <LineItem title="Café de altura · Saraguro"   detail="237 ml · doble"   price="3.40" />
-          <LineItem title="Bizcocho de panela"           detail="con queso fresco" price="2.50" />
-          <LineItem title="Empanada de viento"           detail="azúcar morena"    price="2.50" />
-          <View style={styles.cardDivider} />
-          <SummaryRow label="Subtotal"               value={`$ ${SUBTOTAL.toFixed(2)}`} />
-          <SummaryRow
-            label={`Aurios aplicados · −${aurios}`}
-            value={`− $ ${discount.toFixed(2)}`}
-            accent
-          />
-        </View>
-
-        {/* Aurios slider card */}
-        <View style={styles.sliderCard}>
-
-          {/* Header row */}
-          <View style={styles.sliderHeader}>
-            <View>
-              <Text style={styles.sliderEyebrow}>DESCUENTO CON AURIOS</Text>
-              <Text style={styles.sliderPct}>{Math.round(pct)}%</Text>
-            </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.sliderEyebrow}>AURIOS</Text>
-              <View style={styles.sliderAuriosRow}>
-                <Text style={styles.sliderAuriosValue}>−{aurios}</Text>
-                <Text style={styles.sliderAuriosMax}> / 2840</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Rail */}
-          <View
-            style={styles.rail}
-            onLayout={e => { railWidth.current = e.nativeEvent.layout.width; }}
-            {...panResponder.panHandlers}
-          >
-            {/* Track */}
-            <View style={styles.track} />
-
-            {/* Fill */}
-            <LinearGradient
-              colors={['#C5836F', '#A63A2F']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.fill, { width: fillPct }]}
-            />
-
-            {/* MAX cap marker */}
-            <View style={[styles.maxMarker, { left: `${(MAX_PCT / RAIL_RANGE) * 100}%` as any }]} />
-            <Text style={[styles.maxLabel, { left: `${(MAX_PCT / RAIL_RANGE) * 100}%` as any }]}>
-              MAX 25%
-            </Text>
-
-            {/* Draggable disc */}
-            <Animated.View
-              style={[
-                styles.disc,
-                {
-                  left: discLeft,
-                  marginLeft: -(DISC_SIZE / 2),
-                  transform: [
-                    { translateX: overshootAnim },
-                    { scale: scaleAnim },
-                  ],
-                },
-              ]}
-            >
-              <View style={styles.discDot} />
-            </Animated.View>
-          </View>
-
-          {/* Hint text */}
-          <Text style={styles.sliderHint}>
-            {pct >= MAX_PCT
-              ? <Text style={styles.sliderHintMax}>Llegaste al límite del ciclo. Más allá, lo guarda la tierra.</Text>
-              : '1 Auro = 1¢. Arrastrá el disco para aplicar más. Tope del 25%.'}
-          </Text>
-        </View>
-
+        <TambuHeader />
+        <OrderCard aurios={aurios} discount={discount} />
+        <AuriosSlider initialPct={18} onPctChange={setPct} />
       </ScrollView>
 
-      {/* Total + CTA */}
-      <View style={[styles.totalBar, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
-        <View style={styles.totalCard}>
-          <View>
-            <Text style={styles.totalLabel}>TOTAL A PAGAR</Text>
-            <Text style={styles.totalValue}>$ {total}</Text>
-          </View>
-          <Pressable
-            onPress={() => router.replace('/pagare' as any)}
-            style={({ pressed }) => [pressed && { opacity: 0.9 }]}
-          >
-            <LinearGradient
-              colors={['#86231A', '#A63A2F']}
-              style={styles.payBtn}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-            >
-              <Ionicons name="scan-outline" size={18} color="#FDFAF7" />
-              <Text style={styles.payBtnText}>Pagar</Text>
-            </LinearGradient>
-          </Pressable>
-        </View>
-      </View>
+      <TotalBar
+        total={total}
+        onPay={() => router.replace('/pagare' as any)}
+        bottomInset={insets.bottom}
+      />
 
     </View>
   );
@@ -486,7 +514,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FDFAF7',
     alignItems: 'center',
     justifyContent: 'center',
-    // Soil shadow
     shadowColor: '#86231A',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
