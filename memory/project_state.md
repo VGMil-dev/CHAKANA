@@ -23,6 +23,7 @@
 - Dev 2 Modulo 4: tipos compartidos, props para Dev 1, selectores y contrato `DEV2_CONTRACT.md`
 - Integracion Supabase Auth en app Expo: `initAuth` al arrancar, login/registro/logout en pantalla minima y estado `authUserId`/`authEmail` en Zustand
 - Dev 2 reviews reward: `useReviewSubmit` llama la Edge Function `mint-aurio-on-review` y refresca balance real con `getAurioBalance(walletPubKey)`
+- App Expo tras `reset-project`: pantalla temporal en `mobile/app/index.tsx` para probar wallet, balance AURIO, reseñas y checkout bloqueado hasta firma Dev 3.
 
 ---
 
