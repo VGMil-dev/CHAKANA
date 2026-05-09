@@ -27,24 +27,6 @@ export default function TambuView() {
           </View>
         </View>
       </View>
-
-      <View style={styles.sectionContained}>
-        <Text style={styles.eyebrow}>MI PANEL</Text>
-        <TouchableOpacity
-          style={styles.panelRow}
-          activeOpacity={0.7}
-          onPress={() => router.replace('/dashboard')}
-        >
-          <View style={styles.panelIconBox}>
-            <Ionicons name="bar-chart-outline" size={18} color="#A63A2F" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.panelRowTitle}>Panel del Tambu</Text>
-            <Text style={styles.panelRowSub}>Métricas, reseñas e insights IA</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={16} color="#9A938A" />
-        </TouchableOpacity>
-      </View>
     </>
   );
 }

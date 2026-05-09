@@ -9,6 +9,8 @@ import { CHECKOUT_CONFIG } from '../../data/checkout';
 import { useCartTotal } from '../../store/cart';
 import AuriosSlider from '../../components/checkout/AuriosSlider';
 import OrderCard from '../../components/checkout/OrderCard';
+import PageNav from '../../components/core/PageNav';
+import PageHeader from '../../components/core/PageHeader';
 
 const { initialDiscountPct: INITIAL_PCT } = CHECKOUT_CONFIG;
 
@@ -25,16 +27,7 @@ export default function Checkout() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
 
-      <View style={styles.nav}>
-        <Pressable
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.navBack, pressed && styles.pressed]}
-        >
-          <Ionicons name="arrow-back" size={20} color="#3D3D3D" />
-        </Pressable>
-        <Text style={styles.navLabel}>02 · CHECKOUT</Text>
-        <View style={{ width: 44 }} />
-      </View>
+      <PageNav label="02 · CHECKOUT" onBack={() => router.back()} />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -42,10 +35,7 @@ export default function Checkout() {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>· TAMBU SAN SEBASTIÁN ·</Text>
-          <Text style={styles.displayTitle}>
-            Tu pedido{'\n'}<Text style={styles.displayAccent}>de hoy.</Text>
-          </Text>
+          <PageHeader eyebrow="· TAMBU SAN SEBASTIÁN ·" title="Tu pedido" accent="de hoy." />
         </View>
 
         <OrderCard subtotal={subtotal} aurios={aurios} discount={discount} />
@@ -80,21 +70,8 @@ export default function Checkout() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F0EB' },
-  nav: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 18, paddingTop: 6, paddingBottom: 4,
-  },
-  navBack: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#F8F3EE', alignItems: 'center', justifyContent: 'center',
-  },
-  navLabel: { fontWeight: '600', fontSize: 11, color: '#6B645C', letterSpacing: 2, textTransform: 'uppercase' },
-  pressed: { opacity: 0.75, transform: [{ translateY: 1 }] },
   scrollContent: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 24, gap: 14 },
   header: { marginBottom: 4 },
-  eyebrow: { fontWeight: '600', fontSize: 10, color: '#A63A2F', letterSpacing: 2.2, textTransform: 'uppercase' },
-  displayTitle: { fontWeight: '700', fontSize: 32, lineHeight: 36, color: '#2E2A26', letterSpacing: -0.8, marginTop: 10 },
-  displayAccent: { color: '#A63A2F' },
   totalBar: { paddingHorizontal: 22, paddingTop: 12 },
   totalCard: {
     backgroundColor: '#1E1A17', borderRadius: 10,

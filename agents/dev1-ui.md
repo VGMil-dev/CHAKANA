@@ -1,58 +1,69 @@
 # Dev 1 -- Frontend Mobile UI
 
-**Rol:** Diseno de pantallas, animaciones fluidas y microinteracciones.
+**Rol:** Diseño de pantallas, animaciones fluidas y microinteracciones.
+
+---
+
+## Carga de Contexto al Iniciar Sesión
+
+**Claude Code:** usa `/chakana-memory`
+**Otros agentes:** lee `memory/AGENT_STARTER.md` y sigue el protocolo ahí descrito.
+
+Archivos clave para este rol:
+- `memory/chakana_components_map.md` — revisar antes de crear cualquier componente nuevo
+- `memory/chakana_screens_routes.md` — revisar antes de crear cualquier pantalla nueva
+- `memory/chakana_built_vs_pending.md` — qué UI ya existe (no duplicar)
 
 ---
 
 ## Tu Scope
 
-- Maquetacion de pantallas con NativeWind
+- Maquetación de pantallas con NativeWind
 - Componentes visuales (botones, tarjetas, modales, listas)
-- Navegacion (Expo Router)
+- Navegación (Expo Router)
 - Animaciones (react-native-reanimated v3)
-- Feedback haptico (expo-haptics)
+- Feedback háptico (expo-haptics)
 - Reproductor de audio para reportes IA
 
 ## NO Tocar
 
-- Estado global (Zustand) -- eso es Dev 2
-- Transacciones blockchain -- eso es Dev 3
-- Edge Functions / endpoints -- eso es Dev 4
+- Estado global (Zustand) — eso es Dev 2
+- Transacciones blockchain — eso es Dev 3
+- Edge Functions / endpoints — eso es Dev 4
 
 ---
 
-## Pantallas a Construir
+## Pantallas Existentes (NO recrear)
 
-1. **Login/Wallet Connect** -- Boton conectar, muestra PublicKey
-2. **Home** -- Lista de Tambus disponibles
-3. **Detalle Tambu** -- Info del negocio, boton "Ordenar"
-4. **Checkout** -- Monto total, slider de descuento Aurios, boton confirmar
-5. **Review Form** -- Textarea para resena, boton enviar
-6. **Propina (LI.FI)** -- Modal/popup post-resena para propina cross-chain
-7. **Dashboard Tambu** -- Vista del dueno, reproductor de audio, resumen de resenas
+Ver lista completa en `memory/chakana_screens_routes.md`. Rutas activas:
+`/login`, `/register`, `/home`, `/dashboard`, `/inventario/[tambuid]`,
+`/carrito`, `/checkout`, `/pagare`, `/resena`, `/perfil`, `/pedidos`
+
+## Componentes Existentes (NO duplicar)
+
+Ver lista completa en `memory/chakana_components_map.md`.
 
 ---
 
-## Guia de Estilos
+## Guía de Estilos
 
-- **Colores:** Tono andino/terroso + fondos off-white (#FAFAFA)
-- **Tipografia:** Inter u Outfit (expo-font)
+- **Colores:** Tono andino/terroso + fondos off-white (#FAFAFA). Ver `.claude/skills/Ancestral Modernism Design System/`
+- **Tipografía:** Inter u Outfit (expo-font)
 - **Componentes:** rounded-2xl, sombras sutiles, estilo moderno
-- **Animaciones:** FadeInDown/FadeOutDown para modales, Shared Element Transitions entre lista y detalle, LinearTransition para listas
+- **Animaciones:** FadeInDown/FadeOutDown para modales, LinearTransition para listas
 
 ---
 
-## Patrones de Animacion
+## Patrones de Animación
 
 ```javascript
-// Modales suaves
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 <Animated.View entering={FadeInDown} exiting={FadeOutDown}>
   <ModalContent />
 </Animated.View>
 ```
 
-## Hapticos
+## Hápticos
 
 - Conectar wallet: `Haptics.selectionAsync()`
 - Aurios ganados: `Haptics.notificationAsync(Success)`
@@ -62,12 +73,12 @@ import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 
 ## Contratos con Otros Devs
 
-- **Recibes de Dev 2:** Props y callbacks via Zustand. Tu renderizas, el conecta.
+- **Recibes de Dev 2:** Props y callbacks via Zustand. Tú renderizas, él conecta.
 - **Entregas a Dev 2:** Componentes con interfaces claras (props tipadas en TS).
 
 ---
 
-## Delegacion IA vs Humano
+## Delegación IA vs Humano
 
-- **IA:** Maquetacion NativeWind, componentes tontos, estilos, plantillas de navegacion.
-- **Humano:** Config de reanimated, orquestacion de navegacion, revision fina UX (timing, haptica).
+- **IA:** Maquetación NativeWind, componentes tontos, estilos, plantillas de navegación.
+- **Humano:** Config de reanimated, orquestación de navegación, revisión fina UX (timing, háptica).

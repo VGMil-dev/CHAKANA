@@ -1,8 +1,9 @@
 import React from 'react';
 import { StyleSheet, View, Text, ImageBackground, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
 import { Link } from 'expo-router';
+
+import { haptic } from '../../utils/haptics';
 
 export interface TambuCardProps {
   id: string;
@@ -33,10 +34,10 @@ function TambuImg({ tone, label, height }: { tone: string, label: string, height
 export default function TambuCard({ id, name, barrio, cat, tone, rating, n, aurios, featured }: TambuCardProps) {
   return (
     <Link href={`/inventario/${id}`} asChild>
-      <Pressable style={({ pressed }) => [
-        styles.card,
-        pressed && styles.cardPressed
-      ]}>
+      <Pressable
+        onPressIn={() => haptic.light()}
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      >
         <TambuImg tone={tone} label={cat} height={featured ? 168 : 130} />
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
