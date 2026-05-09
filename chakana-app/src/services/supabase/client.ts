@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { TurboModuleRegistry } from 'react-native';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import type { Database } from '../../types/database';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
@@ -23,28 +24,60 @@ const memoryStorage: SupabaseStorage = {
   },
 };
 
-const webStorage: SupabaseStorage = {
-  getItem: (key) => window.localStorage.getItem(key),
-  setItem: (key, value) => window.localStorage.setItem(key, value),
-  removeItem: (key) => window.localStorage.removeItem(key),
-};
-
-const asyncStorageNative = TurboModuleRegistry.get('RNAsyncStorage');
-
-let asyncStorage: SupabaseStorage | null = null;
-if (asyncStorageNative) {
-  try {
-    const { default: AsyncStorageImpl } = require('@react-native-async-storage/async-storage');
-    if (AsyncStorageImpl?.getItem) {
-      asyncStorage = AsyncStorageImpl as unknown as SupabaseStorage;
-    }
-  } catch {}
+function wrapStorageSafe(inner: SupabaseStorage, fallback: SupabaseStorage): SupabaseStorage {
+  return {
+    getItem: (key) => {
+      try {
+        const result = inner.getItem(key);
+        if (result instanceof Promise) return result.catch(() => fallback.getItem(key));
+        return result;
+      } catch {
+        return fallback.getItem(key);
+      }
+    },
+    setItem: (key, value) => {
+      try {
+        const result = inner.setItem(key, value);
+        if (result instanceof Promise) return result.catch(() => fallback.setItem(key, value));
+        return result;
+      } catch {
+        return fallback.setItem(key, value);
+      }
+    },
+    removeItem: (key) => {
+      try {
+        const result = inner.removeItem(key);
+        if (result instanceof Promise) return result.catch(() => fallback.removeItem(key));
+        return result;
+      } catch {
+        return fallback.removeItem(key);
+      }
+    },
+  };
 }
 
 function getSupabaseStorage(): SupabaseStorage {
-  if (typeof window === 'undefined') return memoryStorage;
-  if ('localStorage' in window && window.localStorage) return webStorage;
-  return asyncStorage ?? memoryStorage;
+  if (Platform.OS === 'web') {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return {
+        getItem: (key) => window.localStorage.getItem(key),
+        setItem: (key, value) => window.localStorage.setItem(key, value),
+        removeItem: (key) => window.localStorage.removeItem(key),
+      };
+    }
+    return memoryStorage;
+  }
+
+  if (Constants.appOwnership === 'expo') {
+    return memoryStorage;
+  }
+
+  try {
+    const AsyncStorage = require('@react-native-async-storage/async-storage').default as SupabaseStorage;
+    return wrapStorageSafe(AsyncStorage, memoryStorage);
+  } catch {
+    return memoryStorage;
+  }
 }
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
