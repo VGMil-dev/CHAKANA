@@ -3,7 +3,7 @@ import { useAuth } from '../../src/hooks/useAuth';
 import { View, ActivityIndicator } from 'react-native';
 
 export default function AuthLayout() {
-  const { isConnected, isAuthLoading } = useAuth();
+  const { isConnected, isAuthLoading, role } = useAuth();
 
   if (isAuthLoading) {
     return (
@@ -14,7 +14,7 @@ export default function AuthLayout() {
   }
 
   if (isConnected) {
-    return <Redirect href="/home" />;
+    return <Redirect href={role === 'tambu' ? '/dashboard' : '/home'} />;
   }
 
   return (

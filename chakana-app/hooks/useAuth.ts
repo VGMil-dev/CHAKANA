@@ -20,11 +20,11 @@ export function useAuth() {
     name: string,
     email: string,
     password: string,
-    _role: 'embajador' | 'tambu',
+    role: 'embajador' | 'tambu',
     walletPubKey: string,
   ): Promise<AuthResult> {
     try {
-      await auth.register(email, password, name, walletPubKey);
+      await auth.register(email, password, name, role, walletPubKey);
       return { error: null };
     } catch (e) {
       return { error: e instanceof Error ? e.message : 'Error al registrarse' };
