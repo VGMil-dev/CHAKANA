@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -6,6 +6,12 @@ import { useRouter } from 'expo-router';
 import CrosschainAurioCard from '../../components/crosschain/CrosschainAurioCard';
 import CrosschainRouteSummary from '../../components/crosschain/CrosschainRouteSummary';
 import CrosschainInfoCard from '../../components/crosschain/CrosschainInfoCard';
+import {
+  getAurioWalletState,
+  prepareTambuAurioPayment,
+  type AurioPaymentPreparation,
+  type AurioWalletState,
+} from '../../src/services/aurioCrosschainService';
 import { getAurioOnboardingRoute } from '../../src/services/crosschainAurioService';
 import { useWallet } from '../../src/hooks/useWallet';
 import {
@@ -30,6 +36,7 @@ const DEMO_SOURCE = {
 };
 
 const DEMO_SOURCE_WALLET = '0x000000000000000000000000000000000000dEaD';
+const DEMO_AURIO_PAYMENT_AMOUNT = 1;
 
 export default function CrosschainAurioScreen() {
   const router = useRouter();
@@ -39,10 +46,36 @@ export default function CrosschainAurioScreen() {
   const [error, setError] = useState<string | null>(null);
   const [lastRequest, setLastRequest] = useState<CrosschainRouteRequest | null>(null);
   const [lastQueriedAt, setLastQueriedAt] = useState<string | null>(null);
+  const [aurioState, setAurioState] = useState<AurioWalletState | null>(null);
+  const [isAurioLoading, setIsAurioLoading] = useState(false);
+  const [aurioError, setAurioError] = useState<string | null>(null);
+  const [paymentPreparation, setPaymentPreparation] = useState<AurioPaymentPreparation | null>(null);
+  const [isPreparingPayment, setIsPreparingPayment] = useState(false);
   const destinationWallet = getCrosschainDestinationWallet(
     walletPubKey,
     process.env.EXPO_PUBLIC_QA_PAYOUT_WALLET,
   );
+
+  const handleRefreshAurioState = useCallback(async () => {
+    setIsAurioLoading(true);
+    setAurioError(null);
+
+    try {
+      const state = await getAurioWalletState(destinationWallet.address);
+      setAurioState(state);
+    } catch (err) {
+      console.warn('[crosschain] Aurio balance lookup failed:', err);
+      setAurioState(null);
+      setAurioError('No pudimos leer el estado Aurio de esta wallet.');
+    } finally {
+      setIsAurioLoading(false);
+    }
+  }, [destinationWallet.address]);
+
+  useEffect(() => {
+    setPaymentPreparation(null);
+    void handleRefreshAurioState();
+  }, [handleRefreshAurioState]);
 
   const handleSearchRoute = async () => {
     setIsLoading(true);
@@ -70,7 +103,24 @@ export default function CrosschainAurioScreen() {
   };
 
   const handlePayTambu = () => {
-    console.log('TODO: pay to Tambu with Aurio SDK');
+    setIsPreparingPayment(true);
+    setPaymentPreparation(null);
+
+    prepareTambuAurioPayment({
+      senderWallet: walletPubKey,
+      walletSource: destinationWallet.source,
+      tambuMint: process.env.EXPO_PUBLIC_QA_TAMBU_MINT,
+      amount: DEMO_AURIO_PAYMENT_AMOUNT,
+    })
+      .then(setPaymentPreparation)
+      .catch((err) => {
+        console.warn('[crosschain] Aurio payment preparation failed:', err);
+        setPaymentPreparation({
+          status: 'error',
+          message: 'No pudimos preparar el pago Aurio.',
+        });
+      })
+      .finally(() => setIsPreparingPayment(false));
   };
 
   return (
@@ -117,6 +167,13 @@ export default function CrosschainAurioScreen() {
 
         <CrosschainInfoCard />
         <CrosschainRouteSummary route={route} isLoading={isLoading} error={error} />
+        <AurioStateCard
+          aurioState={aurioState}
+          destinationWallet={destinationWallet}
+          isLoading={isAurioLoading}
+          error={aurioError}
+          onRefresh={handleRefreshAurioState}
+        />
         <DemoRoutePanel
           route={route}
           request={lastRequest}
@@ -142,10 +199,20 @@ export default function CrosschainAurioScreen() {
                 style={styles.primaryButton}
                 activeOpacity={0.8}
                 onPress={handlePayTambu}
+                disabled={isPreparingPayment}
               >
-                <Text style={styles.primaryButtonText}>Pagar a Tambu con Aurios</Text>
+                <Text style={styles.primaryButtonText}>
+                  {isPreparingPayment ? 'Preparando Aurio...' : 'Pagar a Tambu con Aurios'}
+                </Text>
               </TouchableOpacity>
-              <Text style={styles.nextStepText}>Proximo paso: conectar Aurio SDK</Text>
+              <Text style={styles.nextStepText}>
+                {destinationWallet.source === 'connected'
+                  ? 'Quote listo. Aurio prepara el pago sin firmarlo.'
+                  : 'Modo demo: conecta una wallet para preparar un pago real.'}
+              </Text>
+              {paymentPreparation ? (
+                <PreparationStatus preparation={paymentPreparation} />
+              ) : null}
 
               <TouchableOpacity
                 style={styles.resetButton}
@@ -160,6 +227,85 @@ export default function CrosschainAurioScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+function AurioStateCard({
+  aurioState,
+  destinationWallet,
+  isLoading,
+  error,
+  onRefresh,
+}: {
+  aurioState: AurioWalletState | null;
+  destinationWallet: CrosschainDestinationWallet;
+  isLoading: boolean;
+  error: string | null;
+  onRefresh: () => void;
+}) {
+  const status = error ? 'error' : aurioState ? 'listo' : 'sin wallet';
+
+  return (
+    <View style={styles.aurioCard}>
+      <View style={styles.aurioHeader}>
+        <View>
+          <Text style={styles.sectionTitle}>Estado Aurio</Text>
+          <Text style={styles.sectionCopy}>
+            Aurio conecta el valor recibido con Tambus, recompensas e impacto local.
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={[styles.secondaryButton, isLoading && styles.disabledButton]}
+          onPress={onRefresh}
+          activeOpacity={0.75}
+          disabled={isLoading}
+        >
+          <Text style={styles.secondaryButtonText}>{isLoading ? 'Leyendo...' : 'Refrescar'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.aurioRows}>
+        <DemoField label="Wallet" value={shortenAddress(destinationWallet.address)} />
+        <DemoField label="Tipo" value={destinationWallet.label} />
+        <DemoField
+          label="Balance AUR"
+          value={aurioState ? `${formatBalance(aurioState.aurBalance)} AUR` : 'Pendiente'}
+        />
+        <DemoField
+          label="Balance SOL"
+          value={aurioState?.solBalance === undefined ? 'No disponible' : `${formatBalance(aurioState.solBalance)} SOL`}
+        />
+        <DemoField
+          label="Actualizado"
+          value={aurioState ? new Date(aurioState.updatedAt).toLocaleString() : 'Sin lectura'}
+        />
+        <DemoField label="Estado" value={status} />
+      </View>
+
+      {error ? <Text style={styles.inlineError}>{error}</Text> : null}
+    </View>
+  );
+}
+
+function PreparationStatus({ preparation }: { preparation: AurioPaymentPreparation }) {
+  const isPrepared = preparation.status === 'prepared';
+
+  return (
+    <View style={[styles.preparationBox, isPrepared && styles.preparedBox]}>
+      <Text style={[styles.preparationTitle, isPrepared && styles.preparedTitle]}>
+        {isPrepared ? 'Transaccion Aurio preparada' : 'Preparacion Aurio'}
+      </Text>
+      <Text style={styles.preparationText}>{preparation.message}</Text>
+      {preparation.preparedAt ? (
+        <Text style={styles.preparationMeta}>
+          {new Date(preparation.preparedAt).toLocaleString()} - {preparation.amount} AUR
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+function formatBalance(value: number): string {
+  return Number.isInteger(value) ? value.toString() : value.toFixed(4);
 }
 
 function DemoRoutePanel({
@@ -340,6 +486,78 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#3D3D3D',
     lineHeight: 18,
+  },
+  aurioCard: {
+    backgroundColor: '#FCF9F6',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 16,
+  },
+  aurioHeader: {
+    gap: 12,
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#3D3D3D',
+    marginBottom: 4,
+  },
+  sectionCopy: {
+    fontSize: 13,
+    color: '#8A8580',
+    lineHeight: 18,
+  },
+  aurioRows: {
+    gap: 10,
+  },
+  secondaryButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#F8F3EE',
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  secondaryButtonText: {
+    color: '#9E392D',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  inlineError: {
+    color: '#9E392D',
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 12,
+  },
+  preparationBox: {
+    backgroundColor: '#F8F3EE',
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 12,
+    width: '100%',
+  },
+  preparedBox: {
+    backgroundColor: '#DDEEEB',
+  },
+  preparationTitle: {
+    color: '#3D3D3D',
+    fontSize: 14,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  preparedTitle: {
+    color: '#2F7D72',
+  },
+  preparationText: {
+    color: '#6F6861',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  preparationMeta: {
+    color: '#2F7D72',
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 8,
   },
   footer: {
     marginTop: 8,
