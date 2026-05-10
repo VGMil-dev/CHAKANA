@@ -11,13 +11,16 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import AurioDiscountStep from '../../components/checkout/AurioDiscountStep';
+import CashPaymentCard from '../../components/checkout/CashPaymentCard';
 import OrderCard from '../../components/checkout/OrderCard';
+import PaymentMethodStep from '../../components/checkout/PaymentMethodStep';
 import StripePaymentCard from '../../components/checkout/StripePaymentCard';
 import PageHeader from '../../components/core/PageHeader';
 import PageNav from '../../components/core/PageNav';
 import ReviewForm from '../../components/reviews/ReviewForm';
 import { useCartItems, useCartTotal } from '../../store/cart';
 import { useAuth } from '../../src/hooks/useAuth';
+import { useCashCheckout } from '../../src/hooks/useCashCheckout';
 import { type CheckoutDestination, useCheckout } from '../../src/hooks/useCheckout';
 import { useHybridCheckout } from '../../src/hooks/useHybridCheckout';
 import { useWallet } from '../../src/hooks/useWallet';
@@ -26,6 +29,7 @@ import { getBusinessById } from '../../src/services/supabase';
 import type { Tables } from '../../src/types/database';
 
 type CheckoutStep = 'discount' | 'payment' | 'postPurchaseReview';
+type PaymentMethod = 'stripe' | 'cash';
 type Business = Tables<'businesses'>;
 
 function openCheckoutUrl(url: string): void {
@@ -41,7 +45,9 @@ export default function Checkout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [stripeSessionId, setStripeSessionId] = useState<string | null>(null);
+  const [cashOrderId, setCashOrderId] = useState<string | null>(null);
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>('discount');
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('stripe');
   const [didSkipDiscount, setDidSkipDiscount] = useState(false);
   const [business, setBusiness] = useState<Business | null>(null);
   const [businessError, setBusinessError] = useState<string | null>(null);
@@ -65,6 +71,7 @@ export default function Checkout() {
     resetCheckout,
   } = useCheckout();
   const { isHybridProcessing, hybridError, confirmHybridCheckout } = useHybridCheckout();
+  const { isCashProcessing, cashError, confirmCashOrder } = useCashCheckout();
 
   const subtotal = visualSubtotal > 0 ? visualSubtotal : checkoutTotal;
   const businessId = cartItems[0]?.businessId ?? null;
@@ -78,6 +85,7 @@ export default function Checkout() {
   const hasAppliedAurioDiscount = redeemedAurios > 0 && Boolean(checkoutSignature);
   const hasAvailableAurios = aurioBalance > 0 || hasAppliedAurioDiscount;
   const displayedAurios = hasAppliedAurioDiscount ? redeemedAurios : auriosToSpend;
+
   const isAurioDisabled =
     !walletPubKey ||
     !hasAurioDiscount ||
@@ -85,6 +93,7 @@ export default function Checkout() {
     !destination ||
     isProcessing ||
     hasAppliedAurioDiscount;
+
   const isCardDisabled =
     !businessId ||
     !business ||
@@ -94,6 +103,16 @@ export default function Checkout() {
     !business.stripe_account_id ||
     isProcessing ||
     isHybridProcessing ||
+    (hasAurioDiscount && !hasAppliedAurioDiscount);
+
+  const isCashDisabled =
+    !businessId ||
+    !business ||
+    hasMixedBusinesses ||
+    !hasCart ||
+    !isSupabaseConnected ||
+    isProcessing ||
+    isCashProcessing ||
     (hasAurioDiscount && !hasAppliedAurioDiscount);
 
   useEffect(() => {
@@ -128,11 +147,19 @@ export default function Checkout() {
       !didSkipDiscount &&
       !hasAppliedAurioDiscount &&
       !stripeSessionId &&
+      !cashOrderId &&
       checkoutStep === 'payment'
     ) {
       setCheckoutStep('discount');
     }
-  }, [checkoutStep, didSkipDiscount, hasAppliedAurioDiscount, hasAvailableAurios, stripeSessionId]);
+  }, [
+    checkoutStep,
+    didSkipDiscount,
+    hasAppliedAurioDiscount,
+    hasAvailableAurios,
+    stripeSessionId,
+    cashOrderId,
+  ]);
 
   const handleAuriosChange = (value: number): void => {
     onSliderChange(Math.min(value, sliderMax));
@@ -178,6 +205,35 @@ export default function Checkout() {
     });
   };
 
+  const handleCashPayment = (): void => {
+    if (isCashDisabled) return;
+
+    const cashCartItems = cartItems.map((item) => ({
+      productId: item.id,
+      quantity: item.qty,
+      unitAmountCents: Math.round(item.price * 100),
+    }));
+
+    void confirmCashOrder({
+      businessId: businessId ?? '',
+      cartItems: cashCartItems,
+      subtotalCents: Math.round(subtotal * 100),
+      auriosSpent: displayedAurios,
+      aurioDiscountCents: Math.round(discountResult.discountUSD * 100),
+      finalTotalCents: Math.round(discountResult.finalTotal * 100),
+      aurioSignature: checkoutSignature ?? undefined,
+      walletPubKey: walletPubKey ?? undefined,
+    }).then((result) => {
+      if (result?.orderId) {
+        setCashOrderId(result.orderId);
+        setCheckoutStep('postPurchaseReview');
+      }
+    });
+  };
+
+  const isPostPurchase = checkoutStep === 'postPurchaseReview';
+  const showReview = isPostPurchase && (Boolean(stripeSessionId) || Boolean(cashOrderId));
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <PageNav label="02 · CHECKOUT" onBack={() => router.back()} />
@@ -188,16 +244,22 @@ export default function Checkout() {
         contentContainerStyle={styles.scrollContent}>
         <PageHeader
           eyebrow={`· ${business?.name ?? 'TAMBU'} ·`}
-          title="Tu pedido"
-          accent="de hoy."
-          subtitle="Aurio registra tu descuento en Chakana. El cobro final se abre con Stripe Connect."
+          title={isPostPurchase ? '¡Gracias!' : 'Tu pedido'}
+          accent={isPostPurchase ? 'Confirmado.' : 'de hoy.'}
+          subtitle={
+            isPostPurchase
+              ? 'Tu orden ha sido registrada. Puedes ver los detalles en tu perfil.'
+              : 'Aurio registra tu descuento en Chakana. El cobro final se abre con Stripe Connect.'
+          }
         />
 
-        <OrderCard
-          subtotal={subtotal}
-          aurios={displayedAurios}
-          discount={discountResult.discountUSD}
-        />
+        {!isPostPurchase && (
+          <OrderCard
+            subtotal={subtotal}
+            aurios={displayedAurios}
+            discount={discountResult.discountUSD}
+          />
+        )}
 
         {hasAvailableAurios && checkoutStep === 'discount' ? (
           <AurioDiscountStep
@@ -219,21 +281,41 @@ export default function Checkout() {
 
         {checkoutStep === 'payment' ? (
           <>
-            <StripePaymentCard
-              subtotal={subtotal}
-              auriosApplied={displayedAurios}
-              aurioDiscount={discountResult.discountUSD}
-              total={discountResult.finalTotal}
-              isProcessing={isHybridProcessing}
-              isDisabled={isCardDisabled}
-              requiresLogin={!isSupabaseConnected}
-              onPay={handleCardPayment}
-              onLogin={() => router.push('/login')}
+            <PaymentMethodStep
+              selectedMethod={selectedMethod}
+              onSelectMethod={setSelectedMethod}
             />
+
+            {selectedMethod === 'stripe' ? (
+              <StripePaymentCard
+                subtotal={subtotal}
+                auriosApplied={displayedAurios}
+                aurioDiscount={discountResult.discountUSD}
+                total={discountResult.finalTotal}
+                isProcessing={isHybridProcessing}
+                isDisabled={isCardDisabled}
+                requiresLogin={!isSupabaseConnected}
+                onPay={handleCardPayment}
+                onLogin={() => router.push('/login')}
+              />
+            ) : (
+              <CashPaymentCard
+                subtotal={subtotal}
+                auriosApplied={displayedAurios}
+                aurioDiscount={discountResult.discountUSD}
+                total={discountResult.finalTotal}
+                isProcessing={isCashProcessing}
+                isDisabled={isCashDisabled}
+                cashError={cashError}
+                onConfirm={handleCashPayment}
+              />
+            )}
+
             {businessError ? <Text style={styles.error}>{businessError}</Text> : null}
-            {business && !business.stripe_account_id ? (
+            {selectedMethod === 'stripe' && business && !business.stripe_account_id ? (
               <Text style={styles.error}>
-                Este Tambú todavía no conectó Stripe. El dueño debe entrar al panel Tambú y tocar "Conectar Stripe".
+                Este Tambú todavía no conectó Stripe. El dueño debe entrar al panel Tambú y tocar
+                "Conectar Stripe".
               </Text>
             ) : null}
             {hasMixedBusinesses ? (
@@ -243,7 +325,7 @@ export default function Checkout() {
           </>
         ) : null}
 
-        {checkoutStep === 'postPurchaseReview' && stripeSessionId ? (
+        {showReview ? (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Cuéntanos tu experiencia</Text>
             <Text style={styles.sectionCopy}>
