@@ -13,6 +13,7 @@ type StripePaymentCardProps = {
   isProcessing: boolean;
   isDisabled: boolean;
   requiresLogin: boolean;
+  isDemoMode?: boolean;
   onPay: () => void;
   onLogin: () => void;
 };
@@ -25,6 +26,7 @@ export default function StripePaymentCard({
   isProcessing,
   isDisabled,
   requiresLogin,
+  isDemoMode = false,
   onPay,
   onLogin,
 }: StripePaymentCardProps) {
@@ -32,12 +34,14 @@ export default function StripePaymentCard({
     <View style={styles.card}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.eyebrow}>PAGO SEGURO</Text>
-          <Text style={styles.title}>Abre el pago</Text>
+          <Text style={styles.eyebrow}>{isDemoMode ? 'MODO DEMO' : 'PAGO SEGURO'}</Text>
+          <Text style={styles.title}>{isDemoMode ? 'Simula el pago' : 'Abre el pago'}</Text>
         </View>
         <View style={styles.badge}>
           <Ionicons name="lock-closed-outline" size={14} color="#1F7A73" />
-          <Text style={styles.badgeText}>Pago cifrado · Stripe</Text>
+          <Text style={styles.badgeText}>
+            {isDemoMode ? 'Sin fondos reales' : 'Pago cifrado · Stripe'}
+          </Text>
         </View>
       </View>
 
@@ -62,8 +66,12 @@ export default function StripePaymentCard({
       </View>
 
       <View style={styles.sandboxBox}>
-        <Text style={styles.sandboxLabel}>Sandbox</Text>
-          <Text style={styles.sandboxText}>El cobro se completa con la cuenta Stripe Connect del Tambú.</Text>
+        <Text style={styles.sandboxLabel}>{isDemoMode ? 'Demo segura' : 'Sandbox'}</Text>
+        <Text style={styles.sandboxText}>
+          {isDemoMode
+            ? 'Pago simulado aprobado localmente. No se llama a Stripe real.'
+            : 'El cobro se completa con la cuenta Stripe Connect del Tambú.'}
+        </Text>
       </View>
 
       {requiresLogin ? (
@@ -88,7 +96,7 @@ export default function StripePaymentCard({
           end={{ x: 0, y: 1 }}>
           <Ionicons name="card-outline" size={18} color="#FDFAF7" />
           <Text style={styles.payButtonText}>
-            {isProcessing ? 'Abriendo...' : 'Pagar con Stripe'}
+            {isProcessing ? 'Procesando...' : isDemoMode ? 'Aprobar pago simulado' : 'Pagar con Stripe'}
           </Text>
         </LinearGradient>
       </Pressable>

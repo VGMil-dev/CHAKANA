@@ -48,11 +48,12 @@ export default function Checkout() {
   const [stripeSessionId, setStripeSessionId] = useState<string | null>(null);
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>('discount');
   const [didSkipDiscount, setDidSkipDiscount] = useState(false);
+  const [demoPaymentMessage, setDemoPaymentMessage] = useState<string | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
   const [businessError, setBusinessError] = useState<string | null>(null);
   const cartItems = useCartItems();
   const visualSubtotal = useCartTotal();
-  const { isConnected: isSupabaseConnected } = useAuth();
+  const { isConnected: isSupabaseConnected, isDemoMode } = useAuth();
   const { aurioBalance, walletPubKey } = useWallet();
   const { signTransaction } = useWalletSigner();
   const {
@@ -84,10 +85,8 @@ export default function Checkout() {
   const hasAvailableAurios = aurioBalance > 0 || hasAppliedAurioDiscount;
   const displayedAurios = hasAppliedAurioDiscount ? redeemedAurios : auriosToSpend;
   const isAurioDisabled =
-    !walletPubKey ||
     !hasAurioDiscount ||
-    !signTransaction ||
-    !destination ||
+    (!isDemoMode && (!walletPubKey || !signTransaction || !destination)) ||
     isProcessing ||
     hasAppliedAurioDiscount;
   const isCardDisabled =
@@ -98,7 +97,7 @@ export default function Checkout() {
     !isSupabaseConnected ||
     isProcessing ||
     isHybridProcessing ||
-    (hasAurioDiscount && !hasAppliedAurioDiscount);
+    (hasAurioDiscount && !hasAppliedAurioDiscount && !isDemoMode);
 
   useEffect(() => {
     if (!businessId) {
@@ -154,6 +153,12 @@ export default function Checkout() {
   };
 
   const handleApplyAurioDiscount = (): void => {
+    if (isDemoMode) {
+      setDidSkipDiscount(false);
+      setCheckoutStep('payment');
+      return;
+    }
+
     if (!destination || !signTransaction || isAurioDisabled) return;
 
     void confirmCheckout({
@@ -178,9 +183,12 @@ export default function Checkout() {
     }).then((result) => {
       if (result?.stripeSessionId) {
         setStripeSessionId(result.stripeSessionId);
+        if (isDemoMode) {
+          setDemoPaymentMessage('Pago simulado aprobado. No se movieron fondos reales.');
+        }
         setCheckoutStep('postPurchaseReview');
       }
-      if (result?.stripeCheckoutUrl) {
+      if (result?.stripeCheckoutUrl && !isDemoMode) {
         openCheckoutUrl(result.stripeCheckoutUrl);
       }
     });
@@ -203,12 +211,19 @@ export default function Checkout() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
+          {isDemoMode ? (
+            <View style={styles.demoPill}>
+              <Text style={styles.demoPillText}>Modo demo</Text>
+            </View>
+          ) : null}
           <Text style={styles.eyebrow}>· {business?.name ?? 'TAMBU'} ·</Text>
           <Text style={styles.displayTitle}>
             Tu pedido{'\n'}<Text style={styles.displayAccent}>de hoy.</Text>
           </Text>
           <Text style={styles.headerCopy}>
-            Aurio registra tu descuento en Chakana. El cobro final se abre con Stripe Connect.
+            {isDemoMode
+              ? 'Demo segura: no se firman transacciones ni se mueven fondos reales.'
+              : 'Aurio registra tu descuento en Chakana. El cobro final se abre con Stripe Connect.'}
           </Text>
         </View>
 
@@ -306,6 +321,7 @@ export default function Checkout() {
               isProcessing={isHybridProcessing}
               isDisabled={isCardDisabled}
               requiresLogin={!isSupabaseConnected}
+              isDemoMode={isDemoMode}
               onPay={handleCardPayment}
               onLogin={() => router.push('/login')}
             />
@@ -317,6 +333,12 @@ export default function Checkout() {
 
         {checkoutStep === 'postPurchaseReview' && stripeSessionId ? (
           <View style={styles.section}>
+            {demoPaymentMessage ? (
+              <View style={styles.demoApproved}>
+                <Text style={styles.demoApprovedTitle}>Pago simulado aprobado</Text>
+                <Text style={styles.demoApprovedText}>{demoPaymentMessage}</Text>
+              </View>
+            ) : null}
             <Text style={styles.sectionTitle}>Cuéntanos tu experiencia</Text>
             <Text style={styles.sectionCopy}>
               Publica un comentario de al menos 50 palabras y gana 1 Aurio.
@@ -359,6 +381,20 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 24, gap: 14 },
   header: { marginBottom: 4 },
+  demoPill: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#F7E7E3',
+    borderRadius: 999,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  demoPillText: {
+    color: '#A63A2F',
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
   eyebrow: {
     fontWeight: '600',
     fontSize: 10,
@@ -458,6 +494,22 @@ const styles = StyleSheet.create({
     color: '#1F7A73',
     fontSize: 12.5,
     fontWeight: '600',
+  },
+  demoApproved: {
+    backgroundColor: '#DDEEEB',
+    borderRadius: 10,
+    gap: 4,
+    padding: 14,
+  },
+  demoApprovedTitle: {
+    color: '#1F7A73',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  demoApprovedText: {
+    color: '#3D3D3D',
+    fontSize: 12.5,
+    lineHeight: 18,
   },
   secondaryButton: {
     alignItems: 'center',

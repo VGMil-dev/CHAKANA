@@ -4,6 +4,7 @@ import { createStripeCheckoutSession } from '../services/commerce';
 import { useAppStore } from '../store';
 import { type CheckoutDestination, useCheckout } from './useCheckout';
 import { useWallet } from './useWallet';
+import { DEMO_PAYMENT_SESSION_ID } from '../utils/demoMode';
 
 type HybridCartItem = {
   productId: string;
@@ -37,6 +38,7 @@ function getErrorMessage(error: unknown): string {
 export function useHybridCheckout(): UseHybridCheckoutResult {
   const [isHybridProcessing, setIsHybridProcessing] = useState(false);
   const [hybridError, setHybridError] = useState<string | null>(null);
+  const isDemoMode = useAppStore((state) => state.isDemoMode);
   const { walletPubKey } = useWallet();
   const {
     auriosToSpend,
@@ -46,6 +48,9 @@ export function useHybridCheckout(): UseHybridCheckoutResult {
     confirmCheckout,
   } = useCheckout();
   const setCheckoutError = useAppStore((state) => state.setCheckoutError);
+  const setCheckoutSignature = useAppStore((state) => state.setCheckoutSignature);
+  const setRedeemedAurios = useAppStore((state) => state.setRedeemedAurios);
+  const setAuriosToSpend = useAppStore((state) => state.setAuriosToSpend);
 
   const confirmHybridCheckout = async (
     params: HybridCheckoutParams,
@@ -71,6 +76,21 @@ export function useHybridCheckout(): UseHybridCheckoutResult {
     setHybridError(null);
 
     try {
+      if (isDemoMode) {
+        const simulatedAurios = discountResult.auriosToSpend;
+        if (simulatedAurios > 0) {
+          setRedeemedAurios(simulatedAurios);
+          setAuriosToSpend(simulatedAurios);
+          setCheckoutSignature('demo_aurio_no_funds_moved');
+        }
+
+        return {
+          aurioSignature: simulatedAurios > 0 ? 'demo_aurio_no_funds_moved' : undefined,
+          stripeSessionId: DEMO_PAYMENT_SESSION_ID,
+          orderId: 'demo_order_approved',
+        };
+      }
+
       let aurioSignature = checkoutSignature ?? undefined;
 
       if (auriosToSpend > 0 && !aurioSignature) {
