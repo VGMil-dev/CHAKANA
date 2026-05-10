@@ -1,64 +1,78 @@
 import React from 'react';
 import { StyleSheet, View, Text, ImageBackground, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
 import { Link } from 'expo-router';
+
+import { haptic } from '../../utils/haptics';
 
 export interface TambuCardProps {
   id: string;
   name: string;
-  barrio: string;
-  cat: string;
-  tone: string;
-  rating: number;
-  n: number;
-  aurios: number;
+  barrio?: string;
+  cat?: string;
+  tone?: string;
+  rating?: number | null;
+  n?: number | null;
+  aurios?: number | null;
+  image?: string | null;
   featured?: boolean;
 }
 
-function TambuImg({ tone, label, height }: { tone: string, label: string, height: number }) {
+function TambuImg({ label, height, imageUri }: { tone?: string, label?: string, height: number, imageUri?: string | null }) {
+  const source = imageUri
+    ? { uri: imageUri }
+    : require('../../assets/images/tambu_placeholder.webp');
+
   return (
     <ImageBackground
-      source={require('../../assets/images/tambu_placeholder.webp')}
+      source={source}
       style={[styles.tambuImgContainer, { height }]}
       imageStyle={{ resizeMode: 'cover', width: "100%", height: "100%" }}
     >
       <View style={styles.tambuImgLabelContainer}>
-        <Text style={styles.tambuImgLabel}>{label}</Text>
+        <Text style={styles.tambuImgLabel}>{label ?? 'Tambú'}</Text>
       </View>
     </ImageBackground>
   );
 }
 
-export default function TambuCard({ id, name, barrio, cat, tone, rating, n, aurios, featured }: TambuCardProps) {
+export default function TambuCard({ id, name, barrio, cat, tone, rating, n, aurios, image, featured }: TambuCardProps) {
   return (
     <Link href={`/inventario/${id}`} asChild>
-      <Pressable style={({ pressed }) => [
-        styles.card,
-        pressed && styles.cardPressed
-      ]}>
-        <TambuImg tone={tone} label={cat} height={featured ? 168 : 130} />
+      <Pressable
+        onPressIn={() => haptic.light()}
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      >
+        <TambuImg tone={tone} label={cat} height={featured ? 168 : 130} imageUri={image} />
         <View style={styles.cardContent}>
           <View style={styles.cardHeader}>
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={styles.cardName}>{name}</Text>
-              <View style={styles.cardLocation}>
-                <Ionicons name="location-outline" size={12} color="#6B645C" />
-                <Text style={styles.cardLocationText}>{barrio}</Text>
+              {barrio ? (
+                <View style={styles.cardLocation}>
+                  <Ionicons name="location-outline" size={12} color="#6B645C" />
+                  <Text style={styles.cardLocationText}>{barrio}</Text>
+                </View>
+              ) : null}
+            </View>
+            {rating ? (
+              <View style={styles.cardRating}>
+                <Ionicons name="star" size={12} color="#A63A2F" />
+                <Text style={styles.cardRatingValue}>{rating}</Text>
+                {n ? <Text style={styles.cardRatingCount}>· {n}</Text> : null}
               </View>
-            </View>
-            <View style={styles.cardRating}>
-              <Ionicons name="star" size={12} color="#A63A2F" />
-              <Text style={styles.cardRatingValue}>{rating}</Text>
-              <Text style={styles.cardRatingCount}>· {n}</Text>
-            </View>
+            ) : null}
           </View>
 
           <View style={styles.cardFooter}>
-            <View style={styles.cardReward}>
-              <View style={styles.cardRewardDot} />
-              <Text style={styles.cardRewardText}>devuelve hasta {aurios}% en Aurios</Text>
-            </View>
+            {aurios ? (
+              <View style={styles.cardReward}>
+                <View style={styles.cardRewardDot} />
+                <Text style={styles.cardRewardText}>devuelve hasta {aurios}% en Aurios</Text>
+              </View>
+            ) : (
+              <Text style={styles.cardRewardText}>Inventario disponible</Text>
+            )}
             <Ionicons name="arrow-forward" size={16} color="#6B645C" />
           </View>
         </View>

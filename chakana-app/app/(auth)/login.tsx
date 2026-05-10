@@ -7,20 +7,21 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
+import { useWallet } from '../../src/hooks/useWallet';
 
 export default function Login() {
   const router = useRouter();
-  const { signIn, signOut } = useAuth();
+  const { signIn } = useAuth();
+  const { walletPubKey, isConnectingWallet, walletError, connectWallet } = useWallet();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Placeholder — teammate wires Phantom here
   const handleWalletConnect = () => {
     setError(null);
-    // signIn with wallet address once Phantom is integrated
+    void connectWallet();
   };
 
   const handleEmailLogin = async () => {
@@ -50,16 +51,29 @@ export default function Login() {
           <View style={styles.header}>
             <Image
               source={require('../../assets/images/splash-icon.png')}
+              resizeMode="contain"
               style={styles.logo}
             />
             <Text style={styles.title}>Bienvenido de vuelta</Text>
             <Text style={styles.subtitle}>Conecta tu identidad al ecosistema</Text>
           </View>
 
-          <TouchableOpacity style={styles.walletButton} onPress={handleWalletConnect} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.walletButton}
+            onPress={handleWalletConnect}
+            activeOpacity={0.8}
+            testID="connect-wallet-button"
+          >
             <Ionicons name="wallet-outline" size={20} color="#FFFFFF" />
-            <Text style={styles.walletButtonText}>Conectar con Phantom</Text>
+            <Text style={styles.walletButtonText}>
+              {walletPubKey
+                ? `Wallet ${walletPubKey.slice(0, 4)}...${walletPubKey.slice(-4)}`
+                : isConnectingWallet
+                  ? 'Conectando wallet...'
+                  : 'Conectar wallet'}
+            </Text>
           </TouchableOpacity>
+          {walletError ? <Text style={styles.errorText}>{walletError}</Text> : null}
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
@@ -169,7 +183,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 56,
     height: 56,
-    resizeMode: 'contain',
     marginBottom: 16,
   },
   title: {

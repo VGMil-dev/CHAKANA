@@ -2,14 +2,22 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import CycleIndicator from './CycleIndicator';
 
-export default function EmbajadorView() {
+type EmbajadorViewProps = {
+  aurioBalance: number;
+};
+
+export default function EmbajadorView({ aurioBalance }: EmbajadorViewProps) {
+  const balance = Math.max(0, Math.floor(aurioBalance));
+
   return (
     <>
       <View style={styles.sectionSurface}>
         <Text style={styles.eyebrow}>BALANCE · AURIOS</Text>
-        <Text style={styles.displayNumber}>2,840</Text>
+        <Text style={styles.displayNumber}>{balance.toLocaleString('en-US')}</Text>
         <Text style={styles.displaySub}>circulan en el ecosistema.</Text>
-        <Text style={styles.displayConversion}>= $28.40 en descuentos disponibles</Text>
+        <Text style={styles.displayConversion}>
+          = ${(balance * 0.01).toFixed(2)} en descuentos disponibles
+        </Text>
       </View>
 
       <View style={styles.sectionBase}>
@@ -24,17 +32,17 @@ export default function EmbajadorView() {
         <Text style={styles.eyebrow}>ACTIVIDAD</Text>
         <View style={styles.metricsRow}>
           <View style={styles.metric}>
-            <Text style={styles.metricNumber}>12</Text>
+            <Text style={styles.metricNumber}>0</Text>
             <Text style={styles.metricLabel}>COMPRAS</Text>
           </View>
           <View style={styles.metricDivider} />
           <View style={styles.metric}>
-            <Text style={styles.metricNumber}>8</Text>
+            <Text style={styles.metricNumber}>0</Text>
             <Text style={styles.metricLabel}>RESEÑAS</Text>
           </View>
           <View style={styles.metricDivider} />
           <View style={styles.metric}>
-            <Text style={styles.metricNumber}>3</Text>
+            <Text style={styles.metricNumber}>0</Text>
             <Text style={styles.metricLabel}>PROPINAS</Text>
           </View>
         </View>

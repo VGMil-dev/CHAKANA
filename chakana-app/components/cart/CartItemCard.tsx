@@ -1,7 +1,10 @@
-import React from 'react';
-import { StyleSheet, View, Text, Image, Pressable } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withSequence } from 'react-native-reanimated';
 import { CartEntry } from '../../store/cart';
+import { haptic } from '../../utils/haptics';
 
 export interface CartItemCardProps {
   item: CartEntry;
@@ -10,9 +13,26 @@ export interface CartItemCardProps {
 }
 
 export default function CartItemCard({ item, onAdd, onRemove }: CartItemCardProps) {
+  const qtyScale = useSharedValue(1);
+  const qtyAnimStyle = useAnimatedStyle(() => ({ transform: [{ scale: qtyScale.value }] }));
+
+  useEffect(() => {
+    qtyScale.value = withSequence(
+      withSpring(1.4, { damping: 6, stiffness: 400 }),
+      withSpring(1, { damping: 14, stiffness: 300 }),
+    );
+    // qtyScale is a stable SharedValue ref — no need in deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.qty]);
+
   return (
     <View style={styles.card}>
-      <Image source={item.image} style={styles.image} resizeMode="cover" />
+      <Image
+        source={item.image ? (typeof item.image === 'string' ? { uri: item.image } : item.image) : require('../../assets/images/tambu_placeholder.webp')}
+        style={styles.image}
+        contentFit="cover"
+        transition={200}
+      />
       <View style={styles.info}>
         <Text style={styles.type}>{item.type}</Text>
         <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
@@ -20,14 +40,14 @@ export default function CartItemCard({ item, onAdd, onRemove }: CartItemCardProp
       </View>
       <View style={styles.qtyControl}>
         <Pressable
-          onPress={onAdd}
+          onPress={() => { haptic.light(); onAdd(); }}
           style={({ pressed }) => [styles.qtyBtn, pressed && styles.pressed]}
         >
           <Ionicons name="add" size={14} color="#3D3D3D" />
         </Pressable>
-        <Text style={styles.qtyValue}>{item.qty}</Text>
+        <Animated.Text style={[styles.qtyValue, qtyAnimStyle]}>{item.qty}</Animated.Text>
         <Pressable
-          onPress={onRemove}
+          onPress={() => { haptic.light(); onRemove(); }}
           style={({ pressed }) => [styles.qtyBtn, pressed && styles.pressed]}
         >
           <Ionicons

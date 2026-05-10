@@ -26,6 +26,7 @@ export const env = {
   testEmail: process.env.QA_TEST_EMAIL ?? 'qa-test@chakana.dev',
   testPassword: process.env.QA_TEST_PASSWORD ?? 'Chakana2024!',
   businessId: process.env.QA_BUSINESS_ID ?? '',
+  commerceProductId: process.env.QA_COMMERCE_PRODUCT_ID ?? '',
 };
 
 // Fuerza cierre del proceso para evitar el crash UV_HANDLE_CLOSING en Windows

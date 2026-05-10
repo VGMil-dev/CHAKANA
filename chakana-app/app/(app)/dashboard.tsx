@@ -1,27 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 
 import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import WeekDisplayTitle from '../../components/dashboard/WeekDisplayTitle';
-import MetricCard, { RatingDots, MiniBars } from '../../components/dashboard/MetricCard';
-import AuriosCard from '../../components/dashboard/AuriosCard';
-import AiNarratorPlayer from '../../components/dashboard/AiNarratorPlayer';
-import InsightCard from '../../components/dashboard/InsightCard';
-import ChakanaDial from '../../components/core/ChakanaDial';
-
-import { useAuthStore } from '../../store/auth';
-import { DASHBOARD_MOCK } from '../../data/dashboard';
-
-const { header, ratingMetric, reviewsMetric, auriosTotal, narrator, insights } = DASHBOARD_MOCK;
+import { useBusinesses } from '../../src/hooks/useBusinesses';
 
 export default function Dashboard() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
-  const user = useAuthStore((s) => s.user);
+  const { listaTambus, fetchBusinesses, businessError } = useBusinesses();
+  const tambu = listaTambus[0] ?? null;
 
-  const tambuName = user?.name ?? header.tambuName;
+  useEffect(() => {
+    if (listaTambus.length === 0) void fetchBusinesses();
+  }, [fetchBusinesses, listaTambus.length]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -29,61 +21,32 @@ export default function Dashboard() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 96 }]}
         bounces={false}
       >
-        <DashboardHeader tambuName={tambuName} />
+        <DashboardHeader tambuName={tambu?.name ?? 'Tambú'} />
 
         <WeekDisplayTitle
-          dateRange={header.dateRange}
-          title={header.title}
-          accentLine={header.accentLine}
+          dateRange="Operación"
+          title="Datos"
+          accentLine="del Tambú."
         />
 
-        <View style={styles.metricsRow}>
-          <MetricCard
-            eyebrow={ratingMetric.eyebrow}
-            value={ratingMetric.value}
-            unit={ratingMetric.unit}
-            sub={ratingMetric.sub}
-            chart={<RatingDots active={ratingMetric.ratingActive} />}
-            tone={ratingMetric.tone}
-            flex={1.15}
-            marginRight={10}
-          />
-          <MetricCard
-            eyebrow={reviewsMetric.eyebrow}
-            value={reviewsMetric.value}
-            unit={reviewsMetric.unit}
-            sub={<Text style={styles.reviewsTrend}>{reviewsMetric.trendText}</Text>}
-            tone={reviewsMetric.tone}
-            chart={<MiniBars data={reviewsMetric.weeklyData} />}
-          />
+        {businessError ? <Text style={styles.error}>{businessError}</Text> : null}
+
+        <View style={styles.panel}>
+          <Text style={styles.eyebrow}>STRIPE CONNECT</Text>
+          <Text style={styles.body}>
+            {tambu?.stripe_account_id
+              ? 'Cuenta Stripe conectada para cobros.'
+              : 'Conecta una cuenta Stripe desde el flujo de onboarding del Tambú.'}
+          </Text>
         </View>
 
-        <AuriosCard amount={auriosTotal} />
-
-        <AiNarratorPlayer
-          title={narrator.title}
-          duration={narrator.duration}
-          totalSeconds={narrator.totalSeconds}
-        />
-
-        <Text style={styles.insightsTitle}>HALLAZGOS ACCIONABLES</Text>
-        <View style={styles.insightsList}>
-          {insights.map(insight => (
-            <InsightCard
-              key={insight.eyebrow}
-              tone={insight.tone}
-              eyebrow={insight.eyebrow}
-              body={insight.body}
-            />
-          ))}
+        <View style={styles.panel}>
+          <Text style={styles.eyebrow}>WALLET AURIO</Text>
+          <Text style={styles.body}>
+            {tambu?.wallet_adress ?? 'Configura wallet_adress en Supabase para redimir Aurios.'}
+          </Text>
         </View>
       </ScrollView>
-
-      <ChakanaDial
-        activeTab="home"
-        onCenterPress={() => router.replace('/dashboard')}
-        onTabPress={(tab) => { if (tab === 'yo') router.push('/perfil'); }}
-      />
     </View>
   );
 }
@@ -95,11 +58,22 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     gap: 20,
   },
-  metricsRow: { flexDirection: 'row' },
-  reviewsTrend: { color: '#277B77', fontSize: 10.5, fontWeight: '500' },
-  insightsTitle: {
-    fontSize: 9.5, letterSpacing: 2,
-    color: '#6B645C', textTransform: 'uppercase', fontWeight: '600',
+  panel: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 16,
+    gap: 8,
   },
-  insightsList: { gap: 8 },
+  eyebrow: {
+    fontSize: 10,
+    color: '#A63A2F',
+    fontWeight: '700',
+    letterSpacing: 1.6,
+  },
+  body: {
+    color: '#3D3D3D',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  error: { color: '#9E392D', fontSize: 13, fontWeight: '600' },
 });

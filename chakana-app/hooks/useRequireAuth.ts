@@ -1,16 +1,16 @@
 import { useEffect } from 'react'
 import { useRouter } from 'expo-router'
-import { useAuthStore } from '../store/auth'
+import { useAuth } from '../src/hooks/useAuth'
 
 export function useRequireAuth() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const { isConnected, isAuthLoading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isConnected && !isAuthLoading) {
       router.replace('/login')
     }
-  }, [isAuthenticated])
+  }, [isConnected, isAuthLoading, router])
 
-  return isAuthenticated
+  return isConnected
 }

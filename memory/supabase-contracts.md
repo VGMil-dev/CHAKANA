@@ -46,5 +46,5 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=...
 
 ## Nota sobre aurios_rewarded
 Después de que el usuario inserta una review, el webhook del oráculo actualiza
-`aurios_rewarded` a 100 en ~3 segundos. Dev 3 puede leer este campo para
+`aurios_rewarded` a 1 en ~3 segundos. Dev 3 puede leer este campo para
 ejecutar el `mintTo` en Solana desde el cliente.

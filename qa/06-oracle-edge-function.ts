@@ -1,7 +1,7 @@
 /**
  * QA 06 — Edge Function: review-reward-oracle
  * Criterio: Al insertar review válida (>50 chars), el webhook dispara el oráculo
- *           y aurios_rewarded se actualiza a 100 en ~3 segundos.
+ *           y aurios_rewarded se actualiza a 1 en ~3 segundos.
  *           Reseñas cortas NO reciben recompensa.
  * Corresponde a: Task 9 del plan
  */
@@ -43,7 +43,7 @@ async function run() {
   }));
 
   // Test principal: insertar review válida y llamar al oráculo directamente
-  results.push(await check('Oracle: review válida es procesada y aurios_rewarded=100', async () => {
+  results.push(await check('Oracle: review válida es procesada y aurios_rewarded=1', async () => {
     assert(!!testBusinessId, 'business_id no disponible');
     const { data: review, error } = await supabase
       .from('reviews')
@@ -68,7 +68,7 @@ async function run() {
       body: JSON.stringify({ record: { id: reviewId, text: review.text, user_id: userId, aurios_rewarded: 0 } }),
     });
     const oracleBody = await oracleRes.json() as { rewarded: boolean; aurios?: number };
-    assert(oracleBody.rewarded === true && oracleBody.aurios === 100,
+    assert(oracleBody.rewarded === true && oracleBody.aurios === 1,
       `Oráculo no recompensó: ${JSON.stringify(oracleBody)}`);
 
     // Verificar que aurios_rewarded se actualizó en DB
@@ -78,8 +78,8 @@ async function run() {
       .eq('id', reviewId!)
       .single();
     assert(
-      updated?.aurios_rewarded === 100,
-      `aurios_rewarded es ${updated?.aurios_rewarded}, se esperaba 100`
+      updated?.aurios_rewarded === 1,
+      `aurios_rewarded es ${updated?.aurios_rewarded}, se esperaba 1`
     );
   }));
 
@@ -94,7 +94,7 @@ async function run() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${env.anonKey}`,
       },
-      body: JSON.stringify({ record: { id: reviewId, text: 'El café de Raíz es extraordinario, la calidad del café artesanal y la atención personalizada hacen de cada visita una experiencia única en Cuenca.', user_id: userId, aurios_rewarded: 100 } }),
+      body: JSON.stringify({ record: { id: reviewId, text: 'El café de Raíz es extraordinario, la calidad del café artesanal y la atención personalizada hacen de cada visita una experiencia única en Cuenca.', user_id: userId, aurios_rewarded: 1 } }),
     });
     const body = await response.json() as { rewarded: boolean; reason: string };
     assert(body.rewarded === false && body.reason === 'already_rewarded',

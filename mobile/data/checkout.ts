@@ -13,5 +13,5 @@ export const CHECKOUT_CONFIG: CheckoutConfig = {
   initialDiscountPct: 18,
 };
 
-/** Mock user Aurios balance */
-export const AURIOS_BALANCE = 2772;
+// DEMO/MOCK: visual checkout rail only. Real wallet balance comes from src/hooks/useWallet
+// or src/store/selectors and must not be read from this file.
