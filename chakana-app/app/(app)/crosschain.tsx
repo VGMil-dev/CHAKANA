@@ -6,10 +6,10 @@ import { useRouter } from 'expo-router';
 import CrosschainAurioCard from '../../components/crosschain/CrosschainAurioCard';
 import CrosschainRouteSummary from '../../components/crosschain/CrosschainRouteSummary';
 import CrosschainInfoCard from '../../components/crosschain/CrosschainInfoCard';
-import { getAurioOnboardingRoute } from '../../../src/services/crosschainAurioService';
-import type { CrosschainRouteResult } from '../../../src/types/crosschain';
+import { getAurioOnboardingRoute } from '../../services/crosschainAurioService';
+import type { CrosschainRouteResult } from '../../types/crosschain';
 
-// ─── Mock config for MVP demo ────────────────────────────────────────────────
+// Mock config for MVP demo
 // TODO (Paso 3): Replace with real wallet + user-selected chain/token
 const MOCK_SOURCE = {
   chainId: 137 as const,       // Polygon
