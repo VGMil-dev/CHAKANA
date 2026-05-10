@@ -53,11 +53,9 @@ export default function CrosschainAurioCard({ type, network, token, amount, wall
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FCF9F6',
-    borderRadius: 16,
+    borderRadius: 10,
     padding: 16,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#F5F0EB',
   },
   header: {
     flexDirection: 'row',
@@ -86,5 +84,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#3D3D3D',
+    flex: 1,
+    textAlign: 'right',
   },
 });

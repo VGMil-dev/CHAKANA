@@ -46,6 +46,8 @@ export type CrosschainProvider = 'LI.FI';
 
 export type CrosschainRouteStatus = 'idle' | 'loading' | 'success' | 'error';
 
+export type CrosschainRouteSource = 'real' | 'mock';
+
 export interface CrosschainRouteRequest {
   fromChainId: SupportedChainId;
   fromTokenAddress: string;
@@ -53,8 +55,9 @@ export interface CrosschainRouteRequest {
   fromTokenDecimals: number;
   toChainId: SupportedChainId;
   toTokenAddress: string;
-  /** Solana wallet address of the user. Optional for quote-only. */
+  /** Source wallet address. Used only to request quote data in Paso 3. */
   fromAddress?: string;
+  /** Destination wallet address. Used only to request quote data in Paso 3. */
   toAddress?: string;
 }
 
@@ -71,8 +74,16 @@ export interface CrosschainRouteResult {
   status: CrosschainRouteStatus;
   /** True if result came from mock fallback instead of real API */
   isMock: boolean;
+  /** Real LI.FI response or local fallback used for demo resilience. */
+  source: CrosschainRouteSource;
   /** Raw API tool name, e.g. "across", "allbridge" */
   toolUsed?: string;
+  /** User-safe explanation when the route falls back to mock data. */
+  fallbackReason?: string;
+  /** Request that produced the route result. Safe to show in demo UI. */
+  request: CrosschainRouteRequest;
+  /** ISO timestamp of the route lookup. */
+  queriedAt: string;
 }
 
 // ─── Legacy mock type (kept for backward compat with UI components) ──────────

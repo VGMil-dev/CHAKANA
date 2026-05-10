@@ -14,7 +14,7 @@ import {
   SOLANA_USDC_ADDRESS,
 } from '../types/crosschain';
 
-import { getLifiRoute, getMockLifiRoute } from './lifiService';
+import { getLifiRoute, getMockLifiRoute, LIFI_DEMO_FALLBACK_MESSAGE } from './lifiService';
 
 export interface AurioOnboardingRequest {
   fromChainId: CrosschainRouteRequest['fromChainId'];
@@ -60,6 +60,6 @@ export async function getAurioOnboardingRoute(
       '[crosschainAurioService] LI.FI API failed, using mock fallback:',
       error instanceof Error ? error.message : error,
     );
-    return getMockLifiRoute(routeRequest);
+    return getMockLifiRoute(routeRequest, LIFI_DEMO_FALLBACK_MESSAGE);
   }
 }

@@ -44,6 +44,7 @@
 - Edge Functions reales: `commerce-api`, `stripe-webhook` y `mint-aurio-on-review`.
 - Fix Expo Web: Metro resuelve helpers CommonJS de `@babel/runtime/helpers/*` para evitar crash `_objectWithoutPropertiesLoose is not a function` en `expo-router`.
 - Fix Supabase Auth Web: cliente usa `storageKey` propio para no restaurar refresh tokens viejos/inválidos del storage default.
+- LI.FI Paso 3: `/crosschain` consulta quote real Polygon USDC -> Solana USDC con REST, muestra ruta real/mock, request de demo y fallback seguro sin ejecutar transacciones.
 
 ---
 

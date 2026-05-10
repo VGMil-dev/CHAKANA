@@ -14,7 +14,8 @@ export default function CrosschainRouteSummary({ route, isLoading, error }: Prop
     return (
       <View style={[styles.container, styles.center]}>
         <ActivityIndicator size="large" color="#9E392D" />
-        <Text style={styles.loadingText}>Buscando la mejor ruta con LI.FI...</Text>
+        <Text style={styles.loadingTitle}>Consultando LI.FI</Text>
+        <Text style={styles.loadingText}>Buscando una ruta de Polygon USDC hacia Solana USDC.</Text>
       </View>
     );
   }
@@ -23,7 +24,7 @@ export default function CrosschainRouteSummary({ route, isLoading, error }: Prop
     return (
       <View style={[styles.container, styles.center]}>
         <Ionicons name="alert-circle-outline" size={32} color="#9E392D" />
-        <Text style={styles.errorTitle}>No se pudo obtener la ruta</Text>
+        <Text style={styles.errorTitle}>No pudimos calcular la ruta</Text>
         <Text style={styles.errorText}>{error}</Text>
       </View>
     );
@@ -33,47 +34,57 @@ export default function CrosschainRouteSummary({ route, isLoading, error }: Prop
     return (
       <View style={[styles.container, styles.center]}>
         <Ionicons name="git-network-outline" size={32} color="#A09C96" />
-        <Text style={styles.emptyTitle}>Aún no hay ruta calculada</Text>
+        <Text style={styles.emptyTitle}>Ruta pendiente</Text>
         <Text style={styles.emptyText}>
-          Presiona buscar ruta para encontrar el mejor camino cross-chain.
+          Consulta LI.FI para traer valor global hacia Solana y convertirlo en impacto local.
         </Text>
       </View>
     );
   }
 
+  const isMock = route.source === 'mock' || route.isMock;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-        <Text style={styles.title}>Ruta Encontrada</Text>
-        {route.isMock && (
-          <View style={styles.mockBadge}>
-            <Text style={styles.mockBadgeText}>mock</Text>
-          </View>
-        )}
+        <Ionicons
+          name={isMock ? 'flask-outline' : 'checkmark-circle-outline'}
+          size={20}
+          color={isMock ? '#8A8580' : '#2F7D72'}
+        />
+        <Text style={styles.title}>{isMock ? 'Ruta demo lista' : 'Ruta real encontrada'}</Text>
+        <View style={[styles.badge, isMock ? styles.mockBadge : styles.realBadge]}>
+          <Text style={[styles.badgeText, isMock ? styles.mockBadgeText : styles.realBadgeText]}>
+            {isMock ? 'Mock' : 'Ruta real'}
+          </Text>
+        </View>
       </View>
+
+      {isMock && route.fallbackReason ? (
+        <View style={styles.notice}>
+          <Text style={styles.noticeText}>{route.fallbackReason}</Text>
+        </View>
+      ) : null}
 
       <View style={styles.details}>
         <DetailRow
-          label="De"
+          label="Origen"
           value={`${route.sourceAmount} ${route.sourceToken} en ${route.sourceNetwork}`}
         />
         <DetailRow
-          label="A"
+          label="Destino"
           value={`~${route.destinationAmount} ${route.destinationToken} en ${route.destinationNetwork}`}
         />
-        <DetailRow label="Proveedor" value={route.provider} />
-        {route.toolUsed && route.toolUsed !== 'mock' && (
-          <DetailRow label="Bridge" value={route.toolUsed} />
-        )}
-        <DetailRow label="Tiempo Estimado" value={route.estimatedTime} />
-        <DetailRow label="Fee Estimado" value={route.estimatedFee} />
+        <DetailRow label="Provider" value={route.provider} />
+        <DetailRow label="Bridge/tool" value={route.toolUsed ?? 'LI.FI'} />
+        <DetailRow label="Tiempo" value={route.estimatedTime} />
+        <DetailRow label="Fee" value={route.estimatedFee} />
+      </View>
 
-        <View style={styles.statusBox}>
-          <Text style={styles.statusText}>
-            Estado: Listo para recibir valor en Solana
-          </Text>
-        </View>
+      <View style={styles.statusBox}>
+        <Text style={styles.statusText}>
+          Quote-only: no se firma, no se ejecuta y no se mueven fondos.
+        </Text>
       </View>
     </View>
   );
@@ -82,7 +93,7 @@ export default function CrosschainRouteSummary({ route, isLoading, error }: Prop
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.row}>
-      <Text style={styles.label}>{label}:</Text>
+      <Text style={styles.label}>{label}</Text>
       <Text style={styles.value}>{value}</Text>
     </View>
   );
@@ -91,21 +102,26 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FCF9F6',
-    borderRadius: 16,
+    borderRadius: 10,
     padding: 16,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#F5F0EB',
+    marginBottom: 16,
     minHeight: 160,
   },
   center: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingText: {
+  loadingTitle: {
     marginTop: 12,
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#3D3D3D',
+  },
+  loadingText: {
+    marginTop: 4,
+    fontSize: 13,
     color: '#8A8580',
+    textAlign: 'center',
   },
   emptyTitle: {
     fontSize: 16,
@@ -136,55 +152,77 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
+    gap: 8,
   },
   title: {
     fontSize: 16,
     fontWeight: '700',
     color: '#3D3D3D',
-    marginLeft: 8,
     flex: 1,
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  realBadge: {
+    backgroundColor: '#DDEEEB',
   },
   mockBadge: {
     backgroundColor: '#E8E4DF',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  realBadgeText: {
+    color: '#2F7D72',
   },
   mockBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
+    color: '#6F6861',
+  },
+  notice: {
+    backgroundColor: '#F8F3EE',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 14,
+  },
+  noticeText: {
+    fontSize: 13,
     color: '#8A8580',
+    lineHeight: 18,
   },
   details: {
-    gap: 8,
+    gap: 10,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: 16,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#8A8580',
   },
   value: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
     color: '#3D3D3D',
-    flexShrink: 1,
+    flex: 1,
     textAlign: 'right',
   },
   statusBox: {
-    marginTop: 8,
-    backgroundColor: '#E8F5E9',
+    marginTop: 14,
+    backgroundColor: '#F7E7E3',
     padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
+    borderRadius: 10,
   },
   statusText: {
-    color: '#2E7D32',
+    color: '#9E392D',
     fontWeight: '600',
     fontSize: 13,
+    textAlign: 'center',
   },
 });
