@@ -49,6 +49,7 @@
 - LI.FI Paso 5: `/crosschain` lee balance AUR/SOL con Aurio SDK y prepara pago Tambu sin firmar ni enviar; modo demo bloquea preparacion real si no hay wallet conectada.
 - LI.FI Paso 6: Home expone CTA `Entrar con LI.FI` hacia `/crosschain` y la pantalla muestra flujo compacto LI.FI -> Solana -> Aurio -> impacto local.
 - Pulido UI LI.FI: `/crosschain` queda mas compacto para demo, con tildes corregidas, Estado Aurio en mini stats, consulta demo reducida y padding inferior para no chocar con la navegacion.
+- Rama demo APK: se agrega modo demo seguro con login local, wallet publica demo, fallback Aurio 250 AUR/0 SOL y checkout Stripe simulado sin firmas ni movimientos reales.
 
 ---
 
