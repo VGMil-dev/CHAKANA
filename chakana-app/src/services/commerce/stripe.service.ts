@@ -77,6 +77,9 @@ async function postCommerce<TResponse>(
   const data = (await response.json().catch(() => ({}))) as TResponse & { error?: string };
 
   if (!response.ok) {
+    if (data.error === 'Stripe Connect account is required') {
+      throw new Error('Este Tambú todavía no conectó Stripe. Entra al panel Tambú y toca Conectar Stripe.');
+    }
     throw new Error(data.error ?? 'No se pudo completar la operación de comercio.');
   }
 

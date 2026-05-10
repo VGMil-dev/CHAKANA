@@ -96,6 +96,7 @@ export default function Checkout() {
     hasMixedBusinesses ||
     !hasCart ||
     !isSupabaseConnected ||
+    !business.stripe_account_id ||
     isProcessing ||
     isHybridProcessing ||
     (hasAurioDiscount && !hasAppliedAurioDiscount);
@@ -310,6 +311,11 @@ export default function Checkout() {
               onLogin={() => router.push('/login')}
             />
             {businessError ? <Text style={styles.error}>{businessError}</Text> : null}
+            {business && !business.stripe_account_id ? (
+              <Text style={styles.error}>
+                Este Tambú todavía no conectó Stripe. El dueño debe entrar al panel Tambú y tocar “Conectar Stripe”.
+              </Text>
+            ) : null}
             {hasMixedBusinesses ? <Text style={styles.error}>El carrito solo puede incluir un Tambú por checkout.</Text> : null}
             {hybridError ? <Text style={styles.error}>{hybridError}</Text> : null}
           </>

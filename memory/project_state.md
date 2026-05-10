@@ -42,13 +42,14 @@
 - Checkout usa `businesses.wallet_adress` para redimir Aurios y `commerce-api` para crear Checkout Sessions Stripe Connect.
 - Backend commerce real agregado: `products`, `orders`, `order_items`, `payments`, `stripe_events` y campos Stripe Connect en `businesses`.
 - Edge Functions reales: `commerce-api`, `stripe-webhook` y `mint-aurio-on-review`.
+- Fix auth Tambu/Stripe: registro envia `role` a Supabase, migracion `006_fix_profile_roles_tambu_stripe_onboarding.sql` normaliza roles legacy y crea Tambu asociado para perfiles `tambu`; dashboard abre Stripe Connect o muestra error accionable.
 
 ---
 
 ## En Progreso
 
 - Validar Golden Path con datos reales en Supabase y credenciales `E2E_EMAIL`/`E2E_PASSWORD`.
-- Completar onboarding operativo de Tambu owner para crear `stripe_account_id` en negocios reales.
+- Aplicar migracion `006_fix_profile_roles_tambu_stripe_onboarding.sql` y validar onboarding Stripe Connect con una cuenta Tambu real.
 
 ---
 
