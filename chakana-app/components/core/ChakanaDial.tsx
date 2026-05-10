@@ -66,7 +66,7 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, cent
   const glassScaleX  = useSharedValue(compact ? 0 : 1);
   useEffect(() => {
     glassOpacity.value = withTiming(compact ? 0 : 1, compact ? EASE_IN : EASE_OUT);
-    glassScaleX.value  = withTiming(compact ? 0 : 1, compact ? EASE_IN : EASE_OUT);
+    glassScaleX.value  = withSpring(compact ? 0 : 1, { damping: 18, stiffness: 220, mass: 0.7 });
   }, [compact]);
 
   // Center label chip (CHECKOUT) fades with compact
@@ -170,11 +170,6 @@ const styles = StyleSheet.create({
     width: '92%',
     height: BASE_SIZE,
     zIndex: 20,
-    shadowColor: '#86231A',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.25,
-    shadowRadius: 32,
-    elevation: 16,
   },
   dialGlass: {
     position: 'absolute',
@@ -190,6 +185,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(140,133,123,0.15)',
     backgroundColor: '#FFFFFF',
+    shadowColor: '#86231A',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
+    elevation: 10,
   },
   sideSlot: {
     flex: 1,
