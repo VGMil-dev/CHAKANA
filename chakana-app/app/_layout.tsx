@@ -1,31 +1,27 @@
+import '../polyfills';
+
 import { Stack } from "expo-router";
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import AnimatedSplashScreen from '../components/core/splashscreen';
 import { StatusBar } from 'expo-status-bar';
-import * as NavigationBar from 'expo-navigation-bar';
+import { useAuth } from '../src/hooks/useAuth';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
-  // Skip splash animation on web (native-only UX, breaks Playwright)
   const [splashAnimationFinished, setSplashAnimationFinished] = useState(Platform.OS === 'web');
+  const { initAuth, isAuthLoading } = useAuth();
 
   useEffect(() => {
     async function prepare() {
       try {
-        if (Platform.OS === 'android') {
-          NavigationBar.setBackgroundColorAsync('#F5F0EB').catch(() => { });
-          NavigationBar.setButtonStyleAsync('dark').catch(() => { });
-        }
         await new Promise(resolve => setTimeout(resolve, 500));
       } catch (e) {
         console.warn(e);
       } finally {
-        // Tell the application to render
         setAppIsReady(true);
       }
     }
@@ -33,18 +29,24 @@ export default function RootLayout() {
     prepare();
   }, []);
 
+  useEffect(() => {
+    void initAuth();
+  }, [initAuth]);
+
+  const ready = appIsReady && !isAuthLoading;
+
   return (
     <View style={styles.container}>
       <StatusBar />
       <Stack
         screenOptions={{
-          headerShown: false, // Hide header for the onboarding screen
+          headerShown: false,
         }}
       />
       {!splashAnimationFinished && (
         <AnimatedSplashScreen
           onAnimationFinish={() => setSplashAnimationFinished(true)}
-          isAppReady={appIsReady}
+          isAppReady={ready}
         />
       )}
     </View>

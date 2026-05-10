@@ -2,11 +2,12 @@ import { create } from 'zustand';
 
 export interface CartEntry {
   id: string;
+  businessId: string;
   title: string;
   type: string;
   price: number; // in USD
   qty: number;
-  image: ReturnType<typeof require>;
+  image?: string | ReturnType<typeof require> | null;
 }
 
 interface CartState {
@@ -21,11 +22,13 @@ export const useCartStore = create<CartState>((set) => ({
 
   add: (entry) =>
     set((s) => {
-      const existing = s.items.find((i) => i.id === entry.id);
+      const differentBiz = s.items.length > 0 && s.items[0].businessId !== entry.businessId;
+      const base = differentBiz ? [] : s.items;
+      const existing = base.find((i) => i.id === entry.id);
       if (existing) {
-        return { items: s.items.map((i) => i.id === entry.id ? { ...i, qty: i.qty + 1 } : i) };
+        return { items: base.map((i) => i.id === entry.id ? { ...i, qty: i.qty + 1 } : i) };
       }
-      return { items: [...s.items, { ...entry, qty: 1 }] };
+      return { items: [...base, { ...entry, qty: 1 }] };
     }),
 
   remove: (id) =>

@@ -9,6 +9,8 @@
 - [tech_architecture.md](tech_architecture.md) -- Stack, dependencias, patrones, estructura
 - [project_state.md](project_state.md) -- Tareas activas, roadmap, foco actual
 - [decisions.md](decisions.md) -- Log de decisiones arquitectonicas y contratos
+- [aurio_sdk_flow.md](aurio_sdk_flow.md) -- Flujo reward y checkout con Aurio SDK
+- [dev2_contract.md](dev2_contract.md) -- Contrato Dev 2 para checkout Aurio
 
 ---
 

@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
-import { ViewStyle } from 'react-native';
+import { DimensionValue, ViewStyle } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle,
   withTiming, withRepeat, Easing,
 } from 'react-native-reanimated';
 
 interface SkeletonBoxProps {
-  width?: number | string;
+  width?: DimensionValue;
   height?: number;
   borderRadius?: number;
   style?: ViewStyle;

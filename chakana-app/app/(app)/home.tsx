@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { StyleSheet, View, ScrollView, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter, Redirect } from 'expo-router';
 
 import HomeHeader from '../../components/home/HomeHeader';
 import DisplaySection from '../../components/home/DisplaySection';
 import CategoryChipsBar from '../../components/home/CategoryChipsBar';
-import TambuFeed from '../../components/home/TambuFeed';
+import TambuFeed, { type TambuItem } from '../../components/home/TambuFeed';
 import SkeletonBox from '../../components/core/SkeletonBox';
-import { useAuthStore } from '../../store/auth';
+import { useAuth } from '../../src/hooks/useAuth';
+import { useBusinesses } from '../../src/hooks/useBusinesses';
+import { useWallet } from '../../src/hooks/useWallet';
 
 import { MARKET_CATEGORIES } from '../../data/categories';
-import { TAMBUSES } from '../../data/tambuses';
 
 function getInitials(name: string) {
   return name.trim().split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
@@ -31,32 +31,68 @@ function TambuCardSkeleton({ featured }: { featured?: boolean }) {
 
 export default function Home() {
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const [active, setActive] = useState('Todos');
-  const [loading, setLoading] = useState(true);
-  const user = useAuthStore((s) => s.user);
+  const { authEmail } = useAuth();
+  const {
+    listaTambus,
+    isLoadingBusinesses,
+    businessError,
+    fetchBusinesses,
+  } = useBusinesses();
+  const {
+    aurioBalance,
+    walletPubKey,
+    isConnectingWallet,
+    walletError,
+    connectWallet,
+    disconnectWallet,
+    refreshAurioBalance,
+  } = useWallet();
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(t);
-  }, []);
+    void fetchBusinesses();
+  }, [fetchBusinesses]);
 
-  if (user?.role === 'tambu') return <Redirect href="/dashboard" />;
+  const displayName = authEmail?.split('@')[0] ?? 'Explorador';
+  const initials = getInitials(displayName);
+  const greeting = `Hola, ${displayName.split(/[.\s_-]/)[0]}.`;
 
-  const initials = user?.name ? getInitials(user.name) : '··';
-  const greeting = user?.name ? `Hola, ${user.name.split(' ')[0]}.` : 'Hola.';
+  const tambus = useMemo<TambuItem[]>(
+    () =>
+      listaTambus.map((business) => ({
+        id: business.id,
+        name: business.name,
+        barrio: business.location ?? undefined,
+        cat: business.category ?? undefined,
+        tone: 'andes',
+        rating: null,
+        n: null,
+        aurios: null,
+        image: business.image_url ?? undefined,
+      })),
+    [listaTambus],
+  );
 
   const filteredTambus = active === 'Todos'
-    ? TAMBUSES
-    : TAMBUSES.filter(t => t.cat.toLowerCase() === active.toLowerCase());
+    ? tambus
+    : tambus.filter(t => {
+      if (!t.cat) return true;
+      return t.cat.toLowerCase() === active.toLowerCase();
+    });
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <HomeHeader
         initials={initials}
-        eyebrow="BUEN DÍA · CUENCA"
+        eyebrow={walletPubKey ? 'WALLET CONECTADA · CUENCA' : 'CONECTA TU WALLET · CUENCA'}
         greeting={greeting}
-        amount={2840}
+        amount={aurioBalance}
+        walletPubKey={walletPubKey}
+        isConnectingWallet={isConnectingWallet}
+        walletError={walletError}
+        onConnectWallet={() => void connectWallet()}
+        onDisconnectWallet={() => void disconnectWallet()}
+        onRefreshBalance={() => void refreshAurioBalance()}
       />
 
       <ScrollView stickyHeaderIndices={[1]} showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
@@ -68,7 +104,13 @@ export default function Home() {
           onSelect={setActive}
         />
 
-        {loading ? (
+        {businessError ? (
+          <View style={styles.messageWrap}>
+            <Text style={styles.messageText}>{businessError}</Text>
+          </View>
+        ) : null}
+
+        {isLoadingBusinesses ? (
           <View style={{ paddingHorizontal: 28, paddingBottom: 180, gap: 28 }}>
             <TambuCardSkeleton featured />
             <TambuCardSkeleton />
@@ -90,5 +132,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F0EB',
+  },
+  messageWrap: {
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+  },
+  messageText: {
+    color: '#9E392D',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

@@ -8,7 +8,6 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { useCartCount } from '../../store/cart';
-import { useAuthStore } from '../../store/auth';
 import { haptic } from '../../utils/haptics';
 
 export type DialTab = 'carrito' | 'pedidos' | 'yo';
@@ -20,6 +19,7 @@ export interface ChakanadialProps {
   centerLabel?: string;
   compact?: boolean;
   cartPill?: { count: number; total: number };
+  role?: 'embajador' | 'tambu';
 }
 
 function DialIcon({
@@ -53,10 +53,9 @@ const SPRING     = { damping: 12, stiffness: 300, mass: 0.8 };
 const BASE_SIZE  = 72;
 const PILL_WIDTH = 148;
 
-export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, centerLabel, compact, cartPill }: ChakanadialProps) {
+export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, centerLabel, compact, cartPill, role = 'embajador' }: ChakanadialProps) {
   const insets    = useSafeAreaInsets();
   const cartCount = useCartCount();
-  const role      = useAuthStore((s) => s.user?.role ?? 'embajador');
   const handleTab = (tab: DialTab) => onTabPress?.(tab);
 
   // Center bounce on press
@@ -127,9 +126,13 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, cent
       )}
 
       <Animated.View style={[styles.dialGlass, glassAnimStyle]}>
-        <DialIcon {...leftTab} active={activeTab === leftTab.tab} onPress={handleTab} />
+        <View style={styles.sideSlot}>
+          <DialIcon {...leftTab} active={activeTab === leftTab.tab} onPress={handleTab} />
+        </View>
         <View style={{ width: BASE_SIZE }} />
-        <DialIcon tab="yo" icon="person-outline" label="PERFIL" active={activeTab === 'yo'} onPress={handleTab} />
+        <View style={styles.sideSlot}>
+          <DialIcon tab="yo" icon="person-outline" label="PERFIL" active={activeTab === 'yo'} onPress={handleTab} />
+        </View>
       </Animated.View>
 
       <Animated.View style={[styles.dialCenterWrapper, centerAnimStyle]}>
@@ -182,11 +185,15 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: 24,
     borderWidth: 1,
     borderColor: 'rgba(140,133,123,0.15)',
     backgroundColor: '#FFFFFF',
+  },
+  sideSlot: {
+    flex: 1,
+    alignItems: 'center',
   },
   dialCenterWrapper: {
     position: 'absolute',

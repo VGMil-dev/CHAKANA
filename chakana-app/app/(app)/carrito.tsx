@@ -5,9 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCartStore, useCartItems, useCartCount, useCartTotal } from '../../store/cart';
 import CartItemCard from '../../components/cart/CartItemCard';
 import CartSummaryCard from '../../components/cart/CartSummaryCard';
-import { AURIOS_BALANCE } from '../../data/checkout';
 import PageNav from '../../components/core/PageNav';
 import PageHeader from '../../components/core/PageHeader';
+import { useWallet } from '../../src/hooks/useWallet';
 
 export default function Carrito() {
   const router = useRouter();
@@ -17,6 +17,7 @@ export default function Carrito() {
   const items = useCartItems();
   const count = useCartCount();
   const total = useCartTotal();
+  const { aurioBalance } = useWallet();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -35,7 +36,14 @@ export default function Carrito() {
           <CartItemCard
             key={item.id}
             item={item}
-            onAdd={() => add({ id: item.id, title: item.title, type: item.type, price: item.price, image: item.image })}
+            onAdd={() => add({
+              id: item.id,
+              businessId: item.businessId,
+              title: item.title,
+              type: item.type,
+              price: item.price,
+              image: item.image,
+            })}
             onRemove={() => remove(item.id)}
           />
         ))}
@@ -50,7 +58,7 @@ export default function Carrito() {
         )}
 
         {items.length > 0 && (
-          <CartSummaryCard count={count} total={total} auriosBalance={AURIOS_BALANCE} />
+          <CartSummaryCard count={count} total={total} auriosBalance={Math.floor(aurioBalance)} />
         )}
       </ScrollView>
 

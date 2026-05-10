@@ -55,7 +55,7 @@ src/
 ## Mecanica Economica (Aurios)
 
 - 1 Aurio = $0.01 USD de descuento
-- Mint: Oraculo backend mintea al usuario por resenar (>50 chars)
+- Mint: Oraculo backend mintea 1 Aurio al usuario por comentario post-compra valido de minimo 50 palabras
 - Transfer: Usuario transfiere Aurios al Tambu para descuento (max 25% de la cuenta)
 - Burn: (futuro B2B) Tambu quema Aurios para descuento en suscripcion Gavanti
 

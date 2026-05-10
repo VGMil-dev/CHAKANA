@@ -5,12 +5,13 @@ import TambuCard from './TambuCard';
 export interface TambuItem {
   id: string;
   name: string;
-  barrio: string;
-  cat: string;
-  tone: string;
-  rating: number;
-  n: number;
-  aurios: number;
+  barrio?: string;
+  cat?: string;
+  tone?: string;
+  rating?: number | null;
+  n?: number | null;
+  aurios?: number | null;
+  image?: string | null;
 }
 
 export interface TambuFeedProps {
@@ -72,7 +73,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     fontWeight: '300',
-    fontFamily: 'Graphik-Light',
     fontStyle: 'italic',
   },
 });

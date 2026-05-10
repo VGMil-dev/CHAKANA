@@ -1,7 +1,7 @@
 import { Redirect, Stack, usePathname, useRouter } from 'expo-router';
 import { View } from 'react-native';
 
-import { useAuthStore } from '../../store/auth';
+import { useAuth } from '../../src/hooks/useAuth';
 import { useCartCount, useCartTotal } from '../../store/cart';
 import ChakanaDial, { type DialTab } from '../../components/core/ChakanaDial';
 
@@ -9,14 +9,13 @@ const HIDDEN_ROUTES  = ['/checkout', '/pagare', '/resena'];
 const COMPACT_ROUTES = ['/carrito'];
 
 export default function AppLayout() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const role       = useAuthStore((s) => s.user?.role ?? 'embajador');
+  const { isConnected, isAuthLoading, role } = useAuth();
   const cartCount  = useCartCount();
   const cartTotal  = useCartTotal();
   const pathname   = usePathname();
   const router     = useRouter();
 
-  if (!isAuthenticated) return <Redirect href="/login" />;
+  if (!isConnected && !isAuthLoading) return <Redirect href="/login" />;
 
   const isInventario = pathname.startsWith('/inventario');
   const compact = COMPACT_ROUTES.includes(pathname) || (isInventario && cartCount > 0);
@@ -64,6 +63,7 @@ export default function AppLayout() {
           activeTab={activeTab}
           centerLabel={centerLabel}
           cartPill={cartPill}
+          role={role}
           onCenterPress={onCenterPress}
           onTabPress={onTabPress}
         />
