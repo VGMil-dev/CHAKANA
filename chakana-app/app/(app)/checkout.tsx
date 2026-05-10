@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   Linking,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,11 +9,12 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 
-import AuriosSlider from '../../components/checkout/AuriosSlider';
+import AurioDiscountStep from '../../components/checkout/AurioDiscountStep';
 import OrderCard from '../../components/checkout/OrderCard';
 import StripePaymentCard from '../../components/checkout/StripePaymentCard';
+import PageHeader from '../../components/core/PageHeader';
+import PageNav from '../../components/core/PageNav';
 import ReviewForm from '../../components/reviews/ReviewForm';
 import { useCartItems, useCartTotal } from '../../store/cart';
 import { useAuth } from '../../src/hooks/useAuth';
@@ -24,14 +24,9 @@ import { useWallet } from '../../src/hooks/useWallet';
 import { useWalletSigner } from '../../src/hooks/useWalletSigner';
 import { getBusinessById } from '../../src/services/supabase';
 import type { Tables } from '../../src/types/database';
-import { formatUSD } from '../../src/utils/sliderConfig';
 
 type CheckoutStep = 'discount' | 'payment' | 'postPurchaseReview';
 type Business = Tables<'businesses'>;
-
-function shortenAddress(address: string): string {
-  return `${address.slice(0, 4)}...${address.slice(-4)}`;
-}
 
 function openCheckoutUrl(url: string): void {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -143,10 +138,6 @@ export default function Checkout() {
     onSliderChange(Math.min(value, sliderMax));
   };
 
-  const handleClearDiscount = (): void => {
-    onSliderChange(0);
-  };
-
   const handleSkipDiscount = (): void => {
     resetCheckout();
     setTotal(subtotal);
@@ -189,29 +180,18 @@ export default function Checkout() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.nav}>
-        <Pressable
-          onPress={() => router.back()}
-          style={({ pressed }) => [styles.navBack, pressed && styles.pressed]}>
-          <Ionicons name="arrow-back" size={20} color="#3D3D3D" />
-        </Pressable>
-        <Text style={styles.navLabel}>02 · CHECKOUT</Text>
-        <View style={styles.navSpacer} />
-      </View>
+      <PageNav label="02 · CHECKOUT" onBack={() => router.back()} />
 
       <ScrollView
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>· {business?.name ?? 'TAMBU'} ·</Text>
-          <Text style={styles.displayTitle}>
-            Tu pedido{'\n'}<Text style={styles.displayAccent}>de hoy.</Text>
-          </Text>
-          <Text style={styles.headerCopy}>
-            Aurio registra tu descuento en Chakana. El cobro final se abre con Stripe Connect.
-          </Text>
-        </View>
+        <PageHeader
+          eyebrow={`· ${business?.name ?? 'TAMBU'} ·`}
+          title="Tu pedido"
+          accent="de hoy."
+          subtitle="Aurio registra tu descuento en Chakana. El cobro final se abre con Stripe Connect."
+        />
 
         <OrderCard
           subtotal={subtotal}
@@ -220,81 +200,21 @@ export default function Checkout() {
         />
 
         {hasAvailableAurios && checkoutStep === 'discount' ? (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Descuento Aurio</Text>
-            <Text style={styles.sectionCopy}>
-              ¿Quieres aplicar tus Aurios como descuento? Tambien puedes omitirlo y pagar el total con tarjeta.
-            </Text>
-            <AuriosSlider
-              checkoutTotal={subtotal}
-              auriosToSpend={auriosToSpend}
-              aurioBalance={aurioBalance}
-              sliderMax={sliderMax}
-              isWalletConnected={Boolean(walletPubKey)}
-              isLocked={hasAppliedAurioDiscount}
-              onAuriosChange={handleAuriosChange}
-              onClear={handleClearDiscount}
-            />
-            <View style={styles.statusCard}>
-              <Text style={styles.statusTitle}>Balance disponible</Text>
-              <Text style={styles.statusValue}>{Math.max(0, Math.floor(aurioBalance))} Aurios</Text>
-              <Text style={styles.statusLine}>
-                {hasAppliedAurioDiscount ? 'Aurios aplicados' : 'Aurios a aplicar'}: {displayedAurios} Aurios
-              </Text>
-              <Text style={styles.statusLine}>
-                Descuento aplicado: {formatUSD(discountResult.discountUSD)}
-              </Text>
-              <Text style={styles.statusLine}>Maximo permitido: {sliderMax} Aurios</Text>
-              {!hasAurioDiscount ? (
-                <Text style={styles.neutral}>No aplicaras descuento Aurio.</Text>
-              ) : null}
-              {checkoutError ? <Text style={styles.error}>{checkoutError}</Text> : null}
-              {hybridError ? <Text style={styles.error}>{hybridError}</Text> : null}
-              {checkoutSignature ? (
-                <Text style={styles.success}>Firma de redencion Aurio: {checkoutSignature}</Text>
-              ) : null}
-            </View>
-
-            {!destination ? (
-              <View style={styles.notice}>
-                <Text style={styles.noticeText}>
-                  Este Tambú todavía no tiene wallet de redención configurada.
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.notice}>
-                <Text style={styles.noticeConnectedText}>
-                  Wallet del Tambú
-                </Text>
-                <Text style={styles.noticeMuted}>{shortenAddress(destination.payoutWallet)}</Text>
-              </View>
-            )}
-
-            <View style={styles.discountActions}>
-              <Pressable
-                accessibilityRole="button"
-                testID="checkout-aurio-discount-button"
-                onPress={handleApplyAurioDiscount}
-                disabled={isAurioDisabled}
-                style={({ pressed }) => [
-                  styles.secondaryButton,
-                  isAurioDisabled ? styles.secondaryButtonDisabled : null,
-                  pressed && !isAurioDisabled ? styles.payPressed : null,
-                ]}>
-                <Ionicons name="ticket-outline" size={17} color="#A63A2F" />
-                <Text style={styles.secondaryButtonText}>
-                  {isProcessing ? 'Redimiendo...' : 'Aplicar descuento Aurio'}
-                </Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                testID="checkout-skip-discount-button"
-                onPress={handleSkipDiscount}
-                style={styles.skipButton}>
-                <Text style={styles.skipButtonText}>Omitir descuento</Text>
-              </Pressable>
-            </View>
-          </View>
+          <AurioDiscountStep
+            subtotal={subtotal}
+            auriosToSpend={auriosToSpend}
+            aurioBalance={aurioBalance}
+            sliderMax={sliderMax}
+            isWalletConnected={Boolean(walletPubKey)}
+            hasAppliedAurioDiscount={hasAppliedAurioDiscount}
+            isProcessing={isProcessing}
+            isAurioDisabled={isAurioDisabled}
+            checkoutError={checkoutError}
+            hybridError={hybridError}
+            onAuriosChange={handleAuriosChange}
+            onApply={handleApplyAurioDiscount}
+            onSkip={handleSkipDiscount}
+          />
         ) : null}
 
         {checkoutStep === 'payment' ? (
@@ -313,10 +233,12 @@ export default function Checkout() {
             {businessError ? <Text style={styles.error}>{businessError}</Text> : null}
             {business && !business.stripe_account_id ? (
               <Text style={styles.error}>
-                Este Tambú todavía no conectó Stripe. El dueño debe entrar al panel Tambú y tocar “Conectar Stripe”.
+                Este Tambú todavía no conectó Stripe. El dueño debe entrar al panel Tambú y tocar "Conectar Stripe".
               </Text>
             ) : null}
-            {hasMixedBusinesses ? <Text style={styles.error}>El carrito solo puede incluir un Tambú por checkout.</Text> : null}
+            {hasMixedBusinesses ? (
+              <Text style={styles.error}>El carrito solo puede incluir un Tambú por checkout.</Text>
+            ) : null}
             {hybridError ? <Text style={styles.error}>{hybridError}</Text> : null}
           </>
         ) : null}
@@ -337,215 +259,10 @@ export default function Checkout() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F0EB' },
-  nav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingTop: 6,
-    paddingBottom: 4,
-  },
-  navBack: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F8F3EE',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navLabel: {
-    fontWeight: '600',
-    fontSize: 11,
-    color: '#6B645C',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-  },
-  navSpacer: { width: 44 },
-  pressed: { opacity: 0.75, transform: [{ translateY: 1 }] },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 24, gap: 14 },
-  header: { marginBottom: 4 },
-  eyebrow: {
-    fontWeight: '600',
-    fontSize: 10,
-    color: '#A63A2F',
-    letterSpacing: 2.2,
-    textTransform: 'uppercase',
-  },
-  displayTitle: {
-    fontWeight: '700',
-    fontSize: 32,
-    lineHeight: 36,
-    color: '#2E2A26',
-    letterSpacing: 0,
-    marginTop: 10,
-  },
-  displayAccent: { color: '#A63A2F' },
-  headerCopy: {
-    color: '#6B645C',
-    fontSize: 13,
-    lineHeight: 19,
-    marginTop: 10,
-  },
-  section: {
-    gap: 10,
-  },
-  sectionTitle: {
-    color: '#2E2A26',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  sectionCopy: {
-    color: '#6B645C',
-    fontSize: 12.5,
-    lineHeight: 18,
-  },
-  statusCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    gap: 4,
-    padding: 16,
-  },
-  statusTitle: {
-    color: '#6B645C',
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-  },
-  statusValue: {
-    color: '#3AAFA9',
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  statusLine: {
-    color: '#3D3D3D',
-    fontSize: 12.5,
-  },
-  notice: {
-    backgroundColor: '#F8F3EE',
-    borderRadius: 10,
-    gap: 6,
-    padding: 14,
-  },
-  noticeText: {
-    color: '#86231A',
-    fontSize: 12.5,
-    fontWeight: '600',
-    lineHeight: 18,
-  },
-  noticeConnectedText: {
-    color: '#1F7A73',
-    fontSize: 12.5,
-    fontWeight: '600',
-    lineHeight: 18,
-  },
-  noticeMuted: {
-    color: '#6B645C',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  error: {
-    color: '#86231A',
-    fontSize: 12.5,
-    fontWeight: '600',
-  },
-  warning: {
-    color: '#86231A',
-    fontSize: 12.5,
-    fontWeight: '600',
-  },
-  neutral: {
-    color: '#6B645C',
-    fontSize: 12.5,
-    fontWeight: '600',
-  },
-  success: {
-    color: '#1F7A73',
-    fontSize: 12.5,
-    fontWeight: '600',
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: '#FFF8F1',
-    borderColor: 'rgba(166,58,47,0.22)',
-    borderRadius: 999,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  secondaryButtonDisabled: {
-    opacity: 0.55,
-  },
-  secondaryButtonText: {
-    color: '#A63A2F',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  discountActions: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  skipButton: {
-    alignItems: 'center',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  skipButtonText: {
-    color: '#6B645C',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  loginButton: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: '#F8F3EE',
-    borderRadius: 999,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-  },
-  loginButtonText: {
-    color: '#86231A',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  totalBar: { paddingHorizontal: 22, paddingTop: 12 },
-  totalCard: {
-    backgroundColor: '#1E1A17',
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
-  },
-  totalLabel: {
-    fontWeight: '600',
-    fontSize: 9.5,
-    letterSpacing: 2,
-    color: '#9A938A',
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  totalValue: { fontWeight: '700', fontSize: 30, color: '#3AAFA9', letterSpacing: 0 },
-  payBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-  },
-  payBtnDisabled: {
-    opacity: 0.75,
-  },
-  payPressed: { opacity: 0.9 },
-  payBtnText: { color: '#FDFAF7', fontWeight: '600', fontSize: 14, letterSpacing: 0.2 },
+  section: { gap: 10 },
+  sectionTitle: { color: '#2E2A26', fontSize: 18, fontWeight: '700' },
+  sectionCopy: { color: '#6B645C', fontSize: 12.5, lineHeight: 18 },
+  error: { color: '#86231A', fontSize: 12.5, fontWeight: '600' },
 });

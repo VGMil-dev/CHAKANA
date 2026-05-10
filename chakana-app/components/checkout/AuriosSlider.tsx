@@ -1,10 +1,10 @@
-import React, { useRef } from 'react';
-import { Animated, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, PanResponder, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { formatAurios, usdToAurios } from '../../src/utils/sliderConfig';
 
 const DISC_SIZE = 28;
+const MAX_VIS_RATIO = 6 / 7;
 
 interface Props {
   checkoutTotal: number;
@@ -14,7 +14,6 @@ interface Props {
   isWalletConnected: boolean;
   isLocked?: boolean;
   onAuriosChange: (aurios: number) => void;
-  onClear: () => void;
 }
 
 export default function AuriosSlider({
@@ -25,61 +24,58 @@ export default function AuriosSlider({
   isWalletConnected,
   isLocked = false,
   onAuriosChange,
-  onClear,
 }: Props) {
   const onChangeRef = useRef(onAuriosChange);
   onChangeRef.current = onAuriosChange;
 
   const railWidth = useRef(0);
-  const dragStartX = useRef(0);
+  const dragStartAurios = useRef(0);
   const overshootAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const limitX = useRef(new Animated.Value(20)).current;
+  const limitOpacity = useRef(new Animated.Value(0)).current;
 
   const safeAurios = Math.max(0, auriosToSpend);
+  const safeAuriosRef = useRef(safeAurios);
+  safeAuriosRef.current = safeAurios;
   const availableBalance = Math.max(0, Math.floor(aurioBalance));
   const percentUsed = checkoutTotal > 0 ? (safeAurios * 0.01 * 100) / checkoutTotal : 0;
-  const railMax = Math.max(sliderMax, 1);
-  const fillRatio = sliderMax > 0 ? Math.min(1, safeAurios / sliderMax) : 0;
-  const auriosFor5Percent = usdToAurios(checkoutTotal * 0.05);
-  const auriosFor10Percent = usdToAurios(checkoutTotal * 0.1);
-
-  const applyAurios = (value: number): void => {
-    if (isLocked) return;
-    onChangeRef.current(Math.min(value, sliderMax));
-  };
-
-  const applyX = useRef((x: number) => {
-    const w = railWidth.current;
-    if (!w || isLocked) return;
-
-    const ratio = Math.max(0, Math.min(1.22, x / w));
-    const requested = Math.round(ratio * railMax);
-
-    if (requested > sliderMax) {
-      onChangeRef.current(sliderMax);
-      overshootAnim.setValue(Math.min(14, ((requested - sliderMax) / railMax) * 40));
-    } else {
-      onChangeRef.current(Math.max(0, requested));
-      overshootAnim.setValue(0);
-    }
-  });
+  // trackMax = theoretical 25% cap in aurios (always maps to the 6/7 marker)
+  // sliderMax = actual cap (may be lower if balance insufficient)
+  const trackMax = checkoutTotal > 0 ? Math.max(Math.floor(checkoutTotal * 25), 1) : 1;
+  const sliderMaxRef = useRef(sliderMax);
+  sliderMaxRef.current = sliderMax;
+  const trackMaxRef = useRef(trackMax);
+  trackMaxRef.current = trackMax;
+  const fillRatio = trackMax > 0 ? Math.min(MAX_VIS_RATIO, (safeAurios / trackMax) * MAX_VIS_RATIO) : 0;
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => !isLocked,
       onMoveShouldSetPanResponder: () => !isLocked,
-      onPanResponderGrant: (evt) => {
+      onPanResponderGrant: () => {
         Animated.spring(scaleAnim, {
           toValue: 1.06,
           useNativeDriver: true,
           speed: 24,
           bounciness: 4,
         }).start();
-        dragStartX.current = evt.nativeEvent.locationX;
-        applyX.current(dragStartX.current);
+        dragStartAurios.current = safeAuriosRef.current;
       },
       onPanResponderMove: (_evt, gs) => {
-        applyX.current(dragStartX.current + gs.dx);
+        const w = railWidth.current;
+        const ct = trackMaxRef.current;
+        if (!w || !ct) return;
+        const trackPx = MAX_VIS_RATIO * w;
+        const target = Math.round(dragStartAurios.current + (gs.dx / trackPx) * ct);
+        const cap = sliderMaxRef.current;
+        if (target > cap) {
+          onChangeRef.current(cap);
+          overshootAnim.setValue(Math.min(14, ((target - cap) / ct) * 40));
+        } else {
+          onChangeRef.current(Math.max(0, target));
+          overshootAnim.setValue(0);
+        }
       },
       onPanResponderRelease: () => {
         Animated.parallel([
@@ -105,10 +101,40 @@ export default function AuriosSlider({
     }),
   ).current;
 
+  const limitReached = sliderMax > 0 && safeAurios >= sliderMax;
+
+  useEffect(() => {
+    if (limitReached) {
+      limitX.setValue(20);
+      limitOpacity.setValue(0);
+      Animated.parallel([
+        Animated.spring(limitX, {
+          toValue: 0,
+          useNativeDriver: true,
+          damping: 16,
+          stiffness: 200,
+          mass: 0.8,
+        }),
+        Animated.spring(limitOpacity, {
+          toValue: 1,
+          useNativeDriver: true,
+          damping: 20,
+          stiffness: 220,
+        }),
+      ]).start();
+    } else {
+      limitX.setValue(20);
+      limitOpacity.setValue(0);
+    }
+  }, [limitReached, limitX, limitOpacity]);
+
   const fillPct = `${fillRatio * 100}%` as `${number}%`;
   const discLeft = `${fillRatio * 100}%` as `${number}%`;
-  const maxMarkerLeft = '100%' as `${number}%`;
-  const presetStyle = [styles.presetButton, isLocked ? styles.presetDisabled : null];
+  const maxMarkerLeft = `${MAX_VIS_RATIO * 100}%` as `${number}%`;
+  const isBalanceLimited = sliderMax < trackMax;
+  const balanceMarkerLeft = trackMax > 0
+    ? `${(sliderMax / trackMax) * MAX_VIS_RATIO * 100}%` as `${number}%`
+    : `0%` as `${number}%`;
 
   return (
     <View style={styles.card}>
@@ -141,6 +167,12 @@ export default function AuriosSlider({
         />
         <View style={[styles.maxMarker, { left: maxMarkerLeft }]} />
         <Text style={[styles.maxLabel, { left: maxMarkerLeft }]}>MAX 25%</Text>
+        {isBalanceLimited ? (
+          <>
+            <View style={[styles.balanceMarker, { left: balanceMarkerLeft }]} />
+            <Text style={[styles.balanceLabel, { left: balanceMarkerLeft }]}>BALANCE</Text>
+          </>
+        ) : null}
         <Animated.View
           style={[
             styles.disc,
@@ -154,37 +186,18 @@ export default function AuriosSlider({
         </Animated.View>
       </View>
 
-      <View style={styles.presets}>
-        <Pressable style={presetStyle} onPress={() => applyAurios(auriosFor5Percent)} disabled={isLocked}>
-          <Text style={styles.presetLabel}>5% de descuento</Text>
-          <Text style={styles.presetValue}>{Math.min(auriosFor5Percent, sliderMax)} Aurios</Text>
-        </Pressable>
-        <Pressable style={presetStyle} onPress={() => applyAurios(auriosFor10Percent)} disabled={isLocked}>
-          <Text style={styles.presetLabel}>10% de descuento</Text>
-          <Text style={styles.presetValue}>{Math.min(auriosFor10Percent, sliderMax)} Aurios</Text>
-        </Pressable>
-        <Pressable style={presetStyle} onPress={() => applyAurios(sliderMax)} disabled={isLocked}>
-          <Text style={styles.presetLabel}>Maximo permitido</Text>
-          <Text style={styles.presetValue}>{sliderMax} Aurios</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.presetButton, styles.clearButton, isLocked ? styles.presetDisabled : null]}
-          onPress={onClear}
-          disabled={isLocked}>
-          <Text style={styles.presetLabel}>Limpiar</Text>
-          <Text style={styles.presetValue}>0 Aurios</Text>
-        </Pressable>
-      </View>
-
-      <Text style={styles.hint}>
-        {isLocked ? (
+      {isLocked ? (
+        <Text style={styles.hint}>
           <Text style={styles.hintMax}>Descuento Aurio aplicado. El balance ya fue actualizado.</Text>
-        ) : safeAurios >= sliderMax && sliderMax > 0 ? (
-          <Text style={styles.hintMax}>Llegaste al limite del ciclo. Mas alla, lo guarda la tierra.</Text>
-        ) : (
-          `1 Aurio = 1 centavo. Puedes usar hasta ${formatAurios(sliderMax)} en este pedido.`
-        )}
-      </Text>
+        </Text>
+      ) : null}
+      {!isLocked && limitReached ? (
+        <Animated.View style={{ transform: [{ translateX: limitX }], opacity: limitOpacity }}>
+          <Text style={[styles.hint, styles.hintMax]}>
+            Llegaste al límite del ciclo. Más allá, lo guarda la tierra.
+          </Text>
+        </Animated.View>
+      ) : null}
     </View>
   );
 }
@@ -273,6 +286,25 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     transform: [{ translateX: -48 }],
   },
+  balanceMarker: {
+    position: 'absolute',
+    top: 4,
+    bottom: 4,
+    width: 2,
+    backgroundColor: '#6B645C',
+    opacity: 0.6,
+    borderRadius: 2,
+  },
+  balanceLabel: {
+    position: 'absolute',
+    bottom: -4,
+    fontWeight: '600',
+    fontSize: 7,
+    letterSpacing: 1.2,
+    color: '#6B645C',
+    textTransform: 'uppercase',
+    transform: [{ translateX: -22 }],
+  },
   disc: {
     position: 'absolute',
     width: DISC_SIZE,
@@ -293,36 +325,6 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#A63A2F',
-  },
-  presets: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 12,
-  },
-  presetButton: {
-    backgroundColor: '#F8F3EE',
-    borderRadius: 10,
-    minWidth: 132,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  presetDisabled: {
-    opacity: 0.55,
-  },
-  clearButton: {
-    backgroundColor: '#E6E2DD',
-  },
-  presetLabel: {
-    color: '#3D3D3D',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  presetValue: {
-    color: '#A63A2F',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 3,
   },
   hint: {
     marginTop: 12,
