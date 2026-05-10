@@ -145,6 +145,12 @@ export default function CrosschainAurioScreen() {
           </View>
         </View>
 
+        <View style={styles.flowStrip}>
+          <FlowStep index="01" text="Trae valor desde Polygon con LI.FI" />
+          <FlowStep index="02" text="Recibelo en Solana" />
+          <FlowStep index="03" text="Usalo con Aurio en Tambus" />
+        </View>
+
         <View style={styles.cardsRow}>
           <View style={styles.cardWrapper}>
             <CrosschainAurioCard
@@ -369,6 +375,15 @@ function DemoField({ label, value }: { label: string; value: string }) {
   );
 }
 
+function FlowStep({ index, text }: { index: string; text: string }) {
+  return (
+    <View style={styles.flowStep}>
+      <Text style={styles.flowIndex}>{index}</Text>
+      <Text style={styles.flowText}>{text}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -432,6 +447,30 @@ const styles = StyleSheet.create({
     color: '#9E392D',
     fontWeight: '700',
     fontSize: 13,
+  },
+  flowStrip: {
+    backgroundColor: '#F8F3EE',
+    borderRadius: 10,
+    padding: 14,
+    gap: 10,
+    marginBottom: 18,
+  },
+  flowStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  flowIndex: {
+    color: '#9E392D',
+    fontSize: 11,
+    fontWeight: '800',
+    width: 24,
+  },
+  flowText: {
+    color: '#3D3D3D',
+    fontSize: 13,
+    fontWeight: '600',
+    flex: 1,
   },
   cardsRow: {
     flexDirection: 'column',
