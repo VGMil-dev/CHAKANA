@@ -26,12 +26,29 @@ try {
   nobleHashesDir = path.dirname(require.resolve('@noble/hashes/package.json'));
 } catch {}
 
+let babelRuntimeDir = null;
+try {
+  babelRuntimeDir = path.dirname(require.resolve('@babel/runtime/package.json'));
+} catch {}
+
 const MWA_PACKAGES = [
   '@solana-mobile/mobile-wallet-adapter-protocol',
   '@solana-mobile/mobile-wallet-adapter-protocol-web3js',
 ];
 
 config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (
+    babelRuntimeDir &&
+    moduleName.startsWith('@babel/runtime/helpers/') &&
+    !moduleName.startsWith('@babel/runtime/helpers/esm/')
+  ) {
+    const subpath = moduleName.replace('@babel/runtime/helpers/', '').replace(/\.js$/, '');
+    const filePath = path.join(babelRuntimeDir, 'helpers', subpath + '.js');
+    if (fs.existsSync(filePath)) {
+      return { type: 'sourceFile', filePath };
+    }
+  }
+
   if (nobleHashesDir && moduleName.startsWith('@noble/hashes/')) {
     const subpath = moduleName.replace('@noble/hashes/', '').replace(/\.js$/, '');
     const filePath = path.join(nobleHashesDir, subpath + '.js');

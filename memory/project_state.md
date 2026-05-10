@@ -43,6 +43,13 @@
 - Backend commerce real agregado: `products`, `orders`, `order_items`, `payments`, `stripe_events` y campos Stripe Connect en `businesses`.
 - Edge Functions reales: `commerce-api`, `stripe-webhook` y `mint-aurio-on-review`.
 - Fix auth Tambu/Stripe: registro envia `role` a Supabase, migracion `006_fix_profile_roles_tambu_stripe_onboarding.sql` normaliza roles legacy y crea Tambu asociado para perfiles `tambu`; dashboard abre Stripe Connect o muestra error accionable.
+- Fix Expo Web: Metro resuelve helpers CommonJS de `@babel/runtime/helpers/*` para evitar crash `_objectWithoutPropertiesLoose is not a function` en `expo-router`.
+- Fix Supabase Auth Web: cliente usa `storageKey` propio para no restaurar refresh tokens viejos/inválidos del storage default.
+- LI.FI Paso 3: `/crosschain` consulta quote real Polygon USDC -> Solana USDC con REST, muestra ruta real/mock, request de demo y fallback seguro sin ejecutar transacciones.
+- LI.FI Paso 4: `/crosschain` usa `walletPubKey` Solana conectada como destino del quote; si no existe usa `EXPO_PUBLIC_QA_PAYOUT_WALLET` o wallet mock valida con badge visible.
+- LI.FI Paso 5: `/crosschain` lee balance AUR/SOL con Aurio SDK y prepara pago Tambu sin firmar ni enviar; modo demo bloquea preparacion real si no hay wallet conectada.
+- LI.FI Paso 6: Home expone CTA `Entrar con LI.FI` hacia `/crosschain` y la pantalla muestra flujo compacto LI.FI -> Solana -> Aurio -> impacto local.
+- Pulido UI LI.FI: `/crosschain` queda mas compacto para demo, con tildes corregidas, Estado Aurio en mini stats, consulta demo reducida y padding inferior para no chocar con la navegacion.
 
 ---
 
@@ -70,4 +77,4 @@
 
 ---
 
-**Ultima actualizacion:** 2026-05-09
+**Ultima actualizacion:** 2026-05-10
