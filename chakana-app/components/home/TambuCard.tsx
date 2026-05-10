@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, Text, ImageBackground, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
@@ -19,15 +19,17 @@ export interface TambuCardProps {
 }
 
 function TambuImg({ label, height, imageUri }: { tone?: string, label?: string, height: number, imageUri?: string | null }) {
-  const source = imageUri
+  const [error, setError] = useState(false);
+  const source = (imageUri && !error)
     ? { uri: imageUri }
     : require('../../assets/images/tambu_placeholder.webp');
 
   return (
     <ImageBackground
       source={source}
+      resizeMode="cover"
       style={[styles.tambuImgContainer, { height }]}
-      imageStyle={{ resizeMode: 'cover', width: "100%", height: "100%" }}
+      onError={() => setError(true)}
     >
       <View style={styles.tambuImgLabelContainer}>
         <Text style={styles.tambuImgLabel}>{label ?? 'Tambú'}</Text>
@@ -100,8 +102,8 @@ const styles = StyleSheet.create({
   },
   tambuImgContainer: {
     width: '100%',
+    backgroundColor: '#E8E2DB',
     justifyContent: 'flex-start',
-    padding: 0,
   },
   tambuImgLabelContainer: {
     backgroundColor: 'rgba(46, 42, 38, 0.6)',

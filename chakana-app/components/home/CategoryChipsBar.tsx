@@ -18,14 +18,15 @@ export default function CategoryChipsBar({ categories, active, onSelect }: Categ
   return (
     <View style={styles.stickyContainer}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.inner}>
-        {categories.map(c => (
-          <Chip
-            key={c.label}
-            label={c.label}
-            active={c.label === active}
-            onClick={() => onSelect(c.label)}
-            icon={<Ionicons name={c.iconName} size={14} color={c.label === active ? '#FDFAF7' : '#3D3D3D'} />}
-          />
+        {categories.map((c, i) => (
+          <View key={c.label} style={i < categories.length - 1 ? styles.chipGap : undefined}>
+            <Chip
+              label={c.label}
+              active={c.label === active}
+              onClick={() => onSelect(c.label)}
+              icon={<Ionicons name={c.iconName} size={14} color={c.label === active ? '#FDFAF7' : '#3D3D3D'} />}
+            />
+          </View>
         ))}
       </ScrollView>
     </View>
@@ -41,6 +42,8 @@ const styles = StyleSheet.create({
   },
   inner: {
     paddingHorizontal: 28,
-    gap: 12,
+  },
+  chipGap: {
+    marginRight: 12,
   },
 });

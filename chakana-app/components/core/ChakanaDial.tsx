@@ -126,9 +126,13 @@ export default function ChakanaDial({ activeTab, onTabPress, onCenterPress, cent
       )}
 
       <Animated.View style={[styles.dialGlass, glassAnimStyle]}>
-        <DialIcon {...leftTab} active={activeTab === leftTab.tab} onPress={handleTab} />
+        <View style={styles.sideSlot}>
+          <DialIcon {...leftTab} active={activeTab === leftTab.tab} onPress={handleTab} />
+        </View>
         <View style={{ width: BASE_SIZE }} />
-        <DialIcon tab="yo" icon="person-outline" label="PERFIL" active={activeTab === 'yo'} onPress={handleTab} />
+        <View style={styles.sideSlot}>
+          <DialIcon tab="yo" icon="person-outline" label="PERFIL" active={activeTab === 'yo'} onPress={handleTab} />
+        </View>
       </Animated.View>
 
       <Animated.View style={[styles.dialCenterWrapper, centerAnimStyle]}>
@@ -181,11 +185,15 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: 24,
     borderWidth: 1,
     borderColor: 'rgba(140,133,123,0.15)',
     backgroundColor: '#FFFFFF',
+  },
+  sideSlot: {
+    flex: 1,
+    alignItems: 'center',
   },
   dialCenterWrapper: {
     position: 'absolute',
