@@ -42,6 +42,7 @@
 - Checkout usa `businesses.wallet_adress` para redimir Aurios y `commerce-api` para crear Checkout Sessions Stripe Connect.
 - Backend commerce real agregado: `products`, `orders`, `order_items`, `payments`, `stripe_events` y campos Stripe Connect en `businesses`.
 - Edge Functions reales: `commerce-api`, `stripe-webhook` y `mint-aurio-on-review`.
+- Fix Expo Web: Metro resuelve helpers CommonJS de `@babel/runtime/helpers/*` para evitar crash `_objectWithoutPropertiesLoose is not a function` en `expo-router`.
 
 ---
 
@@ -69,4 +70,4 @@
 
 ---
 
-**Ultima actualizacion:** 2026-05-09
+**Ultima actualizacion:** 2026-05-10
