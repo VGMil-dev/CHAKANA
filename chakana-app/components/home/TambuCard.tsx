@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Image, Pressable } from 'react-native';
+import { StyleSheet, View, Text, ImageBackground, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 
@@ -25,12 +25,16 @@ function TambuImg({ label, height, imageUri }: { tone?: string, label?: string, 
   const source = (imageUri && !error) ? { uri: imageUri } : PLACEHOLDER;
 
   return (
-    <View style={[styles.tambuImgContainer, { height }]}>
-      <Image source={source} resizeMode="cover" style={StyleSheet.absoluteFill} />
+    <ImageBackground
+      source={source}
+      resizeMode="cover"
+      style={[styles.tambuImgContainer, { height }]}
+      onError={() => setError(true)}
+    >
       <View style={styles.tambuImgLabelContainer}>
         <Text style={styles.tambuImgLabel}>{label ?? 'Tambú'}</Text>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
