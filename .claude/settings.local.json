@@ -21,7 +21,10 @@
       "PowerShell(Get-ChildItem \"D:\\\\Dev\\\\CHAKANA\\\\chakana-app\\\\data\" -File | ForEach-Object { $_.Name })",
       "PowerShell(git *)",
       "Bash(Select-String \"zustand\")",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "PowerShell(head *)",
+      "PowerShell(Get-ChildItem \"D:\\\\Dev\\\\GAVANTI\\\\CHAKANA\\\\chakana-app\" -Recurse -Depth 2 | Where-Object {!$_.PSIsContainer} | Select-Object -First 50 FullName)",
+      "PowerShell([System.Environment]::SetEnvironmentVariable\\(\"ANDROID_HOME\", \"D:\\\\Scoop\\\\apps\\\\android-clt\\\\current\", \"User\"\\); [System.Environment]::SetEnvironmentVariable\\(\"ANDROID_SDK_ROOT\", \"D:\\\\Scoop\\\\apps\\\\android-clt\\\\current\", \"User\"\\); Write-Output \"Set: $\\([System.Environment]::GetEnvironmentVariable\\('ANDROID_HOME', 'User'\\)\\)\")"
     ]
   }
 }
