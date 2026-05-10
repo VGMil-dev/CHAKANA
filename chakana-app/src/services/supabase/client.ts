@@ -78,6 +78,7 @@ function getSupabaseStorage(): SupabaseStorage {
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: getSupabaseStorage(),
+    storageKey: 'chakana-supabase-auth-v1',
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
