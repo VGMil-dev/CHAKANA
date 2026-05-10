@@ -72,7 +72,9 @@ export default function Perfil() {
           </View>
         </View>
 
-        {isEmbajador ? <EmbajadorView aurioBalance={aurioBalance} /> : <TambuView />}
+        {isEmbajador
+          ? <EmbajadorView aurioBalance={aurioBalance} onCrosschain={() => router.push('/crosschain')} />
+          : <TambuView />}
 
         {/* Cuenta */}
         <View style={styles.sectionBase}>
