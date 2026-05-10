@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { Platform } from 'react-native';
+import { Platform, TurboModuleRegistry } from 'react-native';
 import { getAurioBalance } from 'aurio-sdk';
 import { useAppStore } from '../store';
+
+const mobileWalletAvailable =
+  Platform.OS !== 'web' && TurboModuleRegistry.get('SolanaMobileWalletAdapter') != null;
 
 type SolanaPublicKeyLike = {
   toString: () => string;
@@ -66,10 +69,14 @@ async function disconnectWebWallet(): Promise<void> {
 }
 
 async function connectMobileWallet(): Promise<string> {
-  const [{ PublicKey }, { transact }] = await Promise.all([
-    import('@solana/web3.js'),
-    import('@solana-mobile/mobile-wallet-adapter-protocol-web3js'),
-  ]);
+  if (!mobileWalletAvailable) {
+    throw new Error(
+      'Solana Mobile Wallet no disponible. Instala un development build (npx expo run:android).',
+    );
+  }
+  const { PublicKey } = require('@solana/web3.js') as typeof import('@solana/web3.js');
+  const { transact } = require('@solana-mobile/mobile-wallet-adapter-protocol-web3js') as
+    typeof import('@solana-mobile/mobile-wallet-adapter-protocol-web3js');
   const authorization = await transact(async (wallet) =>
     wallet.authorize({
       chain: 'solana:devnet',

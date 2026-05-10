@@ -1,5 +1,13 @@
-import { Platform } from 'react-native';
+import { Platform, TurboModuleRegistry } from 'react-native';
 import type { Transaction } from '@solana/web3.js';
+
+const mobileWalletAvailable =
+  Platform.OS !== 'web' && TurboModuleRegistry.get('SolanaMobileWalletAdapter') != null;
+
+const APP_IDENTITY = {
+  name: 'Chakana',
+  uri: 'https://chakana.app',
+};
 
 type SolanaPublicKeyLike = {
   toString: () => string;
@@ -32,10 +40,34 @@ function getWebProvider(): SolanaProvider | null {
 
 export function useWalletSigner(): UseWalletSignerResult {
   if (Platform.OS !== 'web') {
+    if (!mobileWalletAvailable) {
+      return {
+        signTransaction: null,
+        canSignTransactions: false,
+        signerError:
+          'Solana Mobile Wallet no disponible. Instala un development build.',
+      };
+    }
     return {
-      signTransaction: null,
-      canSignTransactions: false,
-      signerError: 'TODO Dev 3: integrar firma mobile con Mobile Wallet Adapter.',
+      signTransaction: async (tx) => {
+        const { transact } = require('@solana-mobile/mobile-wallet-adapter-protocol-web3js') as
+          typeof import('@solana-mobile/mobile-wallet-adapter-protocol-web3js');
+        return transact(async (wallet) => {
+          await wallet.authorize({
+            chain: 'solana:devnet',
+            identity: APP_IDENTITY,
+          });
+          const [signedTransaction] = await wallet.signTransactions({ transactions: [tx] });
+
+          if (!signedTransaction) {
+            throw new Error('La wallet no devolvió una transacción firmada.');
+          }
+
+          return signedTransaction as Transaction;
+        });
+      },
+      canSignTransactions: true,
+      signerError: null,
     };
   }
 

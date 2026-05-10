@@ -1,12 +1,18 @@
+import { Platform } from 'react-native';
 import 'react-native-get-random-values';
 import { Buffer } from 'buffer';
 
-type GlobalWithBuffer = typeof globalThis & {
+type GlobalWithExtras = typeof globalThis & {
   Buffer?: typeof Buffer;
+  isSecureContext?: boolean;
 };
 
-const globalWithBuffer = globalThis as GlobalWithBuffer;
+const g = globalThis as GlobalWithExtras;
 
-if (!globalWithBuffer.Buffer) {
-  globalWithBuffer.Buffer = Buffer;
+if (!g.Buffer) {
+  g.Buffer = Buffer;
+}
+
+if (Platform.OS !== 'web' && g.isSecureContext !== true) {
+  g.isSecureContext = true;
 }

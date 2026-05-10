@@ -17,8 +17,8 @@ config.resolver.unstable_conditionNames = [
   'react-native', 'browser', 'import', 'require', 'default',
 ];
 config.resolver.unstable_conditionsByPlatform = {
-  android: ['react-native', 'browser', 'import', 'require', 'default'],
-  ios: ['react-native', 'browser', 'import', 'require', 'default'],
+  android: ['react-native', 'import', 'require', 'default'],
+  ios: ['react-native', 'import', 'require', 'default'],
 };
 
 let nobleHashesDir = null;
