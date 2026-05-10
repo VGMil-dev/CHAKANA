@@ -1,9 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import type { Database } from '../../types/database';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+const envSupabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const envSupabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 type SupabaseStorage = {
   getItem: (key: string) => string | null | Promise<string | null>;
@@ -75,12 +76,40 @@ function getSupabaseStorage(): SupabaseStorage {
   }
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    storage: getSupabaseStorage(),
-    storageKey: 'chakana-supabase-auth-v1',
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
+function resolveSupabaseEnv() {
+  const fromConstants = (Constants?.expoConfig?.extra as Record<string, string> | undefined) || (Constants?.manifest?.extra as Record<string, string> | undefined) || {};
+  const supabaseUrl = envSupabaseUrl ?? fromConstants.EXPO_PUBLIC_SUPABASE_URL ?? '';
+  const supabaseAnonKey = envSupabaseAnonKey ?? fromConstants.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+  return { supabaseUrl, supabaseAnonKey };
+}
+
+let _client: SupabaseClient<Database> | null = null;
+
+function createSupabaseClient(): SupabaseClient<Database> {
+  if (_client) return _client;
+  const { supabaseUrl, supabaseAnonKey } = resolveSupabaseEnv();
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing EXPO_PUBLIC_SUPABASE_URL or EXPO_PUBLIC_SUPABASE_ANON_KEY. Add them to .env or app.json/app.config extra.');
+  }
+  _client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      storage: getSupabaseStorage(),
+      storageKey: 'chakana-supabase-auth-v1',
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+    },
+  });
+  return _client;
+}
+
+export const supabase = new Proxy({} as SupabaseClient<Database>, {
+  get(_, prop) {
+    const client = createSupabaseClient();
+    return client[prop as keyof SupabaseClient<Database>];
+  },
+  apply(_, thisArg, args) {
+    const client = createSupabaseClient();
+    return (client as any).apply(thisArg, args);
   },
 });
