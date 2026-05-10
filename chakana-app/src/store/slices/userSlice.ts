@@ -6,6 +6,7 @@ export type UserRole = 'embajador' | 'tambu';
 export type UserSlice = {
   authUserId: string | null;
   authEmail: string | null;
+  displayName: string | null;
   role: UserRole;
   walletPubKey: string | null;
   aurioBalance: number;
@@ -25,6 +26,7 @@ type UserState = Pick<
   UserSlice,
   | 'authUserId'
   | 'authEmail'
+  | 'displayName'
   | 'role'
   | 'walletPubKey'
   | 'aurioBalance'
@@ -36,6 +38,7 @@ type UserState = Pick<
 const initialUserState: UserState = {
   authUserId: null,
   authEmail: null,
+  displayName: null,
   role: 'embajador',
   walletPubKey: null,
   aurioBalance: 0,

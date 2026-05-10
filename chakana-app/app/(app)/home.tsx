@@ -32,7 +32,7 @@ function TambuCardSkeleton({ featured }: { featured?: boolean }) {
 export default function Home() {
   const insets = useSafeAreaInsets();
   const [active, setActive] = useState('Todos');
-  const { authEmail } = useAuth();
+  const { authEmail, displayName: authDisplayName } = useAuth();
   const {
     listaTambus,
     isLoadingBusinesses,
@@ -53,7 +53,7 @@ export default function Home() {
     void fetchBusinesses();
   }, [fetchBusinesses]);
 
-  const displayName = authEmail?.split('@')[0] ?? 'Explorador';
+  const displayName = authDisplayName ?? authEmail?.split('@')[0] ?? 'Explorador';
   const initials = getInitials(displayName);
   const greeting = `Hola, ${displayName.split(/[.\s_-]/)[0]}.`;
 

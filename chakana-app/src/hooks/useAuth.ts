@@ -6,6 +6,7 @@ import type { UserRole } from '../store/slices/userSlice';
 type UseAuthResult = {
   authUserId: string | null;
   authEmail: string | null;
+  displayName: string | null;
   role: UserRole;
   isConnected: boolean;
   isAuthLoading: boolean;
@@ -33,6 +34,7 @@ function getErrorMessage(error: unknown): string {
 export function useAuth(): UseAuthResult {
   const authUserId = useAppStore((state) => state.authUserId);
   const authEmail = useAppStore((state) => state.authEmail);
+  const displayName = useAppStore((state) => state.displayName);
   const role = useAppStore((state) => state.role);
   const isAuthLoading = useAppStore((state) => state.isAuthLoading);
   const authError = useAppStore((state) => state.authError);
@@ -46,6 +48,7 @@ export function useAuth(): UseAuthResult {
       setUser({
         authUserId: user?.id ?? null,
         authEmail: user?.email ?? email,
+        displayName: (user?.user_metadata?.['display_name'] as string | undefined) ?? null,
         role: userRole,
         isAuthLoading: false,
         authError: null,
@@ -76,6 +79,7 @@ export function useAuth(): UseAuthResult {
       setUser({
         authUserId: user?.id ?? null,
         authEmail: user?.email ?? email,
+        displayName,
         role,
         walletPubKey,
         isConnected: true,
@@ -115,12 +119,13 @@ export function useAuth(): UseAuthResult {
 
   const subRef = useRef<(() => void) | null>(null);
 
-  const syncUserToStore = useCallback(async (user: { id: string; email?: string } | null) => {
+  const syncUserToStore = useCallback(async (user: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null) => {
     if (user) {
       const userRole = await getUserRole(user.id);
       setUser({
         authUserId: user.id,
         authEmail: user.email ?? null,
+        displayName: (user.user_metadata?.['display_name'] as string | undefined) ?? null,
         role: userRole,
         isAuthLoading: false,
         authError: null,
@@ -165,6 +170,7 @@ export function useAuth(): UseAuthResult {
   return {
     authUserId,
     authEmail,
+    displayName,
     role,
     isConnected: !!authUserId,
     isAuthLoading,

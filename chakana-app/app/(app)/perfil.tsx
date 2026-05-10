@@ -23,11 +23,11 @@ function truncateWallet(address?: string) {
 export default function Perfil() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { authEmail, role, signOut } = useAuth();
+  const { authEmail, displayName: authDisplayName, role, signOut } = useAuth();
   const { walletPubKey, aurioBalance } = useWallet();
 
   const isEmbajador = role === 'embajador';
-  const displayName = authEmail?.split('@')[0] ?? 'Embajador';
+  const displayName = authDisplayName ?? authEmail?.split('@')[0] ?? 'Embajador';
   const wallet = truncateWallet(walletPubKey ?? undefined);
 
   const handleLogout = async () => {
