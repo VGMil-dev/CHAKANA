@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Secondary · Turquesa Andino</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin:0; padding:24px; background: var(--background); }
+  .row { display:grid; grid-template-columns: 1.4fr 1fr 1fr; gap:14px; }
+  .swatch { border-radius: var(--radius-md); padding: 16px; min-height: 110px; display:flex; flex-direction:column; justify-content: space-between; }
+  .name { font-family: var(--font-display); font-weight:600; font-size:15px; }
+  .hex { font-family: var(--font-mono); font-size: 11px; opacity:0.85; }
+  .role { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.7; }
+</style></head>
+<body>
+  <div class="row">
+    <div class="swatch" style="background: var(--secondary); color: var(--on-secondary);">
+      <div class="role">Secondary · Turquesa</div>
+      <div><div class="name">secondary</div><div class="hex">#3AAFA9</div></div>
+    </div>
+    <div class="swatch" style="background: var(--secondary-deep); color: var(--on-secondary);">
+      <div class="role">Deep accent</div>
+      <div><div class="name">secondary-deep</div><div class="hex">#277B77</div></div>
+    </div>
+    <div class="swatch" style="background: var(--secondary-container); color: var(--on-secondary-container);">
+      <div class="role">Tonal fill</div>
+      <div><div class="name">secondary-container</div><div class="hex">#D5EEEC</div></div>
+    </div>
+  </div>
+  <p class="body-sm" style="margin: 16px 0 0; color: var(--on-surface-variant);">Used <em>sparingly</em> — accents, positive states, the Cycle Indicator. Never as a hero colour.</p>
+</body></html>
