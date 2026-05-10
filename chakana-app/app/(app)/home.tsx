@@ -35,7 +35,7 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [active, setActive] = useState('Todos');
-  const { authEmail } = useAuth();
+  const { authEmail, isDemoMode } = useAuth();
   const {
     listaTambus,
     isLoadingBusinesses,
@@ -98,8 +98,21 @@ export default function Home() {
         onRefreshBalance={() => void refreshAurioBalance()}
       />
 
-      <ScrollView stickyHeaderIndices={[2]} showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
+      <ScrollView
+        stickyHeaderIndices={isDemoMode ? [3] : [2]}
+        showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
+      >
         <DisplaySection eyebrow="MERCADO" title="Tambús que" accentLine="laten hoy." />
+
+        {isDemoMode ? (
+          <View style={styles.demoBanner}>
+            <Text style={styles.demoBannerTitle}>Modo demo</Text>
+            <Text style={styles.demoBannerText}>
+              Demo segura: no se firman transacciones ni se mueven fondos reales.
+            </Text>
+          </View>
+        ) : null}
 
         <Pressable
           accessibilityRole="button"
@@ -167,6 +180,25 @@ const styles = StyleSheet.create({
     color: '#9E392D',
     fontSize: 13,
     fontWeight: '600',
+  },
+  demoBanner: {
+    backgroundColor: '#F8F3EE',
+    borderRadius: 10,
+    marginHorizontal: 28,
+    marginBottom: 14,
+    padding: 14,
+  },
+  demoBannerTitle: {
+    color: '#A63A2F',
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  demoBannerText: {
+    color: '#6F6861',
+    fontSize: 12.5,
+    lineHeight: 18,
+    marginTop: 4,
   },
   crosschainCard: {
     backgroundColor: '#FCF9F6',

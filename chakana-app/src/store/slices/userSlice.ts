@@ -10,6 +10,7 @@ export type UserSlice = {
   walletPubKey: string | null;
   aurioBalance: number;
   isConnected: boolean;
+  isDemoMode: boolean;
   isAuthLoading: boolean;
   authError: string | null;
   setUser: (user: Partial<UserState>) => void;
@@ -29,6 +30,7 @@ type UserState = Pick<
   | 'walletPubKey'
   | 'aurioBalance'
   | 'isConnected'
+  | 'isDemoMode'
   | 'isAuthLoading'
   | 'authError'
 >;
@@ -40,6 +42,7 @@ const initialUserState: UserState = {
   walletPubKey: null,
   aurioBalance: 0,
   isConnected: false,
+  isDemoMode: false,
   isAuthLoading: false,
   authError: null,
 };

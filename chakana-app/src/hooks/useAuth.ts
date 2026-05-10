@@ -2,15 +2,26 @@ import { useCallback, useRef } from 'react';
 import { getSession, getUserRole, onAuthStateChange, signIn, signOut, signUp } from '../services/supabase';
 import { useAppStore } from '../store';
 import type { UserRole } from '../store/slices/userSlice';
+import {
+  DEMO_AURIO_BALANCE,
+  DEMO_USER_EMAIL,
+  DEMO_USER_ID,
+  disableDemoModeSession,
+  enableDemoModeSession,
+  getDemoWalletAddress,
+  isDemoModeSessionEnabled,
+} from '../utils/demoMode';
 
 type UseAuthResult = {
   authUserId: string | null;
   authEmail: string | null;
   role: UserRole;
   isConnected: boolean;
+  isDemoMode: boolean;
   isAuthLoading: boolean;
   authError: string | null;
   login: (email: string, password: string) => Promise<void>;
+  loginDemo: () => Promise<void>;
   register: (
     email: string,
     password: string,
@@ -33,6 +44,7 @@ export function useAuth(): UseAuthResult {
   const authUserId = useAppStore((state) => state.authUserId);
   const authEmail = useAppStore((state) => state.authEmail);
   const role = useAppStore((state) => state.role);
+  const isDemoMode = useAppStore((state) => state.isDemoMode);
   const isAuthLoading = useAppStore((state) => state.isAuthLoading);
   const authError = useAppStore((state) => state.authError);
   const setUser = useAppStore((state) => state.setUser);
@@ -46,6 +58,7 @@ export function useAuth(): UseAuthResult {
         authUserId: user?.id ?? null,
         authEmail: user?.email ?? email,
         role: userRole,
+        isDemoMode: false,
         isAuthLoading: false,
         authError: null,
       });
@@ -74,6 +87,7 @@ export function useAuth(): UseAuthResult {
         authEmail: user?.email ?? email,
         walletPubKey,
         isConnected: true,
+        isDemoMode: false,
         isAuthLoading: false,
         authError: null,
       });
@@ -89,10 +103,15 @@ export function useAuth(): UseAuthResult {
     setUser({ isAuthLoading: true, authError: null });
     try {
       await signOut();
+      await disableDemoModeSession();
       setUser({
         authUserId: null,
         authEmail: null,
         role: 'embajador',
+        walletPubKey: null,
+        aurioBalance: 0,
+        isConnected: false,
+        isDemoMode: false,
         isAuthLoading: false,
         authError: null,
       });
@@ -106,6 +125,22 @@ export function useAuth(): UseAuthResult {
 
   const subRef = useRef<(() => void) | null>(null);
 
+  const loginDemo = async (): Promise<void> => {
+    setUser({ isAuthLoading: true, authError: null });
+    await enableDemoModeSession();
+    setUser({
+      authUserId: DEMO_USER_ID,
+      authEmail: DEMO_USER_EMAIL,
+      role: 'embajador',
+      walletPubKey: getDemoWalletAddress(),
+      aurioBalance: DEMO_AURIO_BALANCE,
+      isConnected: true,
+      isDemoMode: true,
+      isAuthLoading: false,
+      authError: null,
+    });
+  };
+
   const syncUserToStore = useCallback(async (user: { id: string; email?: string } | null) => {
     if (user) {
       const userRole = await getUserRole(user.id);
@@ -113,6 +148,7 @@ export function useAuth(): UseAuthResult {
         authUserId: user.id,
         authEmail: user.email ?? null,
         role: userRole,
+        isDemoMode: false,
         isAuthLoading: false,
         authError: null,
       });
@@ -121,6 +157,10 @@ export function useAuth(): UseAuthResult {
         authUserId: null,
         authEmail: null,
         role: 'embajador',
+        walletPubKey: null,
+        aurioBalance: 0,
+        isConnected: false,
+        isDemoMode: false,
         isAuthLoading: false,
         authError: null,
       });
@@ -135,6 +175,21 @@ export function useAuth(): UseAuthResult {
       subRef.current = null;
     }
 
+    if (await isDemoModeSessionEnabled()) {
+      setUser({
+        authUserId: DEMO_USER_ID,
+        authEmail: DEMO_USER_EMAIL,
+        role: 'embajador',
+        walletPubKey: getDemoWalletAddress(),
+        aurioBalance: DEMO_AURIO_BALANCE,
+        isConnected: true,
+        isDemoMode: true,
+        isAuthLoading: false,
+        authError: null,
+      });
+      return;
+    }
+
     subRef.current = onAuthStateChange(async (user) => {
       await syncUserToStore(user);
     });
@@ -147,6 +202,10 @@ export function useAuth(): UseAuthResult {
         authUserId: null,
         authEmail: null,
         role: 'embajador',
+        walletPubKey: null,
+        aurioBalance: 0,
+        isConnected: false,
+        isDemoMode: false,
         isAuthLoading: false,
         authError: error instanceof Error ? error.message : 'Error restoring session',
       });
@@ -158,9 +217,11 @@ export function useAuth(): UseAuthResult {
     authEmail,
     role,
     isConnected: !!authUserId,
+    isDemoMode,
     isAuthLoading,
     authError,
     login,
+    loginDemo,
     register,
     logout,
     initAuth,

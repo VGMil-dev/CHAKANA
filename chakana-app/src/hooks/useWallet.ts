@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Platform, TurboModuleRegistry } from 'react-native';
 import { getAurioBalance } from 'aurio-sdk';
 import { useAppStore } from '../store';
+import { DEMO_AURIO_BALANCE, getDemoWalletAddress } from '../utils/demoMode';
 
 const mobileWalletAvailable =
   Platform.OS !== 'web' && TurboModuleRegistry.get('SolanaMobileWalletAdapter') != null;
@@ -96,6 +97,7 @@ export function useWallet(): UseWalletResult {
   const walletPubKey = useAppStore((state) => state.walletPubKey);
   const aurioBalance = useAppStore((state) => state.aurioBalance);
   const isConnected = useAppStore((state) => state.isConnected);
+  const isDemoMode = useAppStore((state) => state.isDemoMode);
   const setWalletPubKey = useAppStore((state) => state.setWalletPubKey);
   const setAurioBalance = useAppStore((state) => state.setAurioBalance);
   const setIsConnected = useAppStore((state) => state.setIsConnected);
@@ -113,6 +115,11 @@ export function useWallet(): UseWalletResult {
       setAurioBalance(balance);
       setWalletError(null);
     } catch (error) {
+      if (isDemoMode) {
+        setAurioBalance(DEMO_AURIO_BALANCE);
+        setWalletError(null);
+        return;
+      }
       setWalletError(getErrorMessage(error));
     }
   };
@@ -122,6 +129,14 @@ export function useWallet(): UseWalletResult {
     setWalletError(null);
 
     try {
+      if (isDemoMode) {
+        setWalletPubKey(getDemoWalletAddress());
+        setAurioBalance(DEMO_AURIO_BALANCE);
+        setIsConnected(true);
+        setWalletError(null);
+        return;
+      }
+
       const publicKey =
         Platform.OS === 'web' ? await connectWebWallet() : await connectMobileWallet();
       setWalletPubKey(publicKey);
@@ -131,6 +146,13 @@ export function useWallet(): UseWalletResult {
       setAurioBalance(balance);
       setWalletError(null);
     } catch (error) {
+      if (isDemoMode) {
+        setWalletPubKey(getDemoWalletAddress());
+        setAurioBalance(DEMO_AURIO_BALANCE);
+        setIsConnected(true);
+        setWalletError(null);
+        return;
+      }
       setWalletError(getErrorMessage(error));
       setWalletPubKey(null);
       setAurioBalance(0);

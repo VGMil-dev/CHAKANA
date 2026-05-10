@@ -35,9 +35,19 @@ export function useAuth() {
     await auth.logout();
   }
 
+  async function signInDemo(): Promise<AuthResult> {
+    try {
+      await auth.loginDemo();
+      return { error: null };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : 'Error al entrar en modo demo' };
+    }
+  }
+
   return {
     ...auth,
     signIn,
+    signInDemo,
     signUp,
     signOut,
   };

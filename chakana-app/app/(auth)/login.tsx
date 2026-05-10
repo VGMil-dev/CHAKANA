@@ -12,7 +12,7 @@ import { useWallet } from '../../src/hooks/useWallet';
 
 export default function Login() {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, signInDemo } = useAuth();
   const { walletPubKey, isConnectingWallet, walletError, connectWallet } = useWallet();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,6 +31,18 @@ export default function Login() {
     setLoading(true);
     const { error } = await signIn(email, password);
     if (error) { setError(error); setLoading(false); return; }
+    router.replace('/home');
+  };
+
+  const handleDemoLogin = async () => {
+    setError(null);
+    setLoading(true);
+    const { error } = await signInDemo();
+    if (error) {
+      setError(error);
+      setLoading(false);
+      return;
+    }
     router.replace('/home');
   };
 
@@ -140,6 +152,25 @@ export default function Login() {
               ? <ActivityIndicator size="small" color="#9E392D" />
               : <Text style={styles.submitButtonText}>Iniciar sesión</Text>
             }
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.demoButton, loading && styles.submitButtonDisabled]}
+            onPress={handleDemoLogin}
+            activeOpacity={0.82}
+            disabled={loading}
+            testID="demo-login-button"
+          >
+            <View style={styles.demoBadge}>
+              <Text style={styles.demoBadgeText}>Modo demo</Text>
+            </View>
+            <View style={styles.demoCopy}>
+              <Text style={styles.demoTitle}>Entrar en modo demo</Text>
+              <Text style={styles.demoText}>
+                Demo segura: no se firman transacciones ni se mueven fondos reales.
+              </Text>
+            </View>
+            <Ionicons name="arrow-forward" size={18} color="#9E392D" />
           </TouchableOpacity>
 
           <View style={styles.footerRow}>
@@ -289,6 +320,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#9E392D',
+  },
+  demoButton: {
+    alignItems: 'center',
+    backgroundColor: '#F8F3EE',
+    borderRadius: 14,
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 22,
+    padding: 14,
+  },
+  demoBadge: {
+    backgroundColor: '#F7E7E3',
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
+  demoBadgeText: {
+    color: '#9E392D',
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  demoCopy: {
+    flex: 1,
+    gap: 3,
+  },
+  demoTitle: {
+    color: '#3D3D3D',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  demoText: {
+    color: '#6F6861',
+    fontSize: 12,
+    lineHeight: 16,
   },
   footerRow: {
     flexDirection: 'row',
