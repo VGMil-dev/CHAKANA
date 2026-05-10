@@ -4,6 +4,11 @@ import type { Transaction } from '@solana/web3.js';
 const mobileWalletAvailable =
   Platform.OS !== 'web' && TurboModuleRegistry.get('SolanaMobileWalletAdapter') != null;
 
+const APP_IDENTITY = {
+  name: 'Chakana',
+  uri: 'https://chakana.app',
+};
+
 type SolanaPublicKeyLike = {
   toString: () => string;
 };
@@ -26,11 +31,6 @@ type UseWalletSignerResult = {
   signTransaction: ((tx: Transaction) => Promise<Transaction>) | null;
   canSignTransactions: boolean;
   signerError: string | null;
-};
-
-const APP_IDENTITY = {
-  name: 'Chakana',
-  uri: 'https://chakana.app',
 };
 
 function getWebProvider(): SolanaProvider | null {

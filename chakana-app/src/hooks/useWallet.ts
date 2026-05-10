@@ -86,7 +86,7 @@ async function connectMobileWallet(): Promise<string> {
   const account = authorization.accounts[0];
 
   if (!account) {
-    throw new Error('La wallet no devolvió una cuenta autorizada.');
+    throw new Error('La wallet no devolviÃ³ una cuenta autorizada.');
   }
 
   return new PublicKey(decodeBase64Address(account.address)).toBase58();
