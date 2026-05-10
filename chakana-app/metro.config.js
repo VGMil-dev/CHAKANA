@@ -31,6 +31,11 @@ try {
   babelRuntimeDir = path.dirname(require.resolve('@babel/runtime/package.json'));
 } catch {}
 
+const MWA_PACKAGES = [
+  '@solana-mobile/mobile-wallet-adapter-protocol',
+  '@solana-mobile/mobile-wallet-adapter-protocol-web3js',
+];
+
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (
     babelRuntimeDir &&
@@ -50,6 +55,11 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
     if (fs.existsSync(filePath)) {
       return { type: 'sourceFile', filePath };
     }
+  }
+  if (platform !== 'web' && MWA_PACKAGES.includes(moduleName)) {
+    const pkgName = moduleName.replace('@solana-mobile/', '');
+    const filePath = path.join(projectRoot, 'node_modules', '@solana-mobile', pkgName, 'lib/cjs/index.native.js');
+    if (fs.existsSync(filePath)) return { type: 'sourceFile', filePath };
   }
   return context.resolveRequest(context, moduleName, platform);
 };

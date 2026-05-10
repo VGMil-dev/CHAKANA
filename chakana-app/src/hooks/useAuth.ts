@@ -15,6 +15,7 @@ type UseAuthResult = {
     email: string,
     password: string,
     displayName: string,
+    role: UserRole,
     walletPubKey: string,
   ) => Promise<void>;
   logout: () => Promise<void>;
@@ -50,10 +51,12 @@ export function useAuth(): UseAuthResult {
         authError: null,
       });
     } catch (error) {
+      const message = getErrorMessage(error);
       setUser({
         isAuthLoading: false,
-        authError: getErrorMessage(error),
+        authError: message,
       });
+      throw new Error(message);
     }
   };
 
@@ -61,6 +64,7 @@ export function useAuth(): UseAuthResult {
     email: string,
     password: string,
     displayName: string,
+    role: UserRole,
     walletPubKey: string,
   ): Promise<void> => {
     setUser({ isAuthLoading: true, authError: null });
@@ -68,20 +72,23 @@ export function useAuth(): UseAuthResult {
       if (!walletPubKey) {
         throw new Error('Conecta tu wallet Solana antes de crear tu cuenta.');
       }
-      const user = await signUp(email, password, displayName, walletPubKey);
+      const user = await signUp(email, password, displayName, role, walletPubKey);
       setUser({
         authUserId: user?.id ?? null,
         authEmail: user?.email ?? email,
+        role,
         walletPubKey,
         isConnected: true,
         isAuthLoading: false,
         authError: null,
       });
     } catch (error) {
+      const message = getErrorMessage(error);
       setUser({
         isAuthLoading: false,
-        authError: getErrorMessage(error),
+        authError: message,
       });
+      throw new Error(message);
     }
   };
 
@@ -97,10 +104,12 @@ export function useAuth(): UseAuthResult {
         authError: null,
       });
     } catch (error) {
+      const message = getErrorMessage(error);
       setUser({
         isAuthLoading: false,
-        authError: getErrorMessage(error),
+        authError: message,
       });
+      throw new Error(message);
     }
   };
 

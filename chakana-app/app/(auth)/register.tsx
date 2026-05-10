@@ -28,7 +28,6 @@ export default function Register() {
     void connectWallet();
   };
 
-  // role defaults to 'embajador' until the role-selection step is added
   const handleRegister = async () => {
     setError(null);
     if (!walletPubKey) {
@@ -38,7 +37,7 @@ export default function Register() {
     setLoading(true);
     const { error } = await signUp(name, email, password, role, walletPubKey)
     if (error) { setError(error); setLoading(false); return; }
-    router.replace('/home');
+    router.replace(role === 'tambu' ? '/dashboard' : '/home');
   };
 
   return (

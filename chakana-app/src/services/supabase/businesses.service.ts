@@ -25,6 +25,17 @@ export async function getBusinessById(id: string): Promise<Business> {
   return data;
 }
 
+export async function getBusinessesByOwner(ownerId: string): Promise<Business[]> {
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('*')
+    .eq('owner_id', ownerId)
+    .order('created_at', { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export async function getProductsByBusiness(businessId: string): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')

@@ -45,7 +45,7 @@ Dev 1 NUNCA importa desde:
 ## Integracion con Supabase Auth
 
 - `useAuth.login(email, password)` llama `signIn` de Supabase y guarda `authUserId` y `authEmail` en Zustand.
-- `useAuth.register(email, password, displayName, walletPubKey)` exige wallet Solana, llama `signUp` de Supabase y deja la sesion lista si Supabase devuelve usuario.
+- `useAuth.register(email, password, displayName, role, walletPubKey)` exige wallet Solana, llama `signUp` de Supabase con `role: 'embajador' | 'tambu'` y deja la sesion lista si Supabase devuelve usuario.
 - `useAuth.initAuth()` se llama una sola vez al arrancar la app para hidratar la sesion activa.
 - `useAuth.logout()` cierra la sesion en Supabase y limpia solo el estado de autenticacion.
 - `isConnected` de `useAuth` significa sesion Supabase activa; la conexion de wallet sigue viviendo en `useWallet`.
