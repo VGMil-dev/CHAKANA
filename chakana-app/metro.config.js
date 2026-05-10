@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const { getDefaultConfig } = require('expo/metro-config');
 
@@ -20,14 +21,20 @@ config.resolver.unstable_conditionsByPlatform = {
   ios: ['react-native', 'browser', 'import', 'require', 'default'],
 };
 
-const defaultResolveRequest = config.resolver.resolveRequest;
+let nobleHashesDir = null;
+try {
+  nobleHashesDir = path.dirname(require.resolve('@noble/hashes/package.json'));
+} catch {}
+
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (moduleName.startsWith('@noble/') && moduleName.endsWith('.js')) {
-    return context.resolveRequest(context, moduleName.replace(/\.js$/, ''), platform);
+  if (nobleHashesDir && moduleName.startsWith('@noble/hashes/')) {
+    const subpath = moduleName.replace('@noble/hashes/', '').replace(/\.js$/, '');
+    const filePath = path.join(nobleHashesDir, subpath + '.js');
+    if (fs.existsSync(filePath)) {
+      return { type: 'sourceFile', filePath };
+    }
   }
-  return defaultResolveRequest
-    ? defaultResolveRequest(context, moduleName, platform)
-    : context.resolveRequest(context, moduleName, platform);
+  return context.resolveRequest(context, moduleName, platform);
 };
 
 module.exports = config;
