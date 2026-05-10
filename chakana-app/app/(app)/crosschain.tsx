@@ -6,40 +6,58 @@ import { useRouter } from 'expo-router';
 import CrosschainAurioCard from '../../components/crosschain/CrosschainAurioCard';
 import CrosschainRouteSummary from '../../components/crosschain/CrosschainRouteSummary';
 import CrosschainInfoCard from '../../components/crosschain/CrosschainInfoCard';
-import { CrosschainRouteMock } from '../../../src/types/crosschain';
+import { getAurioOnboardingRoute } from '../../../src/services/crosschainAurioService';
+import type { CrosschainRouteResult } from '../../../src/types/crosschain';
+
+// ─── Mock config for MVP demo ────────────────────────────────────────────────
+// TODO (Paso 3): Replace with real wallet + user-selected chain/token
+const MOCK_SOURCE = {
+  chainId: 137 as const,       // Polygon
+  tokenAddress: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', // USDC
+  tokenDecimals: 6,
+  amount: '10',
+  networkName: 'Polygon',
+  tokenSymbol: 'USDC',
+};
+
+const MOCK_WALLET = '8x7K...a91F'; // TODO: replace with real Solana wallet
 
 export default function CrosschainAurioScreen() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [route, setRoute] = useState<CrosschainRouteMock | null>(null);
+  const [route, setRoute] = useState<CrosschainRouteResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSearchRoute = () => {
+  const handleSearchRoute = async () => {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setRoute({
-        sourceNetwork: 'Polygon',
-        sourceToken: 'USDC',
-        destinationNetwork: 'Solana',
-        destinationToken: 'USDC / SOL',
-        provider: 'LI.FI',
-        estimatedTime: '2-4 min',
-        estimatedFee: '~0.18 USDC',
-        status: 'ready'
+    setError(null);
+    setRoute(null);
+
+    try {
+      const result = await getAurioOnboardingRoute({
+        fromChainId: MOCK_SOURCE.chainId,
+        fromTokenAddress: MOCK_SOURCE.tokenAddress,
+        fromTokenDecimals: MOCK_SOURCE.tokenDecimals,
+        fromAmount: MOCK_SOURCE.amount,
+        // TODO: pass real wallet addresses when wallet is connected
       });
+      setRoute(result);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      setError(message);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handlePayTambu = () => {
     console.log("TODO: pay to Tambu with Aurio SDK");
-    // Just a placeholder action for the mock
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        
+
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -53,7 +71,9 @@ export default function CrosschainAurioScreen() {
         {/* Hero Section */}
         <View style={styles.hero}>
           <Text style={styles.title}>Entrar a CHAKANA desde cualquier red</Text>
-          <Text style={styles.subtitle}>Convierte valor cross-chain en participación local con Aurio.</Text>
+          <Text style={styles.subtitle}>
+            Convierte valor cross-chain en participación local con Aurio.
+          </Text>
           <View style={styles.narrativeBox}>
             <Text style={styles.narrativeText}>Crypto global → impacto local</Text>
           </View>
@@ -62,19 +82,19 @@ export default function CrosschainAurioScreen() {
         {/* Cards */}
         <View style={styles.cardsRow}>
           <View style={styles.cardWrapper}>
-            <CrosschainAurioCard 
+            <CrosschainAurioCard
               type="source"
-              network="Polygon"
-              token="USDC"
-              amount="10 USDC"
+              network={MOCK_SOURCE.networkName}
+              token={MOCK_SOURCE.tokenSymbol}
+              amount={`${MOCK_SOURCE.amount} ${MOCK_SOURCE.tokenSymbol}`}
             />
           </View>
           <View style={styles.cardWrapper}>
-            <CrosschainAurioCard 
+            <CrosschainAurioCard
               type="destination"
               network="Solana"
-              token="USDC / SOL"
-              wallet="8x7K...a91F"
+              token={route ? route.destinationToken : 'USDC / SOL'}
+              wallet={MOCK_WALLET}
             />
           </View>
         </View>
@@ -82,13 +102,13 @@ export default function CrosschainAurioScreen() {
         <CrosschainInfoCard />
 
         {/* Route Summary */}
-        <CrosschainRouteSummary route={route} isLoading={isLoading} />
+        <CrosschainRouteSummary route={route} isLoading={isLoading} error={error} />
 
         {/* Actions */}
         <View style={styles.footer}>
           {!route ? (
             <TouchableOpacity
-              style={styles.primaryButton}
+              style={[styles.primaryButton, isLoading && styles.disabledButton]}
               activeOpacity={0.8}
               onPress={handleSearchRoute}
               disabled={isLoading}
@@ -105,6 +125,15 @@ export default function CrosschainAurioScreen() {
                 <Text style={styles.primaryButtonText}>Pagar a Tambú con Aurios</Text>
               </TouchableOpacity>
               <Text style={styles.nextStepText}>Próximo paso: conectar Aurio SDK</Text>
+
+              {/* Reset to search again */}
+              <TouchableOpacity
+                style={styles.resetButton}
+                activeOpacity={0.6}
+                onPress={() => { setRoute(null); setError(null); }}
+              >
+                <Text style={styles.resetButtonText}>Buscar otra ruta</Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -123,7 +152,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 100, // Make room for ChakanaDial if needed
+    paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',
@@ -198,6 +227,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
+  disabledButton: {
+    opacity: 0.6,
+  },
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
@@ -210,5 +242,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#A09C96',
     marginTop: 8,
+  },
+  resetButton: {
+    marginTop: 16,
+    padding: 4,
+  },
+  resetButtonText: {
+    fontSize: 13,
+    color: '#9E392D',
+    textDecorationLine: 'underline',
   },
 });

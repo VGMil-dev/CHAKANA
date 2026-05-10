@@ -1,14 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { CrosschainRouteMock } from '../../../src/types/crosschain';
+import type { CrosschainRouteResult } from '../../../src/types/crosschain';
 
 interface Props {
-  route: CrosschainRouteMock | null;
+  route: CrosschainRouteResult | null;
   isLoading: boolean;
+  error: string | null;
 }
 
-export default function CrosschainRouteSummary({ route, isLoading }: Props) {
+export default function CrosschainRouteSummary({ route, isLoading, error }: Props) {
   if (isLoading) {
     return (
       <View style={[styles.container, styles.center]}>
@@ -18,12 +19,24 @@ export default function CrosschainRouteSummary({ route, isLoading }: Props) {
     );
   }
 
+  if (error) {
+    return (
+      <View style={[styles.container, styles.center]}>
+        <Ionicons name="alert-circle-outline" size={32} color="#9E392D" />
+        <Text style={styles.errorTitle}>No se pudo obtener la ruta</Text>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
   if (!route) {
     return (
       <View style={[styles.container, styles.center]}>
         <Ionicons name="git-network-outline" size={32} color="#A09C96" />
         <Text style={styles.emptyTitle}>Aún no hay ruta calculada</Text>
-        <Text style={styles.emptyText}>Presiona buscar ruta para simular el onboarding cross-chain.</Text>
+        <Text style={styles.emptyText}>
+          Presiona buscar ruta para encontrar el mejor camino cross-chain.
+        </Text>
       </View>
     );
   }
@@ -33,17 +46,33 @@ export default function CrosschainRouteSummary({ route, isLoading }: Props) {
       <View style={styles.header}>
         <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
         <Text style={styles.title}>Ruta Encontrada</Text>
+        {route.isMock && (
+          <View style={styles.mockBadge}>
+            <Text style={styles.mockBadgeText}>mock</Text>
+          </View>
+        )}
       </View>
-      
+
       <View style={styles.details}>
-        <DetailRow label="De" value={`${route.sourceToken} en ${route.sourceNetwork}`} />
-        <DetailRow label="A" value={`${route.destinationToken} en ${route.destinationNetwork}`} />
+        <DetailRow
+          label="De"
+          value={`${route.sourceAmount} ${route.sourceToken} en ${route.sourceNetwork}`}
+        />
+        <DetailRow
+          label="A"
+          value={`~${route.destinationAmount} ${route.destinationToken} en ${route.destinationNetwork}`}
+        />
         <DetailRow label="Proveedor" value={route.provider} />
+        {route.toolUsed && route.toolUsed !== 'mock' && (
+          <DetailRow label="Bridge" value={route.toolUsed} />
+        )}
         <DetailRow label="Tiempo Estimado" value={route.estimatedTime} />
         <DetailRow label="Fee Estimado" value={route.estimatedFee} />
-        
+
         <View style={styles.statusBox}>
-          <Text style={styles.statusText}>Estado: Listo para recibir valor en Solana</Text>
+          <Text style={styles.statusText}>
+            Estado: Listo para recibir valor en Solana
+          </Text>
         </View>
       </View>
     </View>
@@ -91,6 +120,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 16,
   },
+  errorTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#9E392D',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  errorText: {
+    fontSize: 13,
+    color: '#8A8580',
+    textAlign: 'center',
+    paddingHorizontal: 16,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -101,6 +143,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#3D3D3D',
     marginLeft: 8,
+    flex: 1,
+  },
+  mockBadge: {
+    backgroundColor: '#E8E4DF',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  mockBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#8A8580',
   },
   details: {
     gap: 8,
@@ -118,6 +172,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#3D3D3D',
+    flexShrink: 1,
+    textAlign: 'right',
   },
   statusBox: {
     marginTop: 8,
