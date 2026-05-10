@@ -48,6 +48,7 @@
 - LI.FI Paso 4: `/crosschain` usa `walletPubKey` Solana conectada como destino del quote; si no existe usa `EXPO_PUBLIC_QA_PAYOUT_WALLET` o wallet mock valida con badge visible.
 - LI.FI Paso 5: `/crosschain` lee balance AUR/SOL con Aurio SDK y prepara pago Tambu sin firmar ni enviar; modo demo bloquea preparacion real si no hay wallet conectada.
 - LI.FI Paso 6: Home expone CTA `Entrar con LI.FI` hacia `/crosschain` y la pantalla muestra flujo compacto LI.FI -> Solana -> Aurio -> impacto local.
+- Pulido UI LI.FI: `/crosschain` queda mas compacto para demo, con tildes corregidas, Estado Aurio en mini stats, consulta demo reducida y padding inferior para no chocar con la navegacion.
 
 ---
 

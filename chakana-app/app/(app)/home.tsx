@@ -114,7 +114,7 @@ export default function Home() {
           </View>
           <Text style={styles.crosschainTitle}>Entrar con LI.FI</Text>
           <Text style={styles.crosschainCopy}>
-            Convierte valor cross-chain en participacion local con Aurio.
+            Convierte valor cross-chain en participación local con Aurio.
           </Text>
           <View style={styles.crosschainFlow}>
             <Text style={styles.crosschainFlowText}>

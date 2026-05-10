@@ -24,10 +24,10 @@ export default function CrosschainAurioCard({
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Ionicons 
-          name={isSource ? 'arrow-up-circle-outline' : 'arrow-down-circle-outline'} 
-          size={20} 
-          color={isSource ? '#8A8580' : '#9E392D'} 
+        <Ionicons
+          name={isSource ? 'arrow-up-circle-outline' : 'arrow-down-circle-outline'}
+          size={20}
+          color={isSource ? '#8A8580' : '#9E392D'}
         />
         <Text style={styles.title}>{isSource ? 'Origen' : 'Destino'}</Text>
       </View>
@@ -76,13 +76,12 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FCF9F6',
     borderRadius: 10,
-    padding: 16,
-    marginBottom: 16,
+    padding: 14,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   title: {
     fontSize: 16,
@@ -91,19 +90,20 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   content: {
-    gap: 8,
+    gap: 7,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#8A8580',
   },
   value: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#3D3D3D',
     flex: 1,
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   walletValue: {
     flex: 1,
     alignItems: 'flex-end',
-    gap: 6,
+    gap: 5,
   },
   walletBadge: {
     backgroundColor: '#E8E4DF',

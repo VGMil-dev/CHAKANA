@@ -96,7 +96,7 @@ export default function CrosschainAurioScreen() {
       setRoute(result);
     } catch (err) {
       console.warn('[crosschain] Unexpected LI.FI route failure:', err);
-      setError('No pudimos obtener una ruta ahora. Intentalo nuevamente en un momento.');
+      setError('No pudimos obtener una ruta ahora. Inténtalo nuevamente en un momento.');
     } finally {
       setIsLoading(false);
     }
@@ -138,7 +138,7 @@ export default function CrosschainAurioScreen() {
         <View style={styles.hero}>
           <Text style={styles.title}>Entrar a CHAKANA desde cualquier red</Text>
           <Text style={styles.subtitle}>
-            Convierte valor cross-chain en participacion local con Aurio.
+            Convierte valor cross-chain en participación local con Aurio.
           </Text>
           <View style={styles.narrativeBox}>
             <Text style={styles.narrativeText}>Crypto global -&gt; impacto local</Text>
@@ -147,28 +147,24 @@ export default function CrosschainAurioScreen() {
 
         <View style={styles.flowStrip}>
           <FlowStep index="01" text="Trae valor desde Polygon con LI.FI" />
-          <FlowStep index="02" text="Recibelo en Solana" />
-          <FlowStep index="03" text="Usalo con Aurio en Tambus" />
+          <FlowStep index="02" text="Recíbelo en Solana" />
+          <FlowStep index="03" text="Úsalo con Aurio en Tambús" />
         </View>
 
         <View style={styles.cardsRow}>
-          <View style={styles.cardWrapper}>
-            <CrosschainAurioCard
-              type="source"
-              network={DEMO_SOURCE.networkName}
-              token={DEMO_SOURCE.tokenSymbol}
-              amount={`${DEMO_SOURCE.amount} ${DEMO_SOURCE.tokenSymbol}`}
-            />
-          </View>
-          <View style={styles.cardWrapper}>
-            <CrosschainAurioCard
-              type="destination"
-              network="Solana"
-              token={route ? route.destinationToken : 'USDC'}
-              wallet={shortenAddress(destinationWallet.address)}
-              walletBadge={destinationWallet.label}
-            />
-          </View>
+          <CrosschainAurioCard
+            type="source"
+            network={DEMO_SOURCE.networkName}
+            token={DEMO_SOURCE.tokenSymbol}
+            amount={`${DEMO_SOURCE.amount} ${DEMO_SOURCE.tokenSymbol}`}
+          />
+          <CrosschainAurioCard
+            type="destination"
+            network="Solana"
+            token={route ? route.destinationToken : 'USDC'}
+            wallet={shortenAddress(destinationWallet.address)}
+            walletBadge={destinationWallet.label}
+          />
         </View>
 
         <CrosschainInfoCard />
@@ -208,7 +204,7 @@ export default function CrosschainAurioScreen() {
                 disabled={isPreparingPayment}
               >
                 <Text style={styles.primaryButtonText}>
-                  {isPreparingPayment ? 'Preparando Aurio...' : 'Pagar a Tambu con Aurios'}
+                  {isPreparingPayment ? 'Preparando Aurio...' : 'Pagar a Tambú con Aurios'}
                 </Text>
               </TouchableOpacity>
               <Text style={styles.nextStepText}>
@@ -253,10 +249,10 @@ function AurioStateCard({
   return (
     <View style={styles.aurioCard}>
       <View style={styles.aurioHeader}>
-        <View>
+        <View style={styles.aurioHeading}>
           <Text style={styles.sectionTitle}>Estado Aurio</Text>
           <Text style={styles.sectionCopy}>
-            Aurio conecta el valor recibido con Tambus, recompensas e impacto local.
+            Aurio conecta el valor recibido con Tambús, recompensas e impacto local.
           </Text>
         </View>
         <TouchableOpacity
@@ -269,25 +265,37 @@ function AurioStateCard({
         </TouchableOpacity>
       </View>
 
-      <View style={styles.aurioRows}>
-        <DemoField label="Wallet" value={shortenAddress(destinationWallet.address)} />
-        <DemoField label="Tipo" value={destinationWallet.label} />
-        <DemoField
+      <View style={styles.aurioStats}>
+        <AurioStat
           label="Balance AUR"
           value={aurioState ? `${formatBalance(aurioState.aurBalance)} AUR` : 'Pendiente'}
         />
-        <DemoField
-          label="Balance SOL"
+        <AurioStat
+          label="SOL"
           value={aurioState?.solBalance === undefined ? 'No disponible' : `${formatBalance(aurioState.solBalance)} SOL`}
         />
-        <DemoField
-          label="Actualizado"
-          value={aurioState ? new Date(aurioState.updatedAt).toLocaleString() : 'Sin lectura'}
-        />
-        <DemoField label="Estado" value={status} />
+        <AurioStat label="Tipo" value={destinationWallet.label} />
       </View>
 
+      <View style={styles.walletLine}>
+        <Text style={styles.walletLineText}>{shortenAddress(destinationWallet.address)}</Text>
+        <Text style={styles.walletLineMeta}>{status}</Text>
+      </View>
+
+      <Text style={styles.updatedText}>
+        {aurioState ? `Actualizado ${new Date(aurioState.updatedAt).toLocaleString()}` : 'Sin lectura reciente'}
+      </Text>
+
       {error ? <Text style={styles.inlineError}>{error}</Text> : null}
+    </View>
+  );
+}
+
+function AurioStat({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.aurioStat}>
+      <Text style={styles.aurioStatLabel}>{label}</Text>
+      <Text style={styles.aurioStatValue}>{value}</Text>
     </View>
   );
 }
@@ -298,7 +306,7 @@ function PreparationStatus({ preparation }: { preparation: AurioPaymentPreparati
   return (
     <View style={[styles.preparationBox, isPrepared && styles.preparedBox]}>
       <Text style={[styles.preparationTitle, isPrepared && styles.preparedTitle]}>
-        {isPrepared ? 'Transaccion Aurio preparada' : 'Preparacion Aurio'}
+        {isPrepared ? 'Transacción Aurio preparada' : 'Preparación Aurio'}
       </Text>
       <Text style={styles.preparationText}>{preparation.message}</Text>
       {preparation.preparedAt ? (
@@ -345,32 +353,15 @@ function DemoRoutePanel({
         </View>
       </View>
 
-      <View style={styles.demoGrid}>
-        <DemoField label="Source" value={route?.source ?? 'real | mock'} />
-        <DemoField label="Wallet destino" value={destinationWallet.label} />
-        <DemoField label="Origen wallet" value={destinationWallet.source} />
-        <DemoField
-          label="Request"
-          value={`Polygon USDC ${displayRequest.fromAmount} -> Solana USDC`}
-        />
-        <DemoField
-          label="Wallets"
-          value={`${shortenAddress(displayRequest.fromAddress ?? '')} -> ${shortenAddress(displayRequest.toAddress ?? '')}`}
-        />
-        <DemoField
-          label="Timestamp"
-          value={queriedAt ? new Date(queriedAt).toLocaleString() : 'Sin consulta'}
-        />
-      </View>
-    </View>
-  );
-}
-
-function DemoField({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.demoField}>
-      <Text style={styles.demoLabel}>{label}</Text>
-      <Text style={styles.demoValue}>{value}</Text>
+      <Text style={styles.demoSummary}>
+        Polygon USDC {displayRequest.fromAmount} -&gt; Solana USDC
+      </Text>
+      <Text style={styles.demoWallets}>
+        {shortenAddress(displayRequest.fromAddress ?? '')} -&gt; {shortenAddress(displayRequest.toAddress ?? '')}
+      </Text>
+      <Text style={styles.demoTimestamp}>
+        {queriedAt ? new Date(queriedAt).toLocaleString() : 'Sin consulta'}
+      </Text>
     </View>
   );
 }
@@ -393,13 +384,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 100,
+    paddingBottom: 176,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 18,
   },
   backButton: {
     width: 40,
@@ -421,7 +412,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   hero: {
-    marginBottom: 32,
+    marginBottom: 18,
   },
   title: {
     fontSize: 28,
@@ -453,7 +444,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 14,
     gap: 10,
-    marginBottom: 18,
+    marginBottom: 14,
   },
   flowStep: {
     flexDirection: 'row',
@@ -474,26 +465,23 @@ const styles = StyleSheet.create({
   },
   cardsRow: {
     flexDirection: 'column',
-    gap: 16,
-    marginBottom: 16,
-  },
-  cardWrapper: {
-    width: '100%',
+    gap: 10,
+    marginBottom: 10,
   },
   demoPanel: {
     backgroundColor: '#F8F3EE',
     borderRadius: 10,
-    padding: 14,
-    marginBottom: 24,
+    padding: 12,
+    marginBottom: 18,
   },
   demoPanelHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   demoPanelTitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#3D3D3D',
     fontWeight: '700',
   },
@@ -509,32 +497,39 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
   },
-  demoGrid: {
-    gap: 10,
-  },
-  demoField: {
-    gap: 2,
-  },
-  demoLabel: {
-    fontSize: 11,
-    color: '#9E392D',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  demoValue: {
-    fontSize: 13,
+  demoSummary: {
     color: '#3D3D3D',
+    fontSize: 13,
+    fontWeight: '700',
     lineHeight: 18,
+  },
+  demoWallets: {
+    color: '#6F6861',
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 4,
+  },
+  demoTimestamp: {
+    color: '#8A8580',
+    fontSize: 11,
+    lineHeight: 16,
+    marginTop: 6,
   },
   aurioCard: {
     backgroundColor: '#FCF9F6',
     borderRadius: 10,
-    padding: 16,
-    marginBottom: 16,
+    padding: 14,
+    marginBottom: 12,
   },
   aurioHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     gap: 12,
-    marginBottom: 14,
+    marginBottom: 12,
+  },
+  aurioHeading: {
+    flex: 1,
   },
   sectionTitle: {
     fontSize: 16,
@@ -547,8 +542,51 @@ const styles = StyleSheet.create({
     color: '#8A8580',
     lineHeight: 18,
   },
-  aurioRows: {
-    gap: 10,
+  aurioStats: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 10,
+  },
+  aurioStat: {
+    flex: 1,
+    backgroundColor: '#F8F3EE',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+  },
+  aurioStatLabel: {
+    color: '#8A8580',
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  aurioStatValue: {
+    color: '#3D3D3D',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  walletLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  walletLineText: {
+    color: '#3D3D3D',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  walletLineMeta: {
+    color: '#2F7D72',
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  updatedText: {
+    color: '#8A8580',
+    fontSize: 11,
+    marginTop: 6,
   },
   secondaryButton: {
     alignSelf: 'flex-start',
@@ -599,7 +637,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   footer: {
-    marginTop: 8,
+    marginTop: 4,
+    paddingBottom: 28,
   },
   primaryButton: {
     backgroundColor: '#9E392D',
@@ -624,11 +663,13 @@ const styles = StyleSheet.create({
   nextStepText: {
     fontSize: 13,
     color: '#A09C96',
-    marginTop: 8,
+    marginTop: 2,
+    textAlign: 'center',
   },
   resetButton: {
-    marginTop: 16,
-    padding: 4,
+    marginTop: 10,
+    marginBottom: 18,
+    padding: 8,
   },
   resetButtonText: {
     fontSize: 13,

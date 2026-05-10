@@ -72,7 +72,7 @@ export async function prepareTambuAurioPayment({
   if (!isProbablySolanaAddress(tambuMint)) {
     return {
       status: 'unavailable',
-      message: 'Falta EXPO_PUBLIC_QA_TAMBU_MINT para preparar el pago Tambu.',
+      message: 'Falta EXPO_PUBLIC_QA_TAMBU_MINT para preparar el pago Tambú.',
     };
   }
 
@@ -92,7 +92,7 @@ export async function prepareTambuAurioPayment({
 
     return {
       status: 'prepared',
-      message: 'Transaccion Aurio preparada. Pago demo listo para firmarse.',
+      message: 'Transacción Aurio preparada. Pago demo listo para firmarse.',
       sender: senderWallet.trim(),
       tambuMint: tambuMint.trim(),
       amount,

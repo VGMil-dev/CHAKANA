@@ -103,9 +103,9 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FCF9F6',
     borderRadius: 10,
-    padding: 16,
-    marginBottom: 16,
-    minHeight: 160,
+    padding: 14,
+    marginBottom: 12,
+    minHeight: 136,
   },
   center: {
     justifyContent: 'center',
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
     gap: 8,
   },
   title: {
@@ -185,8 +185,8 @@ const styles = StyleSheet.create({
   notice: {
     backgroundColor: '#F8F3EE',
     borderRadius: 10,
-    padding: 12,
-    marginBottom: 14,
+    padding: 10,
+    marginBottom: 12,
   },
   noticeText: {
     fontSize: 13,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   details: {
-    gap: 10,
+    gap: 8,
   },
   row: {
     flexDirection: 'row',
@@ -214,9 +214,9 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   statusBox: {
-    marginTop: 14,
+    marginTop: 12,
     backgroundColor: '#F7E7E3',
-    padding: 12,
+    padding: 10,
     borderRadius: 10,
   },
   statusText: {

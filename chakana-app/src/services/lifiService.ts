@@ -16,7 +16,7 @@ import {
 const LIFI_BASE_URL = 'https://li.quest/v1';
 
 export const LIFI_DEMO_FALLBACK_MESSAGE =
-  'No pudimos obtener una ruta real ahora. Mostrando ruta demo para la presentacion.';
+  'No pudimos obtener una ruta real ahora. Mostrando ruta demo para la presentación.';
 
 const LIFI_API_KEY = process.env.EXPO_PUBLIC_LIFI_API_KEY ?? '';
 
