@@ -2,6 +2,7 @@ import { getAurioBalance, getSolBalance, payToTambu } from 'aurio-sdk';
 import type { Transaction } from '@solana/web3.js';
 import type { CrosschainDestinationWalletSource } from '../utils/walletFormat';
 import { isProbablySolanaAddress } from '../utils/walletFormat';
+import { DEMO_AURIO_BALANCE, DEMO_SOL_BALANCE } from '../utils/demoMode';
 
 export type AurioWalletStatus = 'ready' | 'error';
 
@@ -49,6 +50,16 @@ export async function getAurioWalletState(walletAddress: string): Promise<AurioW
   };
 }
 
+export function getDemoAurioWalletState(walletAddress: string): AurioWalletState {
+  return {
+    aurBalance: DEMO_AURIO_BALANCE,
+    solBalance: DEMO_SOL_BALANCE,
+    walletAddress,
+    updatedAt: new Date().toISOString(),
+    status: 'ready',
+  };
+}
+
 export async function prepareTambuAurioPayment({
   senderWallet,
   walletSource,
@@ -57,8 +68,11 @@ export async function prepareTambuAurioPayment({
 }: PrepareTambuAurioPaymentParams): Promise<AurioPaymentPreparation> {
   if (walletSource !== 'connected') {
     return {
-      status: 'unavailable',
-      message: 'Modo demo: conecta una wallet para preparar un pago real con Aurio.',
+      status: 'prepared',
+      message: 'Pago demo listo. No se movieron fondos reales.',
+      sender: senderWallet?.trim(),
+      amount,
+      preparedAt: new Date().toISOString(),
     };
   }
 

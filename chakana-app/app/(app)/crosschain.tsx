@@ -7,12 +7,14 @@ import CrosschainAurioCard from '../../components/crosschain/CrosschainAurioCard
 import CrosschainRouteSummary from '../../components/crosschain/CrosschainRouteSummary';
 import CrosschainInfoCard from '../../components/crosschain/CrosschainInfoCard';
 import {
+  getDemoAurioWalletState,
   getAurioWalletState,
   prepareTambuAurioPayment,
   type AurioPaymentPreparation,
   type AurioWalletState,
 } from '../../src/services/aurioCrosschainService';
 import { getAurioOnboardingRoute } from '../../src/services/crosschainAurioService';
+import { useAuth } from '../../src/hooks/useAuth';
 import { useWallet } from '../../src/hooks/useWallet';
 import {
   SOLANA_CHAIN_ID,
@@ -40,6 +42,7 @@ const DEMO_AURIO_PAYMENT_AMOUNT = 1;
 
 export default function CrosschainAurioScreen() {
   const router = useRouter();
+  const { isDemoMode } = useAuth();
   const { walletPubKey } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
   const [route, setRoute] = useState<CrosschainRouteResult | null>(null);
@@ -52,7 +55,7 @@ export default function CrosschainAurioScreen() {
   const [paymentPreparation, setPaymentPreparation] = useState<AurioPaymentPreparation | null>(null);
   const [isPreparingPayment, setIsPreparingPayment] = useState(false);
   const destinationWallet = getCrosschainDestinationWallet(
-    walletPubKey,
+    isDemoMode ? null : walletPubKey,
     process.env.EXPO_PUBLIC_QA_PAYOUT_WALLET,
   );
 
@@ -65,8 +68,8 @@ export default function CrosschainAurioScreen() {
       setAurioState(state);
     } catch (err) {
       console.warn('[crosschain] Aurio balance lookup failed:', err);
-      setAurioState(null);
-      setAurioError('No pudimos leer el estado Aurio de esta wallet.');
+      setAurioState(getDemoAurioWalletState(destinationWallet.address));
+      setAurioError('Balance demo activo para APK.');
     } finally {
       setIsAurioLoading(false);
     }
@@ -130,8 +133,15 @@ export default function CrosschainAurioScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#3D3D3D" />
           </TouchableOpacity>
-          <View style={styles.headerBadge}>
-            <Text style={styles.badgeText}>Powered by LI.FI</Text>
+          <View style={styles.headerBadges}>
+            {isDemoMode ? (
+              <View style={styles.demoHeaderBadge}>
+                <Text style={styles.demoHeaderText}>Modo demo</Text>
+              </View>
+            ) : null}
+            <View style={styles.headerBadge}>
+              <Text style={styles.badgeText}>Powered by LI.FI</Text>
+            </View>
           </View>
         </View>
 
@@ -143,6 +153,13 @@ export default function CrosschainAurioScreen() {
           <View style={styles.narrativeBox}>
             <Text style={styles.narrativeText}>Crypto global -&gt; impacto local</Text>
           </View>
+          {isDemoMode ? (
+            <View style={styles.safeDemoBox}>
+              <Text style={styles.safeDemoText}>
+                Demo segura: no se firman transacciones ni se mueven fondos reales.
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.flowStrip}>
@@ -392,6 +409,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 18,
   },
+  headerBadges: {
+    alignItems: 'flex-end',
+    gap: 6,
+  },
   backButton: {
     width: 40,
     height: 40,
@@ -410,6 +431,18 @@ const styles = StyleSheet.create({
     color: '#FCF9F6',
     fontSize: 12,
     fontWeight: '700',
+  },
+  demoHeaderBadge: {
+    backgroundColor: '#F7E7E3',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  demoHeaderText: {
+    color: '#9E392D',
+    fontSize: 10,
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
   hero: {
     marginBottom: 18,
@@ -438,6 +471,18 @@ const styles = StyleSheet.create({
     color: '#9E392D',
     fontWeight: '700',
     fontSize: 13,
+  },
+  safeDemoBox: {
+    backgroundColor: '#F8F3EE',
+    borderRadius: 10,
+    marginTop: 10,
+    padding: 12,
+  },
+  safeDemoText: {
+    color: '#6F6861',
+    fontSize: 12.5,
+    fontWeight: '700',
+    lineHeight: 18,
   },
   flowStrip: {
     backgroundColor: '#F8F3EE',
