@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 import { useWallet } from '../../src/hooks/useWallet';
+import RoleCard from '../../components/auth/RoleCard';
 
 export default function Register() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'embajador' | 'tambu'>('embajador');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +35,7 @@ export default function Register() {
       return;
     }
     setLoading(true);
-    const { error } = await signUp(name, email, password, 'embajador', walletPubKey)
+    const { error } = await signUp(name, email, password, role, walletPubKey)
     if (error) { setError(error); setLoading(false); return; }
     router.replace('/home');
   };
@@ -139,6 +141,8 @@ export default function Register() {
               </View>
             </View>
           </View>
+
+          <RoleCard value={role} onChange={setRole} />
 
           {error && (
             <View style={styles.errorBox}>
@@ -255,7 +259,7 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 16,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   inputGroup: {
     gap: 8,
