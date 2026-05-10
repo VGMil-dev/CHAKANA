@@ -82,14 +82,14 @@ export default function TambuCard({ id, name, barrio, cat, tone, rating, n, auri
 const styles = StyleSheet.create({
   card: {
     alignSelf: 'stretch',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    backgroundColor: '#FDFAF7',
+    borderRadius: 16,
     overflow: 'hidden',
     shadowColor: '#86231A',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 3,
   },
   cardPressed: {
     transform: [{ translateY: 1 }],
