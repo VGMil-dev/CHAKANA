@@ -21,9 +21,9 @@ export interface AurioOnboardingRequest {
   fromTokenAddress: string;
   fromTokenDecimals: number;
   fromAmount: string;
-  /** Solana wallet to receive funds. Optional for quote-only. */
+  /** Solana wallet to receive funds. Used for quote-only destination realism. */
   toWalletAddress?: string;
-  /** Source wallet address. Optional for quote-only. */
+  /** Source wallet address. Used for quote-only route realism. */
   fromWalletAddress?: string;
 }
 
@@ -34,7 +34,7 @@ export interface AurioOnboardingRequest {
  * - Defaults to USDC as destination token (most liquid).
  * - Falls back to mock if API fails (demo resilience).
  *
- * TODO (Paso 3): After receiving USDC on Solana, call Aurio SDK
+ * TODO (future): After receiving USDC on Solana, call Aurio SDK
  * to swap/wrap into AUR tokens for Tambú payments.
  */
 export async function getAurioOnboardingRoute(

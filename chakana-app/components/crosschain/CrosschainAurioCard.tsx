@@ -8,9 +8,17 @@ interface Props {
   token: string;
   amount?: string;
   wallet?: string;
+  walletBadge?: string;
 }
 
-export default function CrosschainAurioCard({ type, network, token, amount, wallet }: Props) {
+export default function CrosschainAurioCard({
+  type,
+  network,
+  token,
+  amount,
+  wallet,
+  walletBadge,
+}: Props) {
   const isSource = type === 'source';
   
   return (
@@ -30,7 +38,7 @@ export default function CrosschainAurioCard({ type, network, token, amount, wall
           <Text style={styles.value}>{network}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Token:</Text>
+          <Text style={styles.label}>{isSource ? 'Token:' : 'Token destino:'}</Text>
           <Text style={styles.value}>{token}</Text>
         </View>
         {amount && (
@@ -41,8 +49,22 @@ export default function CrosschainAurioCard({ type, network, token, amount, wall
         )}
         {wallet && (
           <View style={styles.row}>
-            <Text style={styles.label}>Wallet:</Text>
-            <Text style={styles.value}>{wallet}</Text>
+            <Text style={styles.label}>Wallet destino:</Text>
+            <View style={styles.walletValue}>
+              {walletBadge ? (
+                <View style={[styles.walletBadge, walletBadge === 'wallet conectada' && styles.connectedBadge]}>
+                  <Text
+                    style={[
+                      styles.walletBadgeText,
+                      walletBadge === 'wallet conectada' && styles.connectedBadgeText,
+                    ]}
+                  >
+                    {walletBadge}
+                  </Text>
+                </View>
+              ) : null}
+              <Text style={styles.value}>{wallet}</Text>
+            </View>
           </View>
         )}
       </View>
@@ -86,5 +108,28 @@ const styles = StyleSheet.create({
     color: '#3D3D3D',
     flex: 1,
     textAlign: 'right',
+  },
+  walletValue: {
+    flex: 1,
+    alignItems: 'flex-end',
+    gap: 6,
+  },
+  walletBadge: {
+    backgroundColor: '#E8E4DF',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  connectedBadge: {
+    backgroundColor: '#DDEEEB',
+  },
+  walletBadgeText: {
+    color: '#6F6861',
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  connectedBadgeText: {
+    color: '#2F7D72',
   },
 });

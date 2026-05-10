@@ -55,9 +55,9 @@ export interface CrosschainRouteRequest {
   fromTokenDecimals: number;
   toChainId: SupportedChainId;
   toTokenAddress: string;
-  /** Source wallet address. Used only to request quote data in Paso 3. */
+  /** Source wallet address. Used only to request quote data in Paso 4. */
   fromAddress?: string;
-  /** Destination wallet address. Used only to request quote data in Paso 3. */
+  /** Destination wallet address. Used only to request quote data in Paso 4. */
   toAddress?: string;
 }
 

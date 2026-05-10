@@ -45,6 +45,7 @@
 - Fix Expo Web: Metro resuelve helpers CommonJS de `@babel/runtime/helpers/*` para evitar crash `_objectWithoutPropertiesLoose is not a function` en `expo-router`.
 - Fix Supabase Auth Web: cliente usa `storageKey` propio para no restaurar refresh tokens viejos/inválidos del storage default.
 - LI.FI Paso 3: `/crosschain` consulta quote real Polygon USDC -> Solana USDC con REST, muestra ruta real/mock, request de demo y fallback seguro sin ejecutar transacciones.
+- LI.FI Paso 4: `/crosschain` usa `walletPubKey` Solana conectada como destino del quote; si no existe usa `EXPO_PUBLIC_QA_PAYOUT_WALLET` o wallet mock valida con badge visible.
 
 ---
 

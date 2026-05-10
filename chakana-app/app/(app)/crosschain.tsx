@@ -7,12 +7,18 @@ import CrosschainAurioCard from '../../components/crosschain/CrosschainAurioCard
 import CrosschainRouteSummary from '../../components/crosschain/CrosschainRouteSummary';
 import CrosschainInfoCard from '../../components/crosschain/CrosschainInfoCard';
 import { getAurioOnboardingRoute } from '../../src/services/crosschainAurioService';
+import { useWallet } from '../../src/hooks/useWallet';
 import {
   SOLANA_CHAIN_ID,
   SOLANA_USDC_ADDRESS,
   type CrosschainRouteRequest,
   type CrosschainRouteResult,
 } from '../../src/types/crosschain';
+import {
+  getCrosschainDestinationWallet,
+  shortenAddress,
+  type CrosschainDestinationWallet,
+} from '../../src/utils/walletFormat';
 
 const DEMO_SOURCE = {
   chainId: 137 as const,
@@ -24,21 +30,19 @@ const DEMO_SOURCE = {
 };
 
 const DEMO_SOURCE_WALLET = '0x000000000000000000000000000000000000dEaD';
-const DEMO_SOLANA_DESTINATION_WALLET =
-  process.env.EXPO_PUBLIC_QA_PAYOUT_WALLET ?? '7NvESrvRtuEzUUZ1E7qErKTd5uXEkygMxadjbnWFvyZb';
-
-function shortenAddress(address: string): string {
-  if (address.length <= 10) return address;
-  return `${address.slice(0, 4)}...${address.slice(-4)}`;
-}
 
 export default function CrosschainAurioScreen() {
   const router = useRouter();
+  const { walletPubKey } = useWallet();
   const [isLoading, setIsLoading] = useState(false);
   const [route, setRoute] = useState<CrosschainRouteResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastRequest, setLastRequest] = useState<CrosschainRouteRequest | null>(null);
   const [lastQueriedAt, setLastQueriedAt] = useState<string | null>(null);
+  const destinationWallet = getCrosschainDestinationWallet(
+    walletPubKey,
+    process.env.EXPO_PUBLIC_QA_PAYOUT_WALLET,
+  );
 
   const handleSearchRoute = async () => {
     setIsLoading(true);
@@ -52,7 +56,7 @@ export default function CrosschainAurioScreen() {
         fromTokenDecimals: DEMO_SOURCE.tokenDecimals,
         fromAmount: DEMO_SOURCE.amount,
         fromWalletAddress: DEMO_SOURCE_WALLET,
-        toWalletAddress: DEMO_SOLANA_DESTINATION_WALLET,
+        toWalletAddress: destinationWallet.address,
       });
       setLastRequest(result.request);
       setLastQueriedAt(result.queriedAt);
@@ -105,14 +109,20 @@ export default function CrosschainAurioScreen() {
               type="destination"
               network="Solana"
               token={route ? route.destinationToken : 'USDC'}
-              wallet={shortenAddress(DEMO_SOLANA_DESTINATION_WALLET)}
+              wallet={shortenAddress(destinationWallet.address)}
+              walletBadge={destinationWallet.label}
             />
           </View>
         </View>
 
         <CrosschainInfoCard />
         <CrosschainRouteSummary route={route} isLoading={isLoading} error={error} />
-        <DemoRoutePanel route={route} request={lastRequest} queriedAt={lastQueriedAt} />
+        <DemoRoutePanel
+          route={route}
+          request={lastRequest}
+          queriedAt={lastQueriedAt}
+          destinationWallet={destinationWallet}
+        />
 
         <View style={styles.footer}>
           {!route ? (
@@ -156,10 +166,12 @@ function DemoRoutePanel({
   route,
   request,
   queriedAt,
+  destinationWallet,
 }: {
   route: CrosschainRouteResult | null;
   request: CrosschainRouteRequest | null;
   queriedAt: string | null;
+  destinationWallet: CrosschainDestinationWallet;
 }) {
   const displayRequest = request ?? {
     fromChainId: DEMO_SOURCE.chainId,
@@ -169,7 +181,7 @@ function DemoRoutePanel({
     toChainId: SOLANA_CHAIN_ID,
     toTokenAddress: SOLANA_USDC_ADDRESS,
     fromAddress: DEMO_SOURCE_WALLET,
-    toAddress: DEMO_SOLANA_DESTINATION_WALLET,
+    toAddress: destinationWallet.address,
   };
 
   return (
@@ -183,6 +195,8 @@ function DemoRoutePanel({
 
       <View style={styles.demoGrid}>
         <DemoField label="Source" value={route?.source ?? 'real | mock'} />
+        <DemoField label="Wallet destino" value={destinationWallet.label} />
+        <DemoField label="Origen wallet" value={destinationWallet.source} />
         <DemoField
           label="Request"
           value={`Polygon USDC ${displayRequest.fromAmount} -> Solana USDC`}
