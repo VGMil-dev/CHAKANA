@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
-import Constants from 'expo-constants';
 import type { Database } from '../../types/database';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
@@ -65,10 +64,6 @@ function getSupabaseStorage(): SupabaseStorage {
         removeItem: (key) => window.localStorage.removeItem(key),
       };
     }
-    return memoryStorage;
-  }
-
-  if (Constants.appOwnership === 'expo') {
     return memoryStorage;
   }
 

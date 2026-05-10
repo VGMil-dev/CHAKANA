@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { getSession, getUserRole, signIn, signOut, signUp } from '../services/supabase';
+import { useCallback, useRef } from 'react';
+import { getSession, getUserRole, onAuthStateChange, signIn, signOut, signUp } from '../services/supabase';
 import { useAppStore } from '../store';
 import type { UserRole } from '../store/slices/userSlice';
 
@@ -104,29 +104,54 @@ export function useAuth(): UseAuthResult {
     }
   };
 
-  const initAuth = useCallback(async (): Promise<void> => {
-    setUser({ isAuthLoading: true, authError: null });
-    try {
-      const session = await getSession();
-      const user = session?.user ?? null;
-      const userRole = user ? await getUserRole(user.id) : 'embajador';
+  const subRef = useRef<(() => void) | null>(null);
+
+  const syncUserToStore = useCallback(async (user: { id: string; email?: string } | null) => {
+    if (user) {
+      const userRole = await getUserRole(user.id);
       setUser({
-        authUserId: user?.id ?? null,
-        authEmail: user?.email ?? null,
+        authUserId: user.id,
+        authEmail: user.email ?? null,
         role: userRole,
         isAuthLoading: false,
         authError: null,
       });
+    } else {
+      setUser({
+        authUserId: null,
+        authEmail: null,
+        role: 'embajador',
+        isAuthLoading: false,
+        authError: null,
+      });
+    }
+  }, [setUser]);
+
+  const initAuth = useCallback(async (): Promise<void> => {
+    setUser({ isAuthLoading: true, authError: null });
+
+    if (subRef.current) {
+      subRef.current();
+      subRef.current = null;
+    }
+
+    subRef.current = onAuthStateChange(async (user) => {
+      await syncUserToStore(user);
+    });
+
+    try {
+      const session = await getSession();
+      await syncUserToStore(session?.user ?? null);
     } catch (error) {
       setUser({
         authUserId: null,
         authEmail: null,
         role: 'embajador',
         isAuthLoading: false,
-        authError: getErrorMessage(error),
+        authError: error instanceof Error ? error.message : 'Error restoring session',
       });
     }
-  }, [setUser]);
+  }, [setUser, syncUserToStore]);
 
   return {
     authUserId,

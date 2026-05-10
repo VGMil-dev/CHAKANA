@@ -13,7 +13,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [splashAnimationFinished, setSplashAnimationFinished] = useState(Platform.OS === 'web');
-  const { initAuth } = useAuth();
+  const { initAuth, isAuthLoading } = useAuth();
 
   useEffect(() => {
     async function prepare() {
@@ -33,18 +33,20 @@ export default function RootLayout() {
     void initAuth();
   }, [initAuth]);
 
+  const ready = appIsReady && !isAuthLoading;
+
   return (
     <View style={styles.container}>
       <StatusBar />
       <Stack
         screenOptions={{
-          headerShown: false, // Hide header for the onboarding screen
+          headerShown: false,
         }}
       />
       {!splashAnimationFinished && (
         <AnimatedSplashScreen
           onAnimationFinish={() => setSplashAnimationFinished(true)}
-          isAppReady={appIsReady}
+          isAppReady={ready}
         />
       )}
     </View>
