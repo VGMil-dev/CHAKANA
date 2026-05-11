@@ -10,18 +10,23 @@ export type ReviewSlice = {
   isSubmittingReview: boolean;
   reviewError: string | null;
   reviewSuccess: boolean;
+  stars: number;
+  tags: string[];
   setReviews: (reviews: Review[]) => void;
   updateCurrentReviewText: (currentReviewText: string) => void;
   setIsSubmittingReview: (isSubmittingReview: boolean) => void;
   setReviewError: (reviewError: string | null) => void;
   setReviewSuccess: (reviewSuccess: boolean) => void;
+  setStars: (stars: number) => void;
+  setTags: (tags: string[]) => void;
+  toggleTag: (tag: string) => void;
   resetReviewForm: () => void;
   clearReviewError: () => void;
 };
 
 type ReviewFormState = Pick<
   ReviewSlice,
-  'currentReviewText' | 'isSubmittingReview' | 'reviewError' | 'reviewSuccess'
+  'currentReviewText' | 'isSubmittingReview' | 'reviewError' | 'reviewSuccess' | 'stars' | 'tags'
 >;
 
 const initialReviewFormState: ReviewFormState = {
@@ -29,6 +34,8 @@ const initialReviewFormState: ReviewFormState = {
   isSubmittingReview: false,
   reviewError: null,
   reviewSuccess: false,
+  stars: 0,
+  tags: [],
 };
 
 export const createReviewSlice: StateCreator<AppStore, [], [], ReviewSlice> = (set) => ({
@@ -40,6 +47,14 @@ export const createReviewSlice: StateCreator<AppStore, [], [], ReviewSlice> = (s
   setIsSubmittingReview: (isSubmittingReview) => set({ isSubmittingReview }),
   setReviewError: (reviewError) => set({ reviewError }),
   setReviewSuccess: (reviewSuccess) => set({ reviewSuccess }),
+  setStars: (stars) => set({ stars, tags: [] }),
+  setTags: (tags) => set({ tags }),
+  toggleTag: (tag) =>
+    set((state) => ({
+      tags: state.tags.includes(tag)
+        ? state.tags.filter((t) => t !== tag)
+        : [...state.tags, tag],
+    })),
   resetReviewForm: () => set(initialReviewFormState),
   clearReviewError: () => set({ reviewError: null }),
 });

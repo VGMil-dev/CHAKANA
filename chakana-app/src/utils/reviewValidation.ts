@@ -1,4 +1,4 @@
-const MIN_REVIEW_WORDS = 50;
+const MIN_REVIEW_WORDS = 10;
 
 export function countWords(text: string): number {
   const normalized = text.trim();
