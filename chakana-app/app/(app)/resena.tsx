@@ -16,10 +16,13 @@ export default function Resena() {
   const { listaTambus, fetchBusinesses } = useBusinesses();
   const fallbackBusinessId = listaTambus[0]?.id ?? null;
   const businessId = cartBusinessId ?? fallbackBusinessId;
+  const business = listaTambus.find((b) => b.id === businessId);
 
   useEffect(() => {
     if (!businessId) void fetchBusinesses();
   }, [businessId, fetchBusinesses]);
+
+  const eyebrow = business ? `· TAMBU ${business.nombre.toUpperCase()} ·` : '· EXPERIENCIA ·';
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -39,7 +42,7 @@ export default function Resena() {
         contentContainerStyle={styles.scrollContent}
       >
         <PageHeader
-          eyebrow="· EXPERIENCIA ·"
+          eyebrow={eyebrow}
           title="¿Cómo fue"
           accent="tu experiencia?"
           subtitle="Tu reseña completa el ciclo y actualiza tu balance Aurio."

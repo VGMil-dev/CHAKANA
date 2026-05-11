@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { useAuth } from '../../src/hooks/useAuth';
 import { useCartCount, useCartTotal } from '../../store/cart';
 import ChakanaDial, { type DialTab } from '../../components/core/ChakanaDial';
+import ModalManager from '../../components/core/ModalManager';
 
 const HIDDEN_ROUTES  = ['/checkout', '/pagare', '/resena'];
 const COMPACT_ROUTES = ['/carrito'];
@@ -68,6 +69,8 @@ export default function AppLayout() {
           onTabPress={onTabPress}
         />
       )}
+
+      <ModalManager />
     </View>
   );
 }
