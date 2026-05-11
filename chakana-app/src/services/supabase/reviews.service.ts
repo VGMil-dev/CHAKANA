@@ -12,66 +12,39 @@ type SubmitReviewRewardParams = {
 
 export type SubmitReviewRewardResponse = {
   success: boolean;
-  signature: string;
-  mintedTo: string;
-  amount: number;
+  ticket?: string;
+  amount?: number;
+  serverPubKey?: string;
+  reviewId?: string;
+  error?: string;
 };
-
-function getReviewRewardError(status: number): Error {
-  if (status === 400) return new Error('Faltan datos para enviar la reseña.');
-  if (status === 401) return new Error('La clave de Supabase no es válida o no está configurada.');
-  if (status === 500) {
-    return new Error('Error del oráculo al mintear Aurios. Revisa mint, ATA o variables de entorno.');
-  }
-
-  return new Error('No se pudo enviar la reseña. Intenta nuevamente.');
-}
 
 export async function submitReviewReward(
   params: SubmitReviewRewardParams,
 ): Promise<SubmitReviewRewardResponse> {
-  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-  if (sessionError) throw new Error(sessionError.message);
-  const accessToken = sessionData.session?.access_token;
-  if (!accessToken) throw new Error('Inicia sesión para publicar la reseña.');
-
-  const response = await fetch(
-    `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/mint-aurio-on-review`,
-    {
-      method: 'POST',
-      headers: {
-        apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userWallet: params.userWallet,
-        reviewText: params.reviewText,
-        businessId: params.businessId,
-      }),
+  const { data, error } = await supabase.functions.invoke('mint-aurio-on-review', {
+    body: {
+      userWallet: params.userWallet,
+      reviewText: params.reviewText,
+      businessId: params.businessId,
     },
-  );
+  });
 
-  if (!response.ok) {
-    const data = (await response.json().catch(() => ({}))) as { error?: string };
-    throw data.error ? new Error(data.error) : getReviewRewardError(response.status);
+  if (error) {
+    console.error('Edge Function Error:', error);
+    throw new Error('Error de comunicación con el servidor de tickets.');
   }
 
-  const data = (await response.json()) as Partial<SubmitReviewRewardResponse>;
-
-  if (data.success !== true) {
-    throw new Error('La reseña se procesó, pero no se confirmó el reward de Aurios.');
-  }
-
-  if (!data.signature) {
-    console.warn('Review reward success without signature. Check Edge Function response.');
+  if (data?.error) {
+    throw new Error(data.error);
   }
 
   return {
-    success: data.success,
-    signature: data.signature ?? '',
-    mintedTo: data.mintedTo ?? '',
-    amount: data.amount ?? 0,
+    success: data?.success === true,
+    ticket: data?.ticket,
+    amount: data?.amount,
+    serverPubKey: data?.serverPubKey,
+    reviewId: data?.reviewId,
   };
 }
 

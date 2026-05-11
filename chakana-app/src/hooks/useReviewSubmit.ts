@@ -7,7 +7,6 @@ const ORACLE_WAIT_MS = 3000;
 
 type SubmitReviewParams = {
   businessId: string;
-  solanaMemoSignature?: string;
 };
 
 type UseReviewSubmitResult = {
@@ -15,11 +14,15 @@ type UseReviewSubmitResult = {
   isSubmittingReview: boolean;
   reviewError: string | null;
   reviewSuccess: boolean;
+  stars: number;
+  tags: string[];
   isTextValid: boolean;
   wordsCount: number;
   wordsRemaining: number;
   charsRemaining: number;
   onTextChange: (text: string) => void;
+  setStars: (stars: number) => void;
+  toggleTag: (tag: string) => void;
   submitReview: (params: SubmitReviewParams) => Promise<void>;
   resetForm: () => void;
 };
@@ -39,11 +42,15 @@ export function useReviewSubmit(): UseReviewSubmitResult {
   const isSubmittingReview = useAppStore((state) => state.isSubmittingReview);
   const reviewError = useAppStore((state) => state.reviewError);
   const reviewSuccess = useAppStore((state) => state.reviewSuccess);
+  const stars = useAppStore((state) => state.stars);
+  const tags = useAppStore((state) => state.tags);
   const walletPubKey = useAppStore((state) => state.walletPubKey);
   const updateCurrentReviewText = useAppStore((state) => state.updateCurrentReviewText);
   const setIsSubmittingReview = useAppStore((state) => state.setIsSubmittingReview);
   const setReviewError = useAppStore((state) => state.setReviewError);
   const setReviewSuccess = useAppStore((state) => state.setReviewSuccess);
+  const setStars = useAppStore((state) => state.setStars);
+  const toggleTag = useAppStore((state) => state.toggleTag);
   const resetReviewForm = useAppStore((state) => state.resetReviewForm);
   const setAurioBalance = useAppStore((state) => state.setAurioBalance);
   const setActiveModal = useAppStore((state) => state.setActiveModal);
@@ -59,7 +66,7 @@ export function useReviewSubmit(): UseReviewSubmitResult {
     setReviewSuccess(false);
 
     if (!isReviewTextValid(reviewText)) {
-      setReviewError('Tu comentario debe tener al menos 50 palabras.');
+      setReviewError('Tu comentario debe tener al menos 10 palabras.');
       return;
     }
 
@@ -68,27 +75,24 @@ export function useReviewSubmit(): UseReviewSubmitResult {
       return;
     }
 
-    if (!businessId) {
-      setReviewError('No se encontr\u00f3 la cafeter\u00eda para guardar la rese\u00f1a.');
-      return;
-    }
-
     setIsSubmittingReview(true);
     setReviewError(null);
-    setReviewSuccess(false);
 
     try {
+      // Automatic flow: Supabase validates and calls Node.js server to mint
       await submitReviewReward({
         userWallet: walletPubKey,
         reviewText,
         businessId,
       });
+
       await sleep(ORACLE_WAIT_MS);
       const nextBalance = await getAurioBalance(walletPubKey);
       setAurioBalance(nextBalance);
       setReviewSuccess(true);
       setActiveModal('reviewSuccess');
     } catch (error) {
+      console.error('Submit review error:', error);
       setReviewSuccess(false);
       setReviewError(getErrorMessage(error));
     } finally {
@@ -101,11 +105,15 @@ export function useReviewSubmit(): UseReviewSubmitResult {
     isSubmittingReview,
     reviewError,
     reviewSuccess,
+    stars,
+    tags,
     isTextValid,
     wordsCount,
     wordsRemaining,
     charsRemaining,
     onTextChange: updateCurrentReviewText,
+    setStars,
+    toggleTag,
     submitReview,
     resetForm: resetReviewForm,
   };
