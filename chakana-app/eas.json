@@ -14,6 +14,13 @@
       }
     },
     "production": {
+      "env": {
+        "EXPO_PUBLIC_AURIO_MINT": "7BWgEFKQXcSfw9gB65qhvdJh4M9C9QwtsMrqLy95oQVS",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://zocjplghlewzrgeoputs.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvY2pwbGdobGV3enJnZW9wdXRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNTMzNTcsImV4cCI6MjA5MzgyOTM1N30.s6E3MRUG13aTA3fXRdNCcqkkcUofawj-5Me4WsEmTPA",
+        "EXPO_PUBLIC_QA_BUSINESS_ID": "20531762-6148-47d3-8eda-f1a4146c01ff",
+        "EXPO_PUBLIC_QA_PAYOUT_WALLET": "Dq8fr3YCeExtjTWfj1n24cXT9ohryXTUPyXLRrV5TAq4"
+      },
       "android": {
         "buildType": "apk"
       }
